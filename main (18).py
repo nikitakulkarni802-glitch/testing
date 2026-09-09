@@ -131,35 +131,41 @@ station_coords = {
     "HG": {"lat": 17.565461287426693, "lon": 75.9894306025621},
 }
 
-# ====================== JURISDICTION MAPPINGS (from your dashboard code) ======================
-# ENGINEERING
+# ====================== JURISDICTION MAPPINGS (Updated) ======================
 ENGG_ADEN = {
     # ADEN KLBG
     "WADI": "ADEN KLBG", "SDB": "ADEN KLBG", "MR": "ADEN KLBG", "HQR": "ADEN KLBG",
     "KLBG": "ADEN KLBG", "BBD": "ADEN KLBG", "SVG": "ADEN KLBG", "HHD": "ADEN KLBG",
     "GUR": "ADEN KLBG", "KUI": "ADEN KLBG", "TJSP": "ADEN KLBG", "GDGN": "ADEN KLBG",
+    "SBD": "ADEN KLBG",
     # ADEN S SUR
     "AKOR": "ADEN S SUR", "BOT": "ADEN S SUR", "DUD": "ADEN S SUR", "HG": "ADEN S SUR",
-    "NGS": "ADEN S SUR", "TKWD": "ADEN S SUR", "TLT": "ADEN S SUR", "HG STN": "ADEN S SUR", "HG-A": "ADEN S SUR",
+    "NGS": "ADEN S SUR", "TKWD": "ADEN S SUR", "TLT": "ADEN S SUR",
+    "HG STN": "ADEN S SUR", "HG-A": "ADEN S SUR",
     # Sr.ADEN N SUR
     "AAG": "Sr.ADEN N SUR", "BALE": "Sr.ADEN N SUR", "MA": "Sr.ADEN N SUR", "MKPT": "Sr.ADEN N SUR",
     "MO": "Sr.ADEN N SUR", "MVE": "Sr.ADEN N SUR", "PK": "Sr.ADEN N SUR", "SUR": "Sr.ADEN N SUR",
-    "WDS": "Sr.ADEN N SUR", "WKA": "Sr.ADEN N SUR",
+    "WDS": "Sr.ADEN N SUR", "WKA": "Sr.ADEN N SUR", "MOHOL": "Sr.ADEN N SUR", "PAKNI": "Sr.ADEN N SUR",
     # Sr.ADEN KWV BG
     "BGVN": "Sr.ADEN KWV BG", "BLNI": "Sr.ADEN KWV BG", "BRB": "Sr.ADEN KWV BG", "DHS": "Sr.ADEN KWV BG",
     "JEUR": "Sr.ADEN KWV BG", "JNTR": "Sr.ADEN KWV BG", "KEM": "Sr.ADEN KWV BG", "KWV": "Sr.ADEN KWV BG",
     "MLM": "Sr.ADEN KWV BG", "PPJ": "Sr.ADEN KWV BG", "WSB": "Sr.ADEN KWV BG", "KEU": "Sr.ADEN KWV BG",
-    "WSD": "Sr.ADEN KWV BG",
+    "WSD": "Sr.ADEN KWV BG", "DD": "Sr.ADEN KWV BG", "MADHA": "Sr.ADEN KWV BG",
+    "PSS": "Sr.ADEN KWV BG", "LAUL": "Sr.ADEN KWV BG", "CNHL": "Sr.ADEN KWV BG", "MGO": "Sr.ADEN KWV BG",
     # ADEN/PVR
     "ARAG": "ADEN/PVR", "DLGN": "ADEN/PVR", "JTRD": "ADEN/PVR", "KVK": "ADEN/PVR",
     "MLB": "ADEN/PVR", "PVR": "ADEN/PVR", "SGLA": "ADEN/PVR", "SGRE": "ADEN/PVR", "MRJ": "ADEN/PVR",
+    "MSDG": "ADEN/PVR", "JVA": "ADEN/PVR", "GLV": "ADEN/PVR", "LNP": "ADEN/PVR", "AGDl": "ADEN/PVR",
+    "BLWD": "ADEN/PVR", "BDK": "ADEN/PVR", "BLNK": "ADEN/PVR", "BBV": "ADEN/PVR",
+    "AHI": "ADEN/PVR", "BMNI": "ADEN/PVR", "BHLI": "ADEN/PVR",
     # ADEN/LUR
     "BTW": "ADEN/LUR", "DKY": "ADEN/LUR", "HGL": "ADEN/LUR", "LUR": "ADEN/LUR",
     "OSA": "ADEN/LUR", "PJR": "ADEN/LUR", "SEI": "ADEN/LUR", "YSI": "ADEN/LUR",
-    "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR",
+    "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR", "LTRR": "ADEN/LUR", "UMD": "ADEN/LUR",
+    "UPI": "ADEN/LUR", "KCB": "ADEN/LUR", "TER": "ADEN/LUR", "PCP": "ADEN/LUR",
+    "NEI": "ADEN/LUR", "KRMD": "ADEN/LUR", "BANL": "ADEN/LUR", "GANI": "ADEN/LUR",
 }
 
-# ELECT/G
 ELECT_G_SSE = {
     "KWV": "SSE/ELECT/KWV", "DHS": "SSE/ELECT/KWV", "KEM": "SSE/ELECT/KWV", "BLNI": "SSE/ELECT/KWV",
     "BTW": "SSE/ELECT/KWV", "SEI": "SSE/ELECT/KWV", "PPJ": "SSE/ELECT/KWV", "WSB": "SSE/ELECT/KWV",
@@ -167,59 +173,82 @@ ELECT_G_SSE = {
     "BRB": "SSE/ELECT/KWV", "DD": "SSE/ELECT/KWV", "MLB": "SSE/ELECT/KWV", "PVR": "SSE/ELECT/KWV",
     "SGLA": "SSE/ELECT/KWV", "DLGN": "SSE/ELECT/KWV", "JTRD": "SSE/ELECT/KWV", "SGRE": "SSE/ELECT/KWV",
     "ARAG": "SSE/ELECT/KWV", "KVK": "SSE/ELECT/KWV", "MRJ": "SSE/ELECT/KWV", "MKPT": "SSE/ELECT/KWV",
-    "AAG": "SSE/ELECT/KWV", "WKA": "SSE/ELECT/KWV", "MA": "SSE/ELECT/KWV", "WDS": "SSE/ELECT/KWV", "WSD": "SSE/ELECT/KWV",
+    "AAG": "SSE/ELECT/KWV", "WKA": "SSE/ELECT/KWV", "MA": "SSE/ELECT/KWV", "WDS": "SSE/ELECT/KWV",
+    "WSD": "SSE/ELECT/KWV", "MADHA": "SSE/ELECT/KWV", "PSS": "SSE/ELECT/KWV", "LAUL": "SSE/ELECT/KWV",
+    "CNHL": "SSE/ELECT/KWV", "MGO": "SSE/ELECT/KWV", "MSDG": "SSE/ELECT/KWV", "JVA": "SSE/ELECT/KWV",
+    "GLV": "SSE/ELECT/KWV", "LNP": "SSE/ELECT/KWV", "AGDl": "SSE/ELECT/KWV", "BLWD": "SSE/ELECT/KWV",
+    "BDK": "SSE/ELECT/KWV", "BLNK": "SSE/ELECT/KWV", "BBV": "SSE/ELECT/KWV", "AHI": "SSE/ELECT/KWV",
+    "BMNI": "SSE/ELECT/KWV", "BHLI": "SSE/ELECT/KWV",
     "DUD": "SSE/ELECT/SUR", "NGS": "SSE/ELECT/SUR", "BOT": "SSE/ELECT/SUR", "AKOR": "SSE/ELECT/SUR",
     "SUR": "SSE/ELECT/SUR", "JEUR": "SSE/ELECT/SUR", "PK": "SSE/ELECT/SUR", "BALE": "SSE/ELECT/SUR",
     "MVE": "SSE/ELECT/SUR", "MO": "SSE/ELECT/SUR", "TKWD": "SSE/ELECT/SUR", "HG": "SSE/ELECT/SUR",
     "TLT": "SSE/ELECT/SUR", "HG STN": "SSE/ELECT/SUR", "HG-A": "SSE/ELECT/SUR",
+    "MOHOL": "SSE/ELECT/SUR", "PAKNI": "SSE/ELECT/SUR",
     "KUI": "SSE/ELECT/KLBG", "GDGN": "SSE/ELECT/KLBG", "GUR": "SSE/ELECT/KLBG", "SVG": "SSE/ELECT/KLBG",
     "BBD": "SSE/ELECT/KLBG", "KLBG": "SSE/ELECT/KLBG", "TJSP": "SSE/ELECT/KLBG", "HQR": "SSE/ELECT/KLBG",
     "MR": "SSE/ELECT/KLBG", "SDB": "SSE/ELECT/KLBG", "SBD": "SSE/ELECT/KLBG", "WADI": "SSE/ELECT/KLBG",
+    "HHD": "SSE/ELECT/KLBG",
     "PJR": "SSE/ELECT/LUR", "YSI": "SSE/ELECT/LUR", "DKY": "SSE/ELECT/LUR", "OSA": "SSE/ELECT/LUR",
-    "HGL": "SSE/ELECT/LUR", "LUR": "SSE/ELECT/LUR", "DRSV": "SSE/ELECT/LUR",
+    "HGL": "SSE/ELECT/LUR", "LUR": "SSE/ELECT/LUR", "DRSV": "SSE/ELECT/LUR", "MRX": "SSE/ELECT/LUR",
+    "LTRR": "SSE/ELECT/LUR", "UMD": "SSE/ELECT/LUR", "UPI": "SSE/ELECT/LUR", "KCB": "SSE/ELECT/LUR",
+    "TER": "SSE/ELECT/LUR", "PCP": "SSE/ELECT/LUR", "NEI": "SSE/ELECT/LUR", "KRMD": "SSE/ELECT/LUR",
+    "BANL": "SSE/ELECT/LUR", "GANI": "SSE/ELECT/LUR",
 }
 
-# ELECT/TRD
 ELECT_TRD_SSE = {
     "SUR": "SSE/TRD/SUR", "TKWD": "SSE/TRD/SUR", "HG": "SSE/TRD/SUR", "TLT": "SSE/TRD/SUR",
-    "AKOR": "SSE/TRD/SUR", "BALE": "SSE/TRD/SUR", "PK": "SSE/TRD/SUR", "MVE": "SSE/TRD/SUR", "MO": "SSE/TRD/SUR",
+    "AKOR": "SSE/TRD/SUR", "BALE": "SSE/TRD/SUR", "PK": "SSE/TRD/SUR", "MVE": "SSE/TRD/SUR",
+    "MO": "SSE/TRD/SUR", "HG STN": "SSE/TRD/SUR", "HG-A": "SSE/TRD/SUR",
+    "MOHOL": "SSE/TRD/SUR", "PAKNI": "SSE/TRD/SUR",
     "NGS": "SSE/TRD/DUD", "BOT": "SSE/TRD/DUD", "DUD": "SSE/TRD/DUD", "KUI": "SSE/TRD/DUD",
-    "GUR": "SSE/TRD/DUD", "SVG": "SSE/TRD/DUD",
+    "GUR": "SSE/TRD/DUD", "SVG": "SSE/TRD/DUD", "HHD": "SSE/TRD/DUD",
     "BBD": "JE/TRD/KLBG", "KLBG": "JE/TRD/KLBG", "TJSP": "JE/TRD/KLBG", "HQR": "JE/TRD/KLBG",
-    "MR": "JE/TRD/KLBG", "SDB": "JE/TRD/KLBG",
+    "MR": "JE/TRD/KLBG", "SDB": "JE/TRD/KLBG", "SBD": "JE/TRD/KLBG", "GDGN": "JE/TRD/KLBG",
     "WADI": "JE/TRD/WADI",
     "MKPT": "SSE/TRD/KWV", "AAG": "SSE/TRD/KWV", "WKA": "SSE/TRD/KWV", "WDS": "SSE/TRD/KWV",
     "KWV": "SSE/TRD/KWV", "DHS": "SSE/TRD/KWV", "KEM": "SSE/TRD/KWV", "BLNI": "SSE/TRD/KWV",
+    "WSD": "SSE/TRD/KWV", "MADHA": "SSE/TRD/KWV", "PSS": "SSE/TRD/KWV", "LAUL": "SSE/TRD/KWV",
     "JEUR": "SSE/TRD/KEU", "PPJ": "SSE/TRD/KEU", "WSB": "SSE/TRD/KEU", "KEU": "SSE/TRD/KEU",
-    "JNTR": "SSE/TRD/KEU", "BGVN": "SSE/TRD/KEU", "MLM": "SSE/TRD/KEU", "BRB": "SSE/TRD/KEU",
-    "SEI": "SSE/TRD/BTW", "BTW": "SSE/TRD/BTW", "PJR": "SSE/TRD/BTW",
-    "DRSV": "SSE/TRD/DRSV", "YSI": "SSE/TRD/DRSV", "DKY": "SSE/TRD/DRSV",
-    "OSA": "SSE/TRD/LUR", "HGL": "SSE/TRD/LUR", "LUR": "SSE/TRD/LUR",
-    "MLB": "SSE/TRD/PVR", "PVR": "SSE/TRD/PVR",
+    "JNTR": "SSE/TRD/KEU", "BGVN": "SSE/TRD/KEU", "MLM": "SSE/TRD/KEU", "BRB": "SSE/TRD/KEU", "DD": "SSE/TRD/KEU",
+    "SEI": "SSE/TRD/BTW", "BTW": "SSE/TRD/BTW", "PJR": "SSE/TRD/BTW", "CNHL": "SSE/TRD/BTW",
+    "MGO": "SSE/TRD/BTW", "UPI": "SSE/TRD/BTW", "KCB": "SSE/TRD/BTW",
+    "DRSV": "SSE/TRD/DRSV", "YSI": "SSE/TRD/DRSV", "DKY": "SSE/TRD/DRSV", "KRMD": "SSE/TRD/DRSV",
+    "OSA": "SSE/TRD/LUR", "HGL": "SSE/TRD/LUR", "LUR": "SSE/TRD/LUR", "MRX": "SSE/TRD/LUR",
+    "LTRR": "SSE/TRD/LUR", "UMD": "SSE/TRD/LUR", "TER": "SSE/TRD/LUR", "PCP": "SSE/TRD/LUR",
+    "NEI": "SSE/TRD/LUR", "BANL": "SSE/TRD/LUR", "GANI": "SSE/TRD/LUR",
+    "MLB": "SSE/TRD/PVR", "PVR": "SSE/TRD/PVR", "BBV": "SSE/TRD/PVR", "AHI": "SSE/TRD/PVR",
     "SGLA": "SSE/TRD/SGLA", "JTRD": "SSE/TRD/SGLA", "DLGN": "SSE/TRD/SGLA",
+    "MSDG": "SSE/TRD/SGLA", "JVA": "SSE/TRD/SGLA", "GLV": "SSE/TRD/SGLA", "BMNI": "SSE/TRD/SGLA", "BHLI": "SSE/TRD/SGLA",
     "KVK": "SSE/TRD/SGRE", "SGRE": "SSE/TRD/SGRE", "ARAG": "SSE/TRD/SGRE",
+    "LNP": "SSE/TRD/SGRE", "AGDl": "SSE/TRD/SGRE", "BLNK": "SSE/TRD/SGRE",
+    "BLWD": "SSE/TRD/KWV", "BDK": "SSE/TRD/KWV", "MRJ": "SSE/TRD/KWV",
 }
 
-# OPERATING (TI)
 OPERATING_TI = {
     "SUR": "TI/SUR/N", "BALE": "TI/SUR/N", "PK": "TI/SUR/N", "MVE": "TI/SUR/N", "MO": "TI/SUR/N",
-    "MKPT": "TI/SUR/N", "AAG": "TI/SUR/N", "WKA": "TI/SUR/N",
+    "MKPT": "TI/SUR/N", "AAG": "TI/SUR/N", "WKA": "TI/SUR/N", "MOHOL": "TI/SUR/N", "PAKNI": "TI/SUR/N",
     "TKWD": "TI/SUR/S", "HG": "TI/SUR/S", "TLT": "TI/SUR/S", "AKOR": "TI/SUR/S",
     "NGS": "TI/SUR/S", "BOT": "TI/SUR/S", "HG STN": "TI/SUR/S", "HG-A": "TI/SUR/S",
     "DUD": "TI/KLBG", "KUI": "TI/KLBG", "GUR": "TI/KLBG", "SVG": "TI/KLBG",
-    "BBD": "TI/KLBG", "KLBG": "TI/KLBG", "TJSP": "TI/KLBG",
-    "HQR": "TI/WD", "MR": "TI/WD", "SDB": "TI/WD", "WADI": "TI/WD",
+    "BBD": "TI/KLBG", "KLBG": "TI/KLBG", "TJSP": "TI/KLBG", "HHD": "TI/KLBG", "GDGN": "TI/KLBG",
+    "HQR": "TI/WD", "MR": "TI/WD", "SDB": "TI/WD", "WADI": "TI/WD", "SBD": "TI/WD",
     "WDS": "TI/KWV", "KWV": "TI/KWV", "DHS": "TI/KWV", "KEM": "TI/KWV",
-    "BLNI": "TI/KWV", "JEUR": "TI/KWV",
+    "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV",
+    "PSS": "TI/KWV", "LAUL": "TI/KWV",
     "PPJ": "TI/BGVN", "WSB": "TI/BGVN", "KEU": "TI/BGVN", "JNTR": "TI/BGVN",
-    "BGVN": "TI/BGVN", "MLM": "TI/BGVN", "BRB": "TI/BGVN",
+    "BGVN": "TI/BGVN", "MLM": "TI/BGVN", "BRB": "TI/BGVN", "DD": "TI/BGVN",
     "SEI": "TI/LUR", "BTW": "TI/LUR", "PJR": "TI/LUR", "DRSV": "TI/LUR",
     "YSI": "TI/LUR", "DKY": "TI/LUR", "OSA": "TI/LUR", "HGL": "TI/LUR", "LUR": "TI/LUR",
+    "MRX": "TI/LUR", "LTRR": "TI/LUR", "UMD": "TI/LUR", "CNHL": "TI/LUR", "MGO": "TI/LUR",
+    "UPI": "TI/LUR", "KCB": "TI/LUR", "TER": "TI/LUR", "PCP": "TI/LUR",
+    "NEI": "TI/LUR", "KRMD": "TI/LUR", "BANL": "TI/LUR", "GANI": "TI/LUR",
     "MLB": "TI/PVR", "PVR": "TI/PVR", "SGLA": "TI/PVR", "JTRD": "TI/PVR",
-    "DLGN": "TI/PVR", "KVK": "TI/PVR", "SGRE": "TI/PVR", "ARAG": "TI/PVR","GDGN": "TI/KLBG","MA": "TI/KWV",
+    "DLGN": "TI/PVR", "KVK": "TI/PVR", "SGRE": "TI/PVR", "ARAG": "TI/PVR", "MRJ": "TI/PVR",
+    "MSDG": "TI/PVR", "JVA": "TI/PVR", "GLV": "TI/PVR", "LNP": "TI/PVR", "AGDl": "TI/PVR",
+    "BLWD": "TI/PVR", "BDK": "TI/PVR", "BLNK": "TI/PVR", "BBV": "TI/PVR",
+    "AHI": "TI/PVR", "BMNI": "TI/PVR", "BHLI": "TI/PVR",
 }
 
-# S&T (ADSTE)
 SNT_ADSTE = {
     "WADI": "ADSTE/KLBG (WADI-HG)", "SDB": "ADSTE/KLBG (WADI-HG)", "MR": "ADSTE/KLBG (WADI-HG)",
     "HQR": "ADSTE/KLBG (WADI-HG)", "KLBG": "ADSTE/KLBG (WADI-HG)", "BBD": "ADSTE/KLBG (WADI-HG)",
@@ -227,6 +256,7 @@ SNT_ADSTE = {
     "KUI": "ADSTE/KLBG (WADI-HG)", "DUD": "ADSTE/KLBG (WADI-HG)", "BOT": "ADSTE/KLBG (WADI-HG)",
     "AKOR": "ADSTE/KLBG (WADI-HG)", "TLT": "ADSTE/KLBG (WADI-HG)", "HG": "ADSTE/KLBG (WADI-HG)",
     "TJSP": "ADSTE/KLBG (WADI-HG)", "HG STN": "ADSTE/KLBG (WADI-HG)", "HG-A": "ADSTE/KLBG (WADI-HG)",
+    "SBD": "ADSTE/KLBG (WADI-HG)", "GDGN": "ADSTE/KLBG (WADI-HG)", "NGS": "ADSTE/KLBG (WADI-HG)",
     "TKWD": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "SUR": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
     "BALE": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "PK": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
     "MVE": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "MO": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
@@ -236,38 +266,54 @@ SNT_ADSTE = {
     "JTRD": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "DLGN": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
     "KVK": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "SGRE": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
     "ARAG": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "MRJ": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "MA": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "MOHOL": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "PAKNI": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "MSDG": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "JVA": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "GLV": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "LNP": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "AGDl": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "BLWD": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "BDK": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "BLNK": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "BBV": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "AHI": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "BMNI": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "BHLI": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
     "KWV": "ADSTE/KWV-I (KWV-BRB)", "DHS": "ADSTE/KWV-I (KWV-BRB)", "KEM": "ADSTE/KWV-I (KWV-BRB)",
     "BLNI": "ADSTE/KWV-I (KWV-BRB)", "JEUR": "ADSTE/KWV-I (KWV-BRB)", "PPJ": "ADSTE/KWV-I (KWV-BRB)",
     "WSB": "ADSTE/KWV-I (KWV-BRB)", "KEU": "ADSTE/KWV-I (KWV-BRB)", "JNTR": "ADSTE/KWV-I (KWV-BRB)",
     "BGVN": "ADSTE/KWV-I (KWV-BRB)", "MLM": "ADSTE/KWV-I (KWV-BRB)", "BRB": "ADSTE/KWV-I (KWV-BRB)",
-    "WDS": "ADSTE/KWV-I (KWV-BRB)", "WSD": "ADSTE/KWV-I (KWV-BRB)",
+    "WDS": "ADSTE/KWV-I (KWV-BRB)", "WSD": "ADSTE/KWV-I (KWV-BRB)", "DD": "ADSTE/KWV-I (KWV-BRB)",
+    "MADHA": "ADSTE/KWV-I (KWV-BRB)", "PSS": "ADSTE/KWV-I (KWV-BRB)", "LAUL": "ADSTE/KWV-I (KWV-BRB)",
     "SEI": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "BTW": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "PJR": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "YSI": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "MRX": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "OSA": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "HGL": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LUR": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "DRSV": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "DKY": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "LTRR": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "UMD": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "CNHL": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "MGO": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "UPI": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "KCB": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "TER": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "PCP": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "NEI": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "KRMD": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "BANL": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "GANI": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
 }
 
 def get_jurisdiction(station, department):
-    """Assign jurisdiction based on station + department"""
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
     stn = str(station).strip().upper().replace(" ", "")
     # Normalise common variants
-    if stn in ["HGSTN", "HG-A", "HGA"]:
+    if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
+    if stn == "AGDL":
+        stn = "AGDl"
     dept = str(department).strip().upper() if pd.notna(department) else ""
 
     if "ENGINEERING" in dept or "ENGG" in dept:
-        return ENGG_ADEN.get(stn, "Unclassified")
+        return ENGG_ADEN.get(stn, ENGG_ADEN.get(station, "Unclassified"))
     if "ELECT/G" in dept or "ELECT G" in dept or "ELECTRICAL/G" in dept:
-        return ELECT_G_SSE.get(stn, "Unclassified")
+        return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
     if "ELECT/TRD" in dept or "TRD" in dept:
-        return ELECT_TRD_SSE.get(stn, "Unclassified")
+        return ELECT_TRD_SSE.get(stn, ELECT_TRD_SSE.get(station, "Unclassified"))
     if "OPERATING" in dept or "OPTG" in dept:
-        return OPERATING_TI.get(stn, "Unclassified")
+        return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
     if "S&T" in dept or "SNT" in dept or "SIGNAL" in dept or "TELECOM" in dept:
-        return SNT_ADSTE.get(stn, "Unclassified")
+        return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
     if "MECHANICAL" in dept:
         return "Sr.DME"
     if "COMMERCIAL" in dept:
@@ -395,7 +441,6 @@ else:
         selected_remark = st.multiselect("REMARKS GIVEN BY S&T", options=remark_list, default=[], key="remark_key")
 
     with col_f2[3]:
-        # ===== NEW JURISDICTION FILTER =====
         jurisdictions = sorted(df_original['JURISDICTION'].dropna().unique().tolist()) if 'JURISDICTION' in df_original.columns else []
         selected_jurisdictions = st.multiselect("JURISDICTION", options=jurisdictions, default=[], key="jur_key")
 
@@ -421,29 +466,21 @@ else:
 
     if selected_stations:
         filtered_df = filtered_df[filtered_df['STATION'].isin(selected_stations)]
-
     if selected_errors and 'ERROR MAIN CATEGORY' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['ERROR MAIN CATEGORY'].isin(selected_errors)]
-
     if selected_categories and 'DEPARTMENT' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['DEPARTMENT'].isin(selected_categories)]
-
     if selected_months and 'MONTH' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['MONTH'].isin(selected_months)]
-
     if selected_fcount and 'FCOUNT' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['FCOUNT'].isin(selected_fcount)]
-
     if selected_fault and 'DL FAULT MESSAGE' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['DL FAULT MESSAGE'].isin(selected_fault)]
-
     if selected_remark and 'REMARKS GIVEN BY S&T' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['REMARKS GIVEN BY S&T'].isin(selected_remark)]
-
     if selected_jurisdictions and 'JURISDICTION' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['JURISDICTION'].isin(selected_jurisdictions)]
 
-    # Map Selection Override
     if st.session_state.map_selected_station:
         filtered_df = filtered_df[filtered_df['STATION'] == st.session_state.map_selected_station]
 
@@ -454,26 +491,11 @@ else:
 
     if not filtered_df.empty:
         if 'DEPARTMENT' in filtered_df.columns:
-            cat_sum = (
-                filtered_df.groupby('DEPARTMENT')
-                .size()
-                .reset_index(name='Cases')
-                .sort_values('Cases', ascending=False)
-            )
+            cat_sum = (filtered_df.groupby('DEPARTMENT').size().reset_index(name='Cases').sort_values('Cases', ascending=False))
         if 'ERROR MAIN CATEGORY' in filtered_df.columns:
-            error_sum = (
-                filtered_df.groupby('ERROR MAIN CATEGORY')
-                .size()
-                .reset_index(name='Cases')
-                .sort_values('Cases', ascending=False)
-            )
+            error_sum = (filtered_df.groupby('ERROR MAIN CATEGORY').size().reset_index(name='Cases').sort_values('Cases', ascending=False))
         if 'JURISDICTION' in filtered_df.columns:
-            jur_sum = (
-                filtered_df.groupby('JURISDICTION')
-                .size()
-                .reset_index(name='Cases')
-                .sort_values('Cases', ascending=False)
-            )
+            jur_sum = (filtered_df.groupby('JURISDICTION').size().reset_index(name='Cases').sort_values('Cases', ascending=False))
 
     st.divider()
 
@@ -483,7 +505,6 @@ else:
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
 
-        # Metrics
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Records", f"{len(filtered_df):,}")
@@ -511,36 +532,25 @@ else:
             st.markdown('<p class="section-header">Top 15 Stations by FCOUNT</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 top15 = filtered_df.groupby('STATION')['FCOUNT'].sum().nlargest(15).reset_index()
-                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT',
-                             color='FCOUNT', color_continuous_scale='RdYlGn_r')
+                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='RdYlGn_r')
                 fig.update_layout(height=520, xaxis_tickangle=45)
                 st.plotly_chart(fig, use_container_width=True)
 
         with col_g2:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
-                summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
-                    Total_FCOUNT='sum', Records='count'
-                ).sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(
-                    summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"})
-                    .background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'),
-                    use_container_width=True
-                )
+                summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
-        # Department / Error / Jurisdiction summaries
         col_s1, col_s2, col_s3 = st.columns(3)
-
         with col_s1:
             if not cat_sum.empty:
                 st.markdown('<p class="section-header">DEPARTMENT</p>', unsafe_allow_html=True)
                 st.dataframe(cat_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
-
         with col_s2:
             if not error_sum.empty:
                 st.markdown('<p class="section-header">ERROR MAIN CATEGORY</p>', unsafe_allow_html=True)
                 st.dataframe(error_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
-
         with col_s3:
             if not jur_sum.empty:
                 st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
@@ -555,14 +565,11 @@ else:
             display_df = filtered_df.copy()
             if 'DATE' in display_df.columns:
                 display_df['DATE'] = display_df['DATE'].dt.date
-            # Show important columns first
             preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY',
                                'DL FAULT MESSAGE', 'FCOUNT', 'REMARKS GIVEN BY S&T', 'TIMEDETAILS']
-            cols = [c for c in preferred_order if c in display_df.columns] + \
-                   [c for c in display_df.columns if c not in preferred_order]
+            cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
             st.dataframe(display_df[cols].style.format({"FCOUNT": "{:,}"}), use_container_width=True, hide_index=True)
 
-            # Download
             st.markdown("---")
             col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
             with col_btn2:
@@ -570,9 +577,7 @@ else:
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
                     if 'STATION' in filtered_df.columns:
-                        station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
-                            Total_FCOUNT='sum', Record_Count='count'
-                        ).sort_values('Total_FCOUNT', ascending=False).reset_index()
+                        station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Record_Count='count').sort_values('Total_FCOUNT', ascending=False).reset_index()
                         station_summary.to_excel(writer, index=False, sheet_name='Station_Summary')
                     if not error_sum.empty:
                         error_sum.to_excel(writer, index=False, sheet_name='Error_Summary')
@@ -590,7 +595,6 @@ else:
                     use_container_width=True
                 )
 
-    # ====================== MAP TAB ======================
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
 
@@ -619,12 +623,7 @@ else:
                             best_match = info
                             break
                     if best_match:
-                        map_data.append({
-                            'STATION': row['STATION'],
-                            'FCOUNT': row['FCOUNT'],
-                            'lat': best_match['lat'],
-                            'lon': best_match['lon']
-                        })
+                        map_data.append({'STATION': row['STATION'], 'FCOUNT': row['FCOUNT'], 'lat': best_match['lat'], 'lon': best_match['lon']})
                 map_df = pd.DataFrame(map_data)
 
                 if not map_df.empty:
@@ -640,15 +639,13 @@ else:
                             color = "green" if fcount < 600 else ("orange" if fcount <= 1200 else "darkred")
                             radius = 8 + min(fcount / 50, 25)
                             folium.CircleMarker(
-                                location=[row['lat'], row['lon']],
-                                radius=radius,
+                                location=[row['lat'], row['lon']], radius=radius,
                                 popup=f"<h4>{row['STATION']}</h4><b>Total FCOUNT:</b> {fcount:,}",
                                 tooltip=f"{row['STATION']} ({fcount:,})",
                                 color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2
                             ).add_to(m)
 
-                        map_return = st_folium(m, width=950, height=680, key=f"folium_map_{len(filtered_df)}",
-                                               returned_objects=["last_object_clicked"])
+                        map_return = st_folium(m, width=950, height=680, key=f"folium_map_{len(filtered_df)}", returned_objects=["last_object_clicked"])
                         if map_return and map_return.get("last_object_clicked"):
                             lat = map_return["last_object_clicked"]["lat"]
                             lon = map_return["last_object_clicked"]["lng"]
@@ -661,12 +658,8 @@ else:
         with col_m2:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
-                summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
-                    Total_FCOUNT='sum', Records='count'
-                ).sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"})
-                            .background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'),
-                            use_container_width=True)
+                summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
@@ -681,10 +674,8 @@ else:
             display_df = filtered_df.copy()
             if 'DATE' in display_df.columns:
                 display_df['DATE'] = display_df['DATE'].dt.date
-            preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY',
-                               'DL FAULT MESSAGE', 'FCOUNT', 'REMARKS GIVEN BY S&T']
-            cols = [c for c in preferred_order if c in display_df.columns] + \
-                   [c for c in display_df.columns if c not in preferred_order]
+            preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY', 'DL FAULT MESSAGE', 'FCOUNT', 'REMARKS GIVEN BY S&T']
+            cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
             st.dataframe(display_df[cols].style.format({"FCOUNT": "{:,}"}), use_container_width=True, hide_index=True)
 
             st.markdown("---")
