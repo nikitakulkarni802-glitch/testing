@@ -131,34 +131,28 @@ station_coords = {
     "HG": {"lat": 17.565461287426693, "lon": 75.9894306025621},
 }
 
-# ====================== JURISDICTION MAPPINGS (Updated) ======================
+# ====================== JURISDICTION MAPPINGS ======================
 ENGG_ADEN = {
-    # ADEN KLBG
     "WADI": "ADEN KLBG", "SDB": "ADEN KLBG", "MR": "ADEN KLBG", "HQR": "ADEN KLBG",
     "KLBG": "ADEN KLBG", "BBD": "ADEN KLBG", "SVG": "ADEN KLBG", "HHD": "ADEN KLBG",
     "GUR": "ADEN KLBG", "KUI": "ADEN KLBG", "TJSP": "ADEN KLBG", "GDGN": "ADEN KLBG",
     "SBD": "ADEN KLBG",
-    # ADEN S SUR
     "AKOR": "ADEN S SUR", "BOT": "ADEN S SUR", "DUD": "ADEN S SUR", "HG": "ADEN S SUR",
     "NGS": "ADEN S SUR", "TKWD": "ADEN S SUR", "TLT": "ADEN S SUR",
     "HG STN": "ADEN S SUR", "HG-A": "ADEN S SUR",
-    # Sr.ADEN N SUR
     "AAG": "Sr.ADEN N SUR", "BALE": "Sr.ADEN N SUR", "MA": "Sr.ADEN N SUR", "MKPT": "Sr.ADEN N SUR",
     "MO": "Sr.ADEN N SUR", "MVE": "Sr.ADEN N SUR", "PK": "Sr.ADEN N SUR", "SUR": "Sr.ADEN N SUR",
     "WDS": "Sr.ADEN N SUR", "WKA": "Sr.ADEN N SUR", "MOHOL": "Sr.ADEN N SUR", "PAKNI": "Sr.ADEN N SUR",
-    # Sr.ADEN KWV BG
     "BGVN": "Sr.ADEN KWV BG", "BLNI": "Sr.ADEN KWV BG", "BRB": "Sr.ADEN KWV BG", "DHS": "Sr.ADEN KWV BG",
     "JEUR": "Sr.ADEN KWV BG", "JNTR": "Sr.ADEN KWV BG", "KEM": "Sr.ADEN KWV BG", "KWV": "Sr.ADEN KWV BG",
     "MLM": "Sr.ADEN KWV BG", "PPJ": "Sr.ADEN KWV BG", "WSB": "Sr.ADEN KWV BG", "KEU": "Sr.ADEN KWV BG",
     "WSD": "Sr.ADEN KWV BG", "DD": "Sr.ADEN KWV BG", "MADHA": "Sr.ADEN KWV BG",
     "PSS": "Sr.ADEN KWV BG", "LAUL": "Sr.ADEN KWV BG", "CNHL": "Sr.ADEN KWV BG", "MGO": "Sr.ADEN KWV BG",
-    # ADEN/PVR
     "ARAG": "ADEN/PVR", "DLGN": "ADEN/PVR", "JTRD": "ADEN/PVR", "KVK": "ADEN/PVR",
     "MLB": "ADEN/PVR", "PVR": "ADEN/PVR", "SGLA": "ADEN/PVR", "SGRE": "ADEN/PVR", "MRJ": "ADEN/PVR",
     "MSDG": "ADEN/PVR", "JVA": "ADEN/PVR", "GLV": "ADEN/PVR", "LNP": "ADEN/PVR", "AGDl": "ADEN/PVR",
     "BLWD": "ADEN/PVR", "BDK": "ADEN/PVR", "BLNK": "ADEN/PVR", "BBV": "ADEN/PVR",
     "AHI": "ADEN/PVR", "BMNI": "ADEN/PVR", "BHLI": "ADEN/PVR",
-    # ADEN/LUR
     "BTW": "ADEN/LUR", "DKY": "ADEN/LUR", "HGL": "ADEN/LUR", "LUR": "ADEN/LUR",
     "OSA": "ADEN/LUR", "PJR": "ADEN/LUR", "SEI": "ADEN/LUR", "YSI": "ADEN/LUR",
     "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR", "LTRR": "ADEN/LUR", "UMD": "ADEN/LUR",
@@ -296,29 +290,24 @@ SNT_ADSTE = {
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
+
     stn = str(station).strip().upper().replace(" ", "")
+    
     # Normalise common variants
     if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
+
     dept = str(department).strip().upper() if pd.notna(department) else ""
 
-    if "ENGINEERING" in dept or "ENGG" in dept:
-        return ENGG_ADEN.get(stn, ENGG_ADEN.get(station, "Unclassified"))
-    if "ELECT/G" in dept or "ELECT G" in dept or "ELECTRICAL/G" in dept:
-        return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
-    if "ELECT/TRD" in dept or "TRD" in dept:
-        return ELECT_TRD_SSE.get(stn, ELECT_TRD_SSE.get(station, "Unclassified"))
-    if "OPERATING" in dept or "OPTG" in dept:
+    # Special case for OPTG → use Operating mapping
+    if "OPTG" in dept or "OPERATING" in dept:
         return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
-    if "S&T" in dept or "SNT" in dept or "SIGNAL" in dept or "TELECOM" in dept:
-        return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
-    if "MECHANICAL" in dept:
-        return "Sr.DME"
-    if "COMMERCIAL" in dept:
-        return "Sr.DCM"
-    return "Unclassified"
+
+    # For all other cases (Attended Only Remark, Others, Failure, Route Stuckup etc.)
+    # Use S&T mapping as default (most relevant for Data Logger)
+    return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
@@ -368,7 +357,6 @@ def load_data_from_gsheet():
             df['DATE'] = pd.to_datetime(df['DATE'], errors='coerce')
             df['MONTH'] = df['DATE'].dt.strftime('%B')
 
-        # ===== ADD JURISDICTION =====
         if 'STATION' in df.columns and 'DEPARTMENT' in df.columns:
             df['JURISDICTION'] = df.apply(
                 lambda row: get_jurisdiction(row['STATION'], row['DEPARTMENT']), axis=1
@@ -570,21 +558,35 @@ else:
             cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
             st.dataframe(display_df[cols].style.format({"FCOUNT": "{:,}"}), use_container_width=True, hide_index=True)
 
+            # ====================== DOWNLOAD ======================
             st.markdown("---")
             col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
             with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
+
                     if 'STATION' in filtered_df.columns:
-                        station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Record_Count='count').sort_values('Total_FCOUNT', ascending=False).reset_index()
+                        station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
+                            Total_FCOUNT='sum', Record_Count='count'
+                        ).sort_values('Total_FCOUNT', ascending=False).reset_index()
                         station_summary.to_excel(writer, index=False, sheet_name='Station_Summary')
+
                     if not error_sum.empty:
                         error_sum.to_excel(writer, index=False, sheet_name='Error_Summary')
                     if not cat_sum.empty:
                         cat_sum.to_excel(writer, index=False, sheet_name='Category_Summary')
                     if not jur_sum.empty:
                         jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
+
+                    # Unclassified sheet only if exists
+                    if 'JURISDICTION' in filtered_df.columns:
+                        unclass_df = filtered_df[filtered_df['JURISDICTION'] == 'Unclassified'].copy()
+                        if not unclass_df.empty:
+                            if 'DATE' in unclass_df.columns:
+                                unclass_df['DATE'] = pd.to_datetime(unclass_df['DATE'], errors='coerce').dt.date
+                            unclass_df.to_excel(writer, index=False, sheet_name='Unclassified_Records')
+
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Professional Excel Report",
@@ -595,6 +597,7 @@ else:
                     use_container_width=True
                 )
 
+    # ====================== MAP TAB ======================
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
 
@@ -686,6 +689,14 @@ else:
                     display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
                     if not jur_sum.empty:
                         jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
+
+                    if 'JURISDICTION' in filtered_df.columns:
+                        unclass_df = filtered_df[filtered_df['JURISDICTION'] == 'Unclassified'].copy()
+                        if not unclass_df.empty:
+                            if 'DATE' in unclass_df.columns:
+                                unclass_df['DATE'] = pd.to_datetime(unclass_df['DATE'], errors='coerce').dt.date
+                            unclass_df.to_excel(writer, index=False, sheet_name='Unclassified_Records')
+
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Map Filtered Report",
