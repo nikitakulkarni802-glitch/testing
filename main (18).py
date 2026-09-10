@@ -227,7 +227,7 @@ OPERATING_TI = {
     "BBD": "TI/KLBG", "KLBG": "TI/KLBG", "TJSP": "TI/KLBG", "HHD": "TI/KLBG", "GDGN": "TI/KLBG",
     "HQR": "TI/WADI", "MR": "TI/WADI", "SDB": "TI/WADI", "WADI": "TI/WADI", "SBD": "TI/WADI",
     "WDS": "TI/KWV", "KWV": "TI/KWV", "DHS": "TI/KWV", "KEM": "TI/KWV",
-    "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV",
+    "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV","MA":"TI/KWV",
     "PSS": "TI/KWV", "LAUL": "TI/KWV",
     "PPJ": "TI/BGVN", "WSB": "TI/BGVN", "KEU": "TI/BGVN", "JNTR": "TI/BGVN",
     "BGVN": "TI/BGVN", "MLM": "TI/BGVN", "BRB": "TI/BGVN", "DD": "TI/BGVN",
