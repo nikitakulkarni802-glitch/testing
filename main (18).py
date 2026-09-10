@@ -131,34 +131,28 @@ station_coords = {
     "HG": {"lat": 17.565461287426693, "lon": 75.9894306025621},
 }
 
-# ====================== JURISDICTION MAPPINGS (Updated) ======================
+# ====================== JURISDICTION MAPPINGS ======================
 ENGG_ADEN = {
-    # ADEN KLBG
     "WADI": "ADEN KLBG", "SDB": "ADEN KLBG", "MR": "ADEN KLBG", "HQR": "ADEN KLBG",
     "KLBG": "ADEN KLBG", "BBD": "ADEN KLBG", "SVG": "ADEN KLBG", "HHD": "ADEN KLBG",
     "GUR": "ADEN KLBG", "KUI": "ADEN KLBG", "TJSP": "ADEN KLBG", "GDGN": "ADEN KLBG",
     "SBD": "ADEN KLBG",
-    # ADEN S SUR
     "AKOR": "ADEN S SUR", "BOT": "ADEN S SUR", "DUD": "ADEN S SUR", "HG": "ADEN S SUR",
     "NGS": "ADEN S SUR", "TKWD": "ADEN S SUR", "TLT": "ADEN S SUR",
     "HG STN": "ADEN S SUR", "HG-A": "ADEN S SUR",
-    # Sr.ADEN N SUR
     "AAG": "Sr.ADEN N SUR", "BALE": "Sr.ADEN N SUR", "MA": "Sr.ADEN N SUR", "MKPT": "Sr.ADEN N SUR",
     "MO": "Sr.ADEN N SUR", "MVE": "Sr.ADEN N SUR", "PK": "Sr.ADEN N SUR", "SUR": "Sr.ADEN N SUR",
     "WDS": "Sr.ADEN N SUR", "WKA": "Sr.ADEN N SUR", "MOHOL": "Sr.ADEN N SUR", "PAKNI": "Sr.ADEN N SUR",
-    # Sr.ADEN KWV BG
     "BGVN": "Sr.ADEN KWV BG", "BLNI": "Sr.ADEN KWV BG", "BRB": "Sr.ADEN KWV BG", "DHS": "Sr.ADEN KWV BG",
     "JEUR": "Sr.ADEN KWV BG", "JNTR": "Sr.ADEN KWV BG", "KEM": "Sr.ADEN KWV BG", "KWV": "Sr.ADEN KWV BG",
     "MLM": "Sr.ADEN KWV BG", "PPJ": "Sr.ADEN KWV BG", "WSB": "Sr.ADEN KWV BG", "KEU": "Sr.ADEN KWV BG",
     "WSD": "Sr.ADEN KWV BG", "DD": "Sr.ADEN KWV BG", "MADHA": "Sr.ADEN KWV BG",
     "PSS": "Sr.ADEN KWV BG", "LAUL": "Sr.ADEN KWV BG", "CNHL": "Sr.ADEN KWV BG", "MGO": "Sr.ADEN KWV BG",
-    # ADEN/PVR
     "ARAG": "ADEN/PVR", "DLGN": "ADEN/PVR", "JTRD": "ADEN/PVR", "KVK": "ADEN/PVR",
     "MLB": "ADEN/PVR", "PVR": "ADEN/PVR", "SGLA": "ADEN/PVR", "SGRE": "ADEN/PVR", "MRJ": "ADEN/PVR",
     "MSDG": "ADEN/PVR", "JVA": "ADEN/PVR", "GLV": "ADEN/PVR", "LNP": "ADEN/PVR", "AGDl": "ADEN/PVR",
     "BLWD": "ADEN/PVR", "BDK": "ADEN/PVR", "BLNK": "ADEN/PVR", "BBV": "ADEN/PVR",
     "AHI": "ADEN/PVR", "BMNI": "ADEN/PVR", "BHLI": "ADEN/PVR",
-    # ADEN/LUR
     "BTW": "ADEN/LUR", "DKY": "ADEN/LUR", "HGL": "ADEN/LUR", "LUR": "ADEN/LUR",
     "OSA": "ADEN/LUR", "PJR": "ADEN/LUR", "SEI": "ADEN/LUR", "YSI": "ADEN/LUR",
     "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR", "LTRR": "ADEN/LUR", "UMD": "ADEN/LUR",
@@ -231,7 +225,7 @@ OPERATING_TI = {
     "NGS": "TI/SUR/S", "BOT": "TI/SUR/S", "HG STN": "TI/SUR/S", "HG-A": "TI/SUR/S",
     "DUD": "TI/KLBG", "KUI": "TI/KLBG", "GUR": "TI/KLBG", "SVG": "TI/KLBG",
     "BBD": "TI/KLBG", "KLBG": "TI/KLBG", "TJSP": "TI/KLBG", "HHD": "TI/KLBG", "GDGN": "TI/KLBG",
-    "HQR": "TI/WADI", "MR": "TI/WADI", "SDB": "TI/WADI", "WADI": "TI/WADI", "SBD": "TI/WADI",   # ← Changed
+    "HQR": "TI/WADI", "MR": "TI/WADI", "SDB": "TI/WADI", "WADI": "TI/WADI", "SBD": "TI/WADI",
     "WDS": "TI/KWV", "KWV": "TI/KWV", "DHS": "TI/KWV", "KEM": "TI/KWV",
     "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV",
     "PSS": "TI/KWV", "LAUL": "TI/KWV",
@@ -248,6 +242,7 @@ OPERATING_TI = {
     "BLWD": "TI/PVR", "BDK": "TI/PVR", "BLNK": "TI/PVR", "BBV": "TI/PVR",
     "AHI": "TI/PVR", "BMNI": "TI/PVR", "BHLI": "TI/PVR",
 }
+
 SNT_ADSTE = {
     "WADI": "ADSTE/KLBG (WADI-HG)", "SDB": "ADSTE/KLBG (WADI-HG)", "MR": "ADSTE/KLBG (WADI-HG)",
     "HQR": "ADSTE/KLBG (WADI-HG)", "KLBG": "ADSTE/KLBG (WADI-HG)", "BBD": "ADSTE/KLBG (WADI-HG)",
@@ -296,7 +291,6 @@ def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
     stn = str(station).strip().upper().replace(" ", "")
-    # Normalise common variants
     if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
     if stn == "AGDL":
@@ -367,7 +361,6 @@ def load_data_from_gsheet():
             df['DATE'] = pd.to_datetime(df['DATE'], errors='coerce')
             df['MONTH'] = df['DATE'].dt.strftime('%B')
 
-        # ===== ADD JURISDICTION =====
         if 'STATION' in df.columns and 'DEPARTMENT' in df.columns:
             df['JURISDICTION'] = df.apply(
                 lambda row: get_jurisdiction(row['STATION'], row['DEPARTMENT']), axis=1
