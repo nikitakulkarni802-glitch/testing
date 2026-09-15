@@ -597,7 +597,7 @@ else:
                     use_container_width=True
                 )
 
-   with tab_map:
+with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
        
         # Clear Selection
