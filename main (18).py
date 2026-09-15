@@ -7,6 +7,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
+import re
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
@@ -39,6 +40,19 @@ st.markdown("""
         font-weight: 600;
         margin-bottom: 20px;
         text-align: center;
+    }
+    .chat-message {
+        padding: 10px 14px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    .user-msg {
+        background-color: #e8f0fe;
+        text-align: right;
+    }
+    .bot-msg {
+        background-color: #f1f3f4;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -323,11 +337,96 @@ def get_jurisdiction(station, department):
     
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
+# ====================== AI CHATBOT FUNCTION ======================
+def ask_chatbot(question, df):
+    q = question.lower().strip()
+    
+    if df is None or df.empty:
+        return "No data available."
+
+    # Total records
+    if any(x in q for x in ["total records", "how many records", "total cases", "number of records"]):
+        return f"Total records in the system: **{len(df):,}**"
+
+    # Total FCOUNT
+    if any(x in q for x in ["total fcount", "overall fcount", "sum of fcount"]):
+        total = df['FCOUNT'].sum() if 'FCOUNT' in df.columns else 0
+        return f"Total FCOUNT across all records: **{total:,}**"
+
+    # Top station
+    if any(x in q for x in ["top station", "highest station", "station with highest", "which station has highest"]):
+        if 'STATION' in df.columns and 'FCOUNT' in df.columns:
+            top = df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
+            station = top.index[0]
+            value = top.iloc[0]
+            return f"The station with highest FCOUNT is **{station}** with **{value:,}** FCOUNT."
+        return "Station data not available."
+
+    # Top 5 stations
+    if "top 5" in q and "station" in q:
+        if 'STATION' in df.columns and 'FCOUNT' in df.columns:
+            top5 = df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
+            result = "Top 5 Stations by FCOUNT:\n\n"
+            for i, (stn, val) in enumerate(top5.items(), 1):
+                result += f"{i}. **{stn}** → {val:,}\n"
+            return result
+        return "Station data not available."
+
+    # Specific station FCOUNT
+    for station in df['STATION'].dropna().unique():
+        if station.lower() in q:
+            if 'FCOUNT' in df.columns:
+                total = df[df['STATION'] == station]['FCOUNT'].sum()
+                count = len(df[df['STATION'] == station])
+                return f"Station **{station}**:\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
+    
+    # Department related
+    if "engineering" in q or "engg" in q:
+        eng = df[df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
+        return f"Engineering Department has **{len(eng):,}** records."
+    
+    if "optg" in q or "operating" in q:
+        optg = df[df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
+        return f"Operating (OPTG) Department has **{len(optg):,}** records."
+
+    # Error category
+    if "track circuit" in q:
+        tc = df[df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
+        return f"Track Circuit Failure cases: **{len(tc):,}**"
+    
+    if "emergency route" in q:
+        er = df[df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
+        return f"Emergency Route Cancellation cases: **{len(er):,}**"
+
+    # Jurisdiction
+    if "jurisdiction" in q and ("highest" in q or "top" in q or "maximum" in q):
+        if 'JURISDICTION' in df.columns:
+            top_jur = df['JURISDICTION'].value_counts().idxmax()
+            count = df['JURISDICTION'].value_counts().max()
+            return f"The jurisdiction with highest cases is **{top_jur}** with **{count:,}** cases."
+
+    # Help
+    if any(x in q for x in ["help", "what can you do", "commands"]):
+        return """I can answer questions like:
+- Which station has highest FCOUNT?
+- Top 5 stations
+- Total FCOUNT
+- How many records in Engineering?
+- Track Circuit Failure cases
+- Tell me about station WADI
+- Which jurisdiction has maximum cases?
+
+Just ask in normal English!"""
+
+    return "Sorry, I could not understand the question. Try asking about stations, FCOUNT, departments, or errors. Type **help** for examples."
+
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "map_selected_station" not in st.session_state:
     st.session_state.map_selected_station = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 # ====================== LOGIN & LOAD DATA ======================
 def login_page():
@@ -397,12 +496,37 @@ else:
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
+    # Load data first
+    df_original = load_data_from_gsheet()
+
+    # ====================== SIDEBAR ======================
     with st.sidebar:
         st.header("🔧 Controls")
         if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
             refresh_data()
 
-    df_original = load_data_from_gsheet()
+        st.markdown("---")
+        st.subheader("🤖 AI Chatbot")
+        st.caption("Ask questions on full data")
+
+        # Chat history
+        for chat in st.session_state.chat_history[-6:]:  # show last 6 messages
+            if chat["role"] == "user":
+                st.markdown(f'<div class="chat-message user-msg">👤 {chat["content"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="chat-message bot-msg">🤖 {chat["content"]}</div>', unsafe_allow_html=True)
+
+        # Chat input
+        user_question = st.chat_input("Ask me anything about the data...")
+        if user_question:
+            st.session_state.chat_history.append({"role": "user", "content": user_question})
+            answer = ask_chatbot(user_question, df_original)
+            st.session_state.chat_history.append({"role": "assistant", "content": answer})
+            st.rerun()
+
+        if st.button("Clear Chat", use_container_width=True):
+            st.session_state.chat_history = []
+            st.rerun()
 
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
@@ -542,7 +666,7 @@ else:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
                 st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
-        # ========== MONTHLY TREND CHART (FIXED + ZOOMABLE) ==========
+        # ========== MONTHLY TREND CHART ==========
         st.markdown("---")
         st.markdown('<p class="section-header">📈 Monthly Trend of FCOUNT</p>', unsafe_allow_html=True)
         
@@ -570,30 +694,25 @@ else:
                 yaxis_title="Total FCOUNT",
                 hovermode="x unified",
                 dragmode="zoom",
-                xaxis=dict(
-                    tickangle=-45,
-                    type='category'
-                )
+                xaxis=dict(tickangle=-45, type='category')
             )
             
             st.plotly_chart(fig_trend, use_container_width=True, config={
                 'displayModeBar': True,
                 'scrollZoom': True,
-                'displaylogo': False,
-                'modeBarButtonsToAdd': ['zoom2d', 'pan2d', 'autoScale2d', 'resetScale2d']
+                'displaylogo': False
             })
             
             st.caption("Tip: Click and drag on the chart to zoom. Double-click to reset view.")
         else:
             st.info("No monthly data available for trend.")
 
-        # ========== DISTRIBUTION CHARTS (MODERN PIE ONLY) ==========
+        # ========== DISTRIBUTION CHARTS ==========
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
         
         col_c1, col_c2, col_c3 = st.columns(3)
 
-        # ----- 1. Department -----
         with col_c1:
             st.markdown("**Department-wise**")
             if not cat_sum.empty:
@@ -610,18 +729,11 @@ else:
                     textfont_size=13,
                     marker=dict(line=dict(color='#ffffff', width=2))
                 )
-                fig_dept.update_layout(
-                    height=400,
-                    showlegend=False,
-                    margin=dict(t=30, b=30, l=20, r=20),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
+                fig_dept.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
                 st.info("No Department data")
 
-        # ----- 2. Error Main Category -----
         with col_c2:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
@@ -638,18 +750,11 @@ else:
                     textfont_size=12,
                     marker=dict(line=dict(color='#ffffff', width=2))
                 )
-                fig_err.update_layout(
-                    height=400,
-                    showlegend=False,
-                    margin=dict(t=30, b=30, l=20, r=20),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
+                fig_err.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
                 st.info("No Error data")
 
-        # ----- 3. Jurisdiction -----
         with col_c3:
             st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
@@ -676,13 +781,7 @@ else:
                     textfont_size=11,
                     marker=dict(line=dict(color='#ffffff', width=2))
                 )
-                fig_jur.update_layout(
-                    height=400,
-                    showlegend=False,
-                    margin=dict(t=30, b=30, l=20, r=20),
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)'
-                )
+                fig_jur.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
