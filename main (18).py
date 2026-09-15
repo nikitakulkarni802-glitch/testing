@@ -8,7 +8,7 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
 import re
-from difflib import get_close_matches, SequenceMatcher
+from difflib import SequenceMatcher
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
@@ -30,8 +30,19 @@ st.markdown("""
         text-align: center;
         margin-bottom: 0.2rem;
     }
-    .subtitle { font-size: 1.4rem; color: #003087; text-align: center; font-weight: 500; margin-top: -0.4rem; }
-    .section-header { font-size: 1.6rem; font-weight: 600; color: #003087; margin: 1.2rem 0 0.5rem 0; }
+    .subtitle { 
+        font-size: 1.4rem; 
+        color: #003087; 
+        text-align: center; 
+        font-weight: 500; 
+        margin-top: -0.4rem; 
+    }
+    .section-header { 
+        font-size: 1.6rem; 
+        font-weight: 600; 
+        color: #003087; 
+        margin: 1.2rem 0 0.5rem 0; 
+    }
     .alert-box {
         background-color: #ff4b4b;
         color: white;
@@ -42,18 +53,68 @@ st.markdown("""
         margin-bottom: 20px;
         text-align: center;
     }
+
+    /* ========== COOL CHATBOT STYLING ========== */
+    .chatbot-header {
+        background: linear-gradient(135deg, #003087, #0056b3);
+        color: white;
+        padding: 14px 18px;
+        border-radius: 14px 14px 0 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 0;
+        box-shadow: 0 4px 12px rgba(0,48,135,0.25);
+    }
+    .chatbot-header span {
+        background: rgba(255,255,255,0.2);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .chat-container {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        border-radius: 0 0 14px 14px;
+        padding: 16px 14px;
+        max-height: 420px;
+        overflow-y: auto;
+        margin-bottom: 12px;
+    }
     .chat-message {
-        padding: 10px 14px;
-        border-radius: 10px;
-        margin-bottom: 8px;
+        padding: 12px 16px;
+        border-radius: 18px;
+        margin-bottom: 12px;
         font-size: 0.95rem;
+        line-height: 1.45;
+        max-width: 92%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        position: relative;
     }
     .user-msg {
-        background-color: #e8f0fe;
-        text-align: right;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+        text-align: left;
     }
     .bot-msg {
-        background-color: #f1f3f4;
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    .bot-msg b {
+        color: #003087;
+    }
+    .chat-avatar {
+        font-size: 1.1rem;
+        margin-right: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -338,12 +399,11 @@ def get_jurisdiction(station, department):
     
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
-# ====================== IMPROVED AI CHATBOT (Spelling-tolerant) ======================
+# ====================== IMPROVED AI CHATBOT ======================
 def similarity(a, b):
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 def fuzzy_contains(text, candidates, threshold=0.72):
-    """Return True if any candidate is similar enough to any word in text"""
     words = re.findall(r'\w+', text.lower())
     for word in words:
         for cand in candidates:
@@ -368,9 +428,8 @@ def detect_month(q):
     }
     q_lower = q.lower()
     for key, value in month_map.items():
-        if key in q_lower or similarity(key, q_lower) > 0.8:
+        if key in q_lower:
             return value
-    # Extra fuzzy check for common misspellings
     for key, value in month_map.items():
         if fuzzy_contains(q, [key], threshold=0.75):
             return value
@@ -381,94 +440,90 @@ def ask_chatbot(question, df):
         return "No data available in the system."
 
     q = question.lower().strip()
-    original_q = question.strip()
-
-    # ---------- Detect month (tolerant) ----------
     detected_month = detect_month(q)
 
     work_df = df.copy()
     if detected_month and 'MONTH' in work_df.columns:
         work_df = work_df[work_df['MONTH'] == detected_month]
         if work_df.empty:
-            return f"No records found for the month of **{detected_month}**."
+            return f"No records found for the month of <b>{detected_month}</b>."
 
-    # ---------- HELP ----------
+    # HELP
     if fuzzy_contains(q, ["help", "what can you do", "commands", "examples", "how to ask"]):
-        return """**I can answer questions even with spelling mistakes. Try these:**
+        return """I can answer questions even with spelling mistakes. Try these:<br><br>
+<b>Basic</b><br>
+• Total records / Total FCOUNT<br>
+• Top station / Highest station<br>
+• Top 5 stations<br>
+• Tell me about station WADI<br><br>
+<b>With month</b><br>
+• Which station has highest FCOUNT in January?<br>
+• Top 5 stations in February<br>
+• Total cases in March<br><br>
+Just type naturally — even if there are typos."""
 
-**Basic**
-- Total records / Total FCOUNT
-- Top station / Highest station
-- Top 5 stations
-- Tell me about station WADI
+    # ========== TOP / HIGHEST / MORE CASES STATION (HIGH PRIORITY) ==========
+    top_keywords = [
+        "top station", "highest station", "station with highest", "which station has highest",
+        "which station has more", "which station has most", "station with most", "station with more",
+        "higest station", "hightest", "top sation", "highest sation", "most cases station",
+        "maximum station", "max station", "more cases", "has more cases", "stations has more",
+        "station has more", "which stations has more", "which station has", "stations with more"
+    ]
+    
+    is_top_station_query = (
+        fuzzy_contains(q, top_keywords) or
+        (fuzzy_contains(q, ["top", "highest", "most", "maximum", "max", "more"]) and 
+         fuzzy_contains(q, ["station", "sation", "statin", "stn", "stations"]))
+    )
 
-**With month**
-- Which station has highest FCOUNT in January?
-- Top 5 stations in February
-- Total cases in March
-
-**Department / Category**
-- How many cases in Engineering?
-- Track Circuit Failure cases
-- Emergency Route cases
-
-**Just type naturally** — even if there are typos like “sation”, “janury”, “fcountt”, “mor cases” etc."""
-
-    # ---------- TOTAL RECORDS ----------
-    if fuzzy_contains(q, ["total record", "how many record", "number of record", "total case", "total cases", "how many case"]):
-        return f"Total records{' in ' + detected_month if detected_month else ''}: **{len(work_df):,}**"
-
-    # ---------- TOTAL FCOUNT ----------
-    if fuzzy_contains(q, ["total fcount", "overall fcount", "sum of fcount", "total fault", "total f count", "fcountt", "f cout"]):
-        total = work_df['FCOUNT'].sum() if 'FCOUNT' in work_df.columns else 0
-        return f"Total FCOUNT{' in ' + detected_month if detected_month else ''}: **{total:,}**"
-
-    # ---------- TOP / HIGHEST STATION ----------
-    top_keywords = ["top station", "highest station", "station with highest", "which station has highest",
-                    "which station has more", "which station has most", "station with most", "station with more",
-                    "higest station", "hightest", "top sation", "highest sation", "most cases station",
-                    "maximum station", "max station"]
-    if fuzzy_contains(q, top_keywords) or (fuzzy_contains(q, ["top", "highest", "most", "maximum", "max"]) and fuzzy_contains(q, ["station", "sation", "statin", "stn"])):
+    if is_top_station_query:
         if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
             top = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
             if top.empty:
                 return "No station data available for this query."
             station = top.index[0]
-            value = top.iloc[0]
-            month_text = f" in **{detected_month}**" if detected_month else ""
-            return f"The station with highest FCOUNT{month_text} is **{station}** with **{value:,}** FCOUNT."
+            value = int(top.iloc[0])
+            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
+            return f"The station with the highest FCOUNT{month_text} is <b>{station}</b> with <b>{value:,}</b> FCOUNT."
         return "Station or FCOUNT data not available."
 
-    # ---------- TOP 5 STATIONS ----------
+    # TOP 5 STATIONS
     if (fuzzy_contains(q, ["top 5", "top five", "top5"]) and fuzzy_contains(q, ["station", "sation", "statin"])) or \
        (fuzzy_contains(q, ["top"]) and "5" in q and fuzzy_contains(q, ["station", "sation"])):
         if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
             top5 = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
             if top5.empty:
                 return "No data available."
-            month_text = f" in **{detected_month}**" if detected_month else ""
-            result = f"**Top 5 Stations by FCOUNT{month_text}:**\n\n"
+            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
+            result = f"<b>Top 5 Stations by FCOUNT{month_text}:</b><br><br>"
             for i, (stn, val) in enumerate(top5.items(), 1):
-                result += f"{i}. **{stn}** → {val:,}\n"
+                result += f"{i}. <b>{stn}</b> → {int(val):,}<br>"
             return result
         return "Station data not available."
 
-    # ---------- SPECIFIC STATION (fuzzy) ----------
+    # TOTAL RECORDS
+    if fuzzy_contains(q, ["total record", "how many record", "number of record", "total case", "total cases", "how many case"]):
+        return f"Total records{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(work_df):,}</b>"
+
+    # TOTAL FCOUNT
+    if fuzzy_contains(q, ["total fcount", "overall fcount", "sum of fcount", "total fault", "total f count", "fcountt", "f cout"]):
+        total = work_df['FCOUNT'].sum() if 'FCOUNT' in work_df.columns else 0
+        return f"Total FCOUNT{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{int(total):,}</b>"
+
+    # SPECIFIC STATION
     if 'STATION' in df.columns:
         stations = [str(s).strip() for s in df['STATION'].dropna().unique()]
-        # Find best matching station name in the question
         best_station = None
         best_score = 0.0
         q_words = re.findall(r'\w+', q)
         for stn in stations:
             stn_lower = stn.lower()
-            # Exact or close match
             if stn_lower in q or any(similarity(w, stn_lower) > 0.78 for w in q_words):
-                score = max(similarity(w, stn_lower) for w in q_words) if q_words else 0
+                score = max((similarity(w, stn_lower) for w in q_words), default=0)
                 if score > best_score:
                     best_score = score
                     best_station = stn
-            # Also check full phrase similarity
             if similarity(q, stn_lower) > 0.6 and similarity(q, stn_lower) > best_score:
                 best_score = similarity(q, stn_lower)
                 best_station = stn
@@ -476,47 +531,47 @@ def ask_chatbot(question, df):
         if best_station and best_score > 0.65:
             stn_df = work_df[work_df['STATION'] == best_station]
             if stn_df.empty:
-                return f"No records found for station **{best_station}**{' in ' + detected_month if detected_month else ''}."
-            total = stn_df['FCOUNT'].sum()
+                return f"No records found for station <b>{best_station}</b>{' in <b>' + detected_month + '</b>' if detected_month else ''}."
+            total = int(stn_df['FCOUNT'].sum())
             count = len(stn_df)
-            month_text = f" in **{detected_month}**" if detected_month else ""
-            return f"**Station {best_station}{month_text}:**\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
+            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
+            return f"<b>Station {best_station}{month_text}:</b><br>• Total FCOUNT: <b>{total:,}</b><br>• Number of records: <b>{count:,}</b>"
 
-    # ---------- DEPARTMENT ----------
+    # DEPARTMENT
     if fuzzy_contains(q, ["engineering", "engg", "engeniring", "engneering"]):
         eng = work_df[work_df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
-        return f"Engineering Department has **{len(eng):,}** records{' in ' + detected_month if detected_month else ''}."
+        return f"Engineering Department has <b>{len(eng):,}</b> records{' in <b>' + detected_month + '</b>' if detected_month else ''}."
     
     if fuzzy_contains(q, ["optg", "operating", "oprating", "operation"]):
         optg = work_df[work_df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
-        return f"Operating (OPTG) Department has **{len(optg):,}** records{' in ' + detected_month if detected_month else ''}."
+        return f"Operating (OPTG) Department has <b>{len(optg):,}</b> records{' in <b>' + detected_month + '</b>' if detected_month else ''}."
 
-    # ---------- ERROR CATEGORY ----------
+    # ERROR CATEGORY
     if fuzzy_contains(q, ["track circuit", "trackcircuit", "tc failure"]):
         tc = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
-        return f"Track Circuit Failure cases{' in ' + detected_month if detected_month else ''}: **{len(tc):,}**"
+        return f"Track Circuit Failure cases{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(tc):,}</b>"
     
     if fuzzy_contains(q, ["emergency route", "emergencyroute", "route cancellation"]):
         er = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
-        return f"Emergency Route Cancellation cases{' in ' + detected_month if detected_month else ''}: **{len(er):,}**"
+        return f"Emergency Route Cancellation cases{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(er):,}</b>"
 
-    # ---------- JURISDICTION ----------
+    # JURISDICTION
     if fuzzy_contains(q, ["jurisdiction", "jurisdction", "juris"]) and fuzzy_contains(q, ["highest", "top", "maximum", "most", "max"]):
         if 'JURISDICTION' in work_df.columns:
             top_jur = work_df['JURISDICTION'].value_counts()
             if top_jur.empty:
                 return "No jurisdiction data available."
-            return f"The jurisdiction with highest cases{' in ' + detected_month if detected_month else ''} is **{top_jur.index[0]}** with **{top_jur.iloc[0]:,}** cases."
+            return f"The jurisdiction with highest cases{' in <b>' + detected_month + '</b>' if detected_month else ''} is <b>{top_jur.index[0]}</b> with <b>{top_jur.iloc[0]:,}</b> cases."
 
-    # ---------- FALLBACK ----------
-    return ("Sorry, I could not fully understand the question.\n\n"
-            "Try asking (spelling mistakes are okay):\n"
-            "- Which station has highest FCOUNT in January?\n"
-            "- Top 5 stations in February\n"
-            "- Total FCOUNT\n"
-            "- Tell me about station WADI\n"
-            "- How many cases in Engineering?\n\n"
-            "Type **help** for more examples.")
+    # FALLBACK
+    return ("Sorry, I could not fully understand the question.<br><br>"
+            "Try asking (spelling mistakes are okay):<br>"
+            "• Which station has highest FCOUNT in January?<br>"
+            "• Top 5 stations in February<br>"
+            "• Total FCOUNT<br>"
+            "• Tell me about station WADI<br>"
+            "• How many cases in Engineering?<br><br>"
+            "Type <b>help</b> for more examples.")
 
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
@@ -603,14 +658,30 @@ else:
             refresh_data()
 
         st.markdown("---")
-        st.subheader("🤖 AI Chatbot")
-        st.caption("Ask questions on full data (spelling mistakes allowed)")
 
-        for chat in st.session_state.chat_history[-8:]:
+        # Cool Chatbot Header
+        st.markdown("""
+        <div class="chatbot-header">
+            🤖 AI Chatbot
+            <span>Spelling tolerant</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Chat messages
+        chat_html = '<div class="chat-container">'
+        for chat in st.session_state.chat_history[-12:]:
             if chat["role"] == "user":
-                st.markdown(f'<div class="chat-message user-msg">👤 {chat["content"]}</div>', unsafe_allow_html=True)
+                chat_html += f'''
+                <div class="chat-message user-msg">
+                    <span class="chat-avatar">👤</span>{chat["content"]}
+                </div>'''
             else:
-                st.markdown(f'<div class="chat-message bot-msg">🤖 {chat["content"]}</div>', unsafe_allow_html=True)
+                chat_html += f'''
+                <div class="chat-message bot-msg">
+                    <span class="chat-avatar">🤖</span>{chat["content"]}
+                </div>'''
+        chat_html += '</div>'
+        st.markdown(chat_html, unsafe_allow_html=True)
 
         user_question = st.chat_input("Ask me anything about the data...")
         if user_question:
@@ -619,7 +690,7 @@ else:
             st.session_state.chat_history.append({"role": "assistant", "content": answer})
             st.rerun()
 
-        if st.button("Clear Chat", use_container_width=True):
+        if st.button("🗑️ Clear Chat", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
 
