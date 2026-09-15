@@ -337,88 +337,145 @@ def get_jurisdiction(station, department):
     
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
-# ====================== AI CHATBOT FUNCTION ======================
+# ====================== IMPROVED AI CHATBOT ======================
 def ask_chatbot(question, df):
+    if df is None or df.empty:
+        return "No data available in the system."
+
     q = question.lower().strip()
     
-    if df is None or df.empty:
-        return "No data available."
+    # Month mapping
+    month_map = {
+        "january": "January", "jan": "January",
+        "february": "February", "feb": "February",
+        "march": "March", "mar": "March",
+        "april": "April", "apr": "April",
+        "may": "May",
+        "june": "June", "jun": "June",
+        "july": "July", "jul": "July",
+        "august": "August", "aug": "August",
+        "september": "September", "sep": "September", "sept": "September",
+        "october": "October", "oct": "October",
+        "november": "November", "nov": "November",
+        "december": "December", "dec": "December"
+    }
+    
+    detected_month = None
+    for key, value in month_map.items():
+        if key in q:
+            detected_month = value
+            break
 
-    # Total records
-    if any(x in q for x in ["total records", "how many records", "total cases", "number of records"]):
-        return f"Total records in the system: **{len(df):,}**"
+    # Filter by month if detected
+    work_df = df.copy()
+    if detected_month and 'MONTH' in work_df.columns:
+        work_df = work_df[work_df['MONTH'] == detected_month]
+        if work_df.empty:
+            return f"No records found for the month of **{detected_month}**."
 
-    # Total FCOUNT
-    if any(x in q for x in ["total fcount", "overall fcount", "sum of fcount"]):
-        total = df['FCOUNT'].sum() if 'FCOUNT' in df.columns else 0
-        return f"Total FCOUNT across all records: **{total:,}**"
+    # ========== HELP ==========
+    if any(x in q for x in ["help", "what can you do", "commands", "examples"]):
+        return """**I can answer questions like:**
 
-    # Top station
-    if any(x in q for x in ["top station", "highest station", "station with highest", "which station has highest"]):
-        if 'STATION' in df.columns and 'FCOUNT' in df.columns:
-            top = df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
+**Basic:**
+- Total records / Total FCOUNT
+- Top station
+- Top 5 stations
+- Tell me about station WADI
+
+**Intermediate:**
+- Which station has highest FCOUNT in January?
+- Top 5 stations in February
+- How many cases in Engineering?
+- Track Circuit Failure cases
+
+**Advanced:**
+- Which station had most cases in January under Engineering?
+- Highest station in March for OPTG department
+
+Just type your question in normal English!"""
+
+    # ========== TOTAL RECORDS ==========
+    if any(x in q for x in ["total records", "how many records", "number of records", "total cases"]):
+        return f"Total records{' in ' + detected_month if detected_month else ''}: **{len(work_df):,}**"
+
+    # ========== TOTAL FCOUNT ==========
+    if any(x in q for x in ["total fcount", "overall fcount", "sum of fcount", "total fault count"]):
+        total = work_df['FCOUNT'].sum() if 'FCOUNT' in work_df.columns else 0
+        return f"Total FCOUNT{' in ' + detected_month if detected_month else ''}: **{total:,}**"
+
+    # ========== TOP STATION ==========
+    if any(x in q for x in ["top station", "highest station", "station with highest", "which station has highest", 
+                            "which station has more", "which station has most", "station with most", "station with more"]):
+        if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
+            top = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
+            if top.empty:
+                return "No station data available for this query."
             station = top.index[0]
             value = top.iloc[0]
-            return f"The station with highest FCOUNT is **{station}** with **{value:,}** FCOUNT."
-        return "Station data not available."
+            month_text = f" in **{detected_month}**" if detected_month else ""
+            return f"The station with highest FCOUNT{month_text} is **{station}** with **{value:,}** FCOUNT."
+        return "Station or FCOUNT data not available."
 
-    # Top 5 stations
+    # ========== TOP 5 STATIONS ==========
     if "top 5" in q and "station" in q:
-        if 'STATION' in df.columns and 'FCOUNT' in df.columns:
-            top5 = df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
-            result = "Top 5 Stations by FCOUNT:\n\n"
+        if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
+            top5 = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
+            if top5.empty:
+                return "No data available."
+            month_text = f" in **{detected_month}**" if detected_month else ""
+            result = f"**Top 5 Stations by FCOUNT{month_text}:**\n\n"
             for i, (stn, val) in enumerate(top5.items(), 1):
                 result += f"{i}. **{stn}** → {val:,}\n"
             return result
         return "Station data not available."
 
-    # Specific station FCOUNT
+    # ========== SPECIFIC STATION ==========
     for station in df['STATION'].dropna().unique():
-        if station.lower() in q:
-            if 'FCOUNT' in df.columns:
-                total = df[df['STATION'] == station]['FCOUNT'].sum()
-                count = len(df[df['STATION'] == station])
-                return f"Station **{station}**:\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
-    
-    # Department related
+        if re.search(r'\b' + re.escape(station.lower()) + r'\b', q):
+            stn_df = work_df[work_df['STATION'] == station]
+            if stn_df.empty:
+                return f"No records found for station **{station}**{' in ' + detected_month if detected_month else ''}."
+            total = stn_df['FCOUNT'].sum()
+            count = len(stn_df)
+            month_text = f" in **{detected_month}**" if detected_month else ""
+            return f"**Station {station}{month_text}:**\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
+
+    # ========== DEPARTMENT ==========
     if "engineering" in q or "engg" in q:
-        eng = df[df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
-        return f"Engineering Department has **{len(eng):,}** records."
+        eng = work_df[work_df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
+        return f"Engineering Department has **{len(eng):,}** records{' in ' + detected_month if detected_month else ''}."
     
     if "optg" in q or "operating" in q:
-        optg = df[df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
-        return f"Operating (OPTG) Department has **{len(optg):,}** records."
+        optg = work_df[work_df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
+        return f"Operating (OPTG) Department has **{len(optg):,}** records{' in ' + detected_month if detected_month else ''}."
 
-    # Error category
+    # ========== ERROR CATEGORY ==========
     if "track circuit" in q:
-        tc = df[df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
-        return f"Track Circuit Failure cases: **{len(tc):,}**"
+        tc = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
+        return f"Track Circuit Failure cases{' in ' + detected_month if detected_month else ''}: **{len(tc):,}**"
     
     if "emergency route" in q:
-        er = df[df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
-        return f"Emergency Route Cancellation cases: **{len(er):,}**"
+        er = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
+        return f"Emergency Route Cancellation cases{' in ' + detected_month if detected_month else ''}: **{len(er):,}**"
 
-    # Jurisdiction
-    if "jurisdiction" in q and ("highest" in q or "top" in q or "maximum" in q):
-        if 'JURISDICTION' in df.columns:
-            top_jur = df['JURISDICTION'].value_counts().idxmax()
-            count = df['JURISDICTION'].value_counts().max()
-            return f"The jurisdiction with highest cases is **{top_jur}** with **{count:,}** cases."
+    # ========== JURISDICTION ==========
+    if "jurisdiction" in q and any(x in q for x in ["highest", "top", "maximum", "most"]):
+        if 'JURISDICTION' in work_df.columns:
+            top_jur = work_df['JURISDICTION'].value_counts()
+            if top_jur.empty:
+                return "No jurisdiction data available."
+            return f"The jurisdiction with highest cases{' in ' + detected_month if detected_month else ''} is **{top_jur.index[0]}** with **{top_jur.iloc[0]:,}** cases."
 
-    # Help
-    if any(x in q for x in ["help", "what can you do", "commands"]):
-        return """I can answer questions like:
-- Which station has highest FCOUNT?
-- Top 5 stations
-- Total FCOUNT
-- How many records in Engineering?
-- Track Circuit Failure cases
-- Tell me about station WADI
-- Which jurisdiction has maximum cases?
-
-Just ask in normal English!"""
-
-    return "Sorry, I could not understand the question. Try asking about stations, FCOUNT, departments, or errors. Type **help** for examples."
+    # ========== FALLBACK ==========
+    return ("Sorry, I could not fully understand the question.\n\n"
+            "Try asking:\n"
+            "- Which station has highest FCOUNT in January?\n"
+            "- Top 5 stations in February\n"
+            "- Total FCOUNT\n"
+            "- Tell me about station WADI\n"
+            "- How many cases in Engineering?\n\n"
+            "Type **help** for more examples.")
 
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
@@ -496,7 +553,6 @@ else:
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
-    # Load data first
     df_original = load_data_from_gsheet()
 
     # ====================== SIDEBAR ======================
@@ -507,16 +563,14 @@ else:
 
         st.markdown("---")
         st.subheader("🤖 AI Chatbot")
-        st.caption("Ask questions on full data")
+        st.caption("Ask questions on full data (Basic → Advanced)")
 
-        # Chat history
-        for chat in st.session_state.chat_history[-6:]:  # show last 6 messages
+        for chat in st.session_state.chat_history[-8:]:
             if chat["role"] == "user":
                 st.markdown(f'<div class="chat-message user-msg">👤 {chat["content"]}</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="chat-message bot-msg">🤖 {chat["content"]}</div>', unsafe_allow_html=True)
 
-        # Chat input
         user_question = st.chat_input("Ask me anything about the data...")
         if user_question:
             st.session_state.chat_history.append({"role": "user", "content": user_question})
@@ -614,7 +668,7 @@ else:
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
 
-        # ========== HIGH FCOUNT ALERT BANNER ==========
+        # High FCOUNT Alert
         if not filtered_df.empty and 'STATION' in filtered_df.columns and 'FCOUNT' in filtered_df.columns:
             station_fcount = filtered_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
             critical_stations = station_fcount[station_fcount >= 1000]
@@ -627,7 +681,7 @@ else:
                     alert_text += f" + {len(critical_stations)-5} more"
                 st.markdown(f'<div class="alert-box">{alert_text}</div>', unsafe_allow_html=True)
 
-        # ========== KPI METRICS ==========
+        # KPI Metrics
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Records", f"{len(filtered_df):,}")
@@ -650,7 +704,7 @@ else:
 
         st.markdown("---")
 
-        # ========== TOP 15 + STATION SUMMARY ==========
+        # Top 15 + Station Summary
         col_g1, col_g2 = st.columns([3, 2])
         with col_g1:
             st.markdown('<p class="section-header">Top 15 Stations by FCOUNT</p>', unsafe_allow_html=True)
@@ -666,7 +720,7 @@ else:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
                 st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
-        # ========== MONTHLY TREND CHART ==========
+        # Monthly Trend
         st.markdown("---")
         st.markdown('<p class="section-header">📈 Monthly Trend of FCOUNT</p>', unsafe_allow_html=True)
         
@@ -674,40 +728,20 @@ else:
             monthly = filtered_df.groupby('YEAR_MONTH')['FCOUNT'].sum().reset_index()
             monthly = monthly.sort_values('YEAR_MONTH')
             
-            fig_trend = px.line(
-                monthly, 
-                x='YEAR_MONTH', 
-                y='FCOUNT', 
-                markers=True,
-                text='FCOUNT'
-            )
-            
-            fig_trend.update_traces(
-                textposition="top center",
-                line=dict(width=3),
-                marker=dict(size=10)
-            )
-            
-            fig_trend.update_layout(
-                height=450,
-                xaxis_title="Month",
-                yaxis_title="Total FCOUNT",
-                hovermode="x unified",
-                dragmode="zoom",
-                xaxis=dict(tickangle=-45, type='category')
-            )
+            fig_trend = px.line(monthly, x='YEAR_MONTH', y='FCOUNT', markers=True, text='FCOUNT')
+            fig_trend.update_traces(textposition="top center", line=dict(width=3), marker=dict(size=10))
+            fig_trend.update_layout(height=450, xaxis_title="Month", yaxis_title="Total FCOUNT",
+                                    hovermode="x unified", dragmode="zoom",
+                                    xaxis=dict(tickangle=-45, type='category'))
             
             st.plotly_chart(fig_trend, use_container_width=True, config={
-                'displayModeBar': True,
-                'scrollZoom': True,
-                'displaylogo': False
+                'displayModeBar': True, 'scrollZoom': True, 'displaylogo': False
             })
-            
-            st.caption("Tip: Click and drag on the chart to zoom. Double-click to reset view.")
+            st.caption("Tip: Click and drag to zoom. Double-click to reset.")
         else:
             st.info("No monthly data available for trend.")
 
-        # ========== DISTRIBUTION CHARTS ==========
+        # Distribution Charts
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
         
@@ -716,19 +750,10 @@ else:
         with col_c1:
             st.markdown("**Department-wise**")
             if not cat_sum.empty:
-                fig_dept = px.pie(
-                    cat_sum,
-                    names='DEPARTMENT',
-                    values='Cases',
-                    hole=0.4,
-                    color_discrete_sequence=px.colors.qualitative.Vivid
-                )
-                fig_dept.update_traces(
-                    textposition='inside',
-                    textinfo='percent+label',
-                    textfont_size=13,
-                    marker=dict(line=dict(color='#ffffff', width=2))
-                )
+                fig_dept = px.pie(cat_sum, names='DEPARTMENT', values='Cases', hole=0.4,
+                                  color_discrete_sequence=px.colors.qualitative.Vivid)
+                fig_dept.update_traces(textposition='inside', textinfo='percent+label', textfont_size=13,
+                                       marker=dict(line=dict(color='#ffffff', width=2)))
                 fig_dept.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
@@ -737,19 +762,10 @@ else:
         with col_c2:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
-                fig_err = px.pie(
-                    error_sum,
-                    names='ERROR MAIN CATEGORY',
-                    values='Cases',
-                    hole=0.4,
-                    color_discrete_sequence=px.colors.qualitative.Bold
-                )
-                fig_err.update_traces(
-                    textposition='inside',
-                    textinfo='percent+label',
-                    textfont_size=12,
-                    marker=dict(line=dict(color='#ffffff', width=2))
-                )
+                fig_err = px.pie(error_sum, names='ERROR MAIN CATEGORY', values='Cases', hole=0.4,
+                                 color_discrete_sequence=px.colors.qualitative.Bold)
+                fig_err.update_traces(textposition='inside', textinfo='percent+label', textfont_size=12,
+                                      marker=dict(line=dict(color='#ffffff', width=2)))
                 fig_err.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
@@ -760,33 +776,21 @@ else:
             if not jur_sum.empty:
                 if len(jur_sum) > 10:
                     top10 = jur_sum.head(10).copy()
-                    others = pd.DataFrame({
-                        'JURISDICTION': ['Others'],
-                        'Cases': [jur_sum.iloc[10:]['Cases'].sum()]
-                    })
+                    others = pd.DataFrame({'JURISDICTION': ['Others'], 'Cases': [jur_sum.iloc[10:]['Cases'].sum()]})
                     jur_plot = pd.concat([top10, others], ignore_index=True)
                 else:
                     jur_plot = jur_sum
 
-                fig_jur = px.pie(
-                    jur_plot,
-                    names='JURISDICTION',
-                    values='Cases',
-                    hole=0.4,
-                    color_discrete_sequence=px.colors.qualitative.Pastel
-                )
-                fig_jur.update_traces(
-                    textposition='inside',
-                    textinfo='percent+label',
-                    textfont_size=11,
-                    marker=dict(line=dict(color='#ffffff', width=2))
-                )
+                fig_jur = px.pie(jur_plot, names='JURISDICTION', values='Cases', hole=0.4,
+                                 color_discrete_sequence=px.colors.qualitative.Pastel)
+                fig_jur.update_traces(textposition='inside', textinfo='percent+label', textfont_size=11,
+                                      marker=dict(line=dict(color='#ffffff', width=2)))
                 fig_jur.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
 
-        # ========== SUMMARY TABLES ==========
+        # Summary Tables
         st.markdown("---")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
@@ -802,7 +806,7 @@ else:
                 st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
                 st.dataframe(jur_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
 
-        # ========== DETAILED RECORDS ==========
+        # Detailed Records
         st.markdown("---")
         st.markdown('<p class="section-header">Detailed Records</p>', unsafe_allow_html=True)
         if filtered_df.empty:
