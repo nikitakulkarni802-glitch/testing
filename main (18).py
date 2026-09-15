@@ -8,6 +8,7 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
 import re
+from difflib import get_close_matches, SequenceMatcher
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
@@ -337,76 +338,97 @@ def get_jurisdiction(station, department):
     
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
-# ====================== IMPROVED AI CHATBOT ======================
+# ====================== IMPROVED AI CHATBOT (Spelling-tolerant) ======================
+def similarity(a, b):
+    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+def fuzzy_contains(text, candidates, threshold=0.72):
+    """Return True if any candidate is similar enough to any word in text"""
+    words = re.findall(r'\w+', text.lower())
+    for word in words:
+        for cand in candidates:
+            if similarity(word, cand) >= threshold or cand in word or word in cand:
+                return True
+    return False
+
+def detect_month(q):
+    month_map = {
+        "january": "January", "jan": "January", "janury": "January", "janu": "January",
+        "february": "February", "feb": "February", "febuary": "February", "februry": "February",
+        "march": "March", "mar": "March", "marchh": "March",
+        "april": "April", "apr": "April", "aprl": "April",
+        "may": "May",
+        "june": "June", "jun": "June",
+        "july": "July", "jul": "July",
+        "august": "August", "aug": "August", "augest": "August",
+        "september": "September", "sep": "September", "sept": "September", "septmber": "September",
+        "october": "October", "oct": "October", "octber": "October",
+        "november": "November", "nov": "November", "novmber": "November",
+        "december": "December", "dec": "December", "decmber": "December"
+    }
+    q_lower = q.lower()
+    for key, value in month_map.items():
+        if key in q_lower or similarity(key, q_lower) > 0.8:
+            return value
+    # Extra fuzzy check for common misspellings
+    for key, value in month_map.items():
+        if fuzzy_contains(q, [key], threshold=0.75):
+            return value
+    return None
+
 def ask_chatbot(question, df):
     if df is None or df.empty:
         return "No data available in the system."
 
     q = question.lower().strip()
-    
-    # Month mapping
-    month_map = {
-        "january": "January", "jan": "January",
-        "february": "February", "feb": "February",
-        "march": "March", "mar": "March",
-        "april": "April", "apr": "April",
-        "may": "May",
-        "june": "June", "jun": "June",
-        "july": "July", "jul": "July",
-        "august": "August", "aug": "August",
-        "september": "September", "sep": "September", "sept": "September",
-        "october": "October", "oct": "October",
-        "november": "November", "nov": "November",
-        "december": "December", "dec": "December"
-    }
-    
-    detected_month = None
-    for key, value in month_map.items():
-        if key in q:
-            detected_month = value
-            break
+    original_q = question.strip()
 
-    # Filter by month if detected
+    # ---------- Detect month (tolerant) ----------
+    detected_month = detect_month(q)
+
     work_df = df.copy()
     if detected_month and 'MONTH' in work_df.columns:
         work_df = work_df[work_df['MONTH'] == detected_month]
         if work_df.empty:
             return f"No records found for the month of **{detected_month}**."
 
-    # ========== HELP ==========
-    if any(x in q for x in ["help", "what can you do", "commands", "examples"]):
-        return """**I can answer questions like:**
+    # ---------- HELP ----------
+    if fuzzy_contains(q, ["help", "what can you do", "commands", "examples", "how to ask"]):
+        return """**I can answer questions even with spelling mistakes. Try these:**
 
-**Basic:**
+**Basic**
 - Total records / Total FCOUNT
-- Top station
+- Top station / Highest station
 - Top 5 stations
 - Tell me about station WADI
 
-**Intermediate:**
+**With month**
 - Which station has highest FCOUNT in January?
 - Top 5 stations in February
+- Total cases in March
+
+**Department / Category**
 - How many cases in Engineering?
 - Track Circuit Failure cases
+- Emergency Route cases
 
-**Advanced:**
-- Which station had most cases in January under Engineering?
-- Highest station in March for OPTG department
+**Just type naturally** — even if there are typos like “sation”, “janury”, “fcountt”, “mor cases” etc."""
 
-Just type your question in normal English!"""
-
-    # ========== TOTAL RECORDS ==========
-    if any(x in q for x in ["total records", "how many records", "number of records", "total cases"]):
+    # ---------- TOTAL RECORDS ----------
+    if fuzzy_contains(q, ["total record", "how many record", "number of record", "total case", "total cases", "how many case"]):
         return f"Total records{' in ' + detected_month if detected_month else ''}: **{len(work_df):,}**"
 
-    # ========== TOTAL FCOUNT ==========
-    if any(x in q for x in ["total fcount", "overall fcount", "sum of fcount", "total fault count"]):
+    # ---------- TOTAL FCOUNT ----------
+    if fuzzy_contains(q, ["total fcount", "overall fcount", "sum of fcount", "total fault", "total f count", "fcountt", "f cout"]):
         total = work_df['FCOUNT'].sum() if 'FCOUNT' in work_df.columns else 0
         return f"Total FCOUNT{' in ' + detected_month if detected_month else ''}: **{total:,}**"
 
-    # ========== TOP STATION ==========
-    if any(x in q for x in ["top station", "highest station", "station with highest", "which station has highest", 
-                            "which station has more", "which station has most", "station with most", "station with more"]):
+    # ---------- TOP / HIGHEST STATION ----------
+    top_keywords = ["top station", "highest station", "station with highest", "which station has highest",
+                    "which station has more", "which station has most", "station with most", "station with more",
+                    "higest station", "hightest", "top sation", "highest sation", "most cases station",
+                    "maximum station", "max station"]
+    if fuzzy_contains(q, top_keywords) or (fuzzy_contains(q, ["top", "highest", "most", "maximum", "max"]) and fuzzy_contains(q, ["station", "sation", "statin", "stn"])):
         if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
             top = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
             if top.empty:
@@ -417,8 +439,9 @@ Just type your question in normal English!"""
             return f"The station with highest FCOUNT{month_text} is **{station}** with **{value:,}** FCOUNT."
         return "Station or FCOUNT data not available."
 
-    # ========== TOP 5 STATIONS ==========
-    if "top 5" in q and "station" in q:
+    # ---------- TOP 5 STATIONS ----------
+    if (fuzzy_contains(q, ["top 5", "top five", "top5"]) and fuzzy_contains(q, ["station", "sation", "statin"])) or \
+       (fuzzy_contains(q, ["top"]) and "5" in q and fuzzy_contains(q, ["station", "sation"])):
         if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
             top5 = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
             if top5.empty:
@@ -430,46 +453,64 @@ Just type your question in normal English!"""
             return result
         return "Station data not available."
 
-    # ========== SPECIFIC STATION ==========
-    for station in df['STATION'].dropna().unique():
-        if re.search(r'\b' + re.escape(station.lower()) + r'\b', q):
-            stn_df = work_df[work_df['STATION'] == station]
+    # ---------- SPECIFIC STATION (fuzzy) ----------
+    if 'STATION' in df.columns:
+        stations = [str(s).strip() for s in df['STATION'].dropna().unique()]
+        # Find best matching station name in the question
+        best_station = None
+        best_score = 0.0
+        q_words = re.findall(r'\w+', q)
+        for stn in stations:
+            stn_lower = stn.lower()
+            # Exact or close match
+            if stn_lower in q or any(similarity(w, stn_lower) > 0.78 for w in q_words):
+                score = max(similarity(w, stn_lower) for w in q_words) if q_words else 0
+                if score > best_score:
+                    best_score = score
+                    best_station = stn
+            # Also check full phrase similarity
+            if similarity(q, stn_lower) > 0.6 and similarity(q, stn_lower) > best_score:
+                best_score = similarity(q, stn_lower)
+                best_station = stn
+
+        if best_station and best_score > 0.65:
+            stn_df = work_df[work_df['STATION'] == best_station]
             if stn_df.empty:
-                return f"No records found for station **{station}**{' in ' + detected_month if detected_month else ''}."
+                return f"No records found for station **{best_station}**{' in ' + detected_month if detected_month else ''}."
             total = stn_df['FCOUNT'].sum()
             count = len(stn_df)
             month_text = f" in **{detected_month}**" if detected_month else ""
-            return f"**Station {station}{month_text}:**\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
+            return f"**Station {best_station}{month_text}:**\n- Total FCOUNT: **{total:,}**\n- Number of records: **{count:,}**"
 
-    # ========== DEPARTMENT ==========
-    if "engineering" in q or "engg" in q:
+    # ---------- DEPARTMENT ----------
+    if fuzzy_contains(q, ["engineering", "engg", "engeniring", "engneering"]):
         eng = work_df[work_df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
         return f"Engineering Department has **{len(eng):,}** records{' in ' + detected_month if detected_month else ''}."
     
-    if "optg" in q or "operating" in q:
+    if fuzzy_contains(q, ["optg", "operating", "oprating", "operation"]):
         optg = work_df[work_df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
         return f"Operating (OPTG) Department has **{len(optg):,}** records{' in ' + detected_month if detected_month else ''}."
 
-    # ========== ERROR CATEGORY ==========
-    if "track circuit" in q:
+    # ---------- ERROR CATEGORY ----------
+    if fuzzy_contains(q, ["track circuit", "trackcircuit", "tc failure"]):
         tc = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
         return f"Track Circuit Failure cases{' in ' + detected_month if detected_month else ''}: **{len(tc):,}**"
     
-    if "emergency route" in q:
+    if fuzzy_contains(q, ["emergency route", "emergencyroute", "route cancellation"]):
         er = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
         return f"Emergency Route Cancellation cases{' in ' + detected_month if detected_month else ''}: **{len(er):,}**"
 
-    # ========== JURISDICTION ==========
-    if "jurisdiction" in q and any(x in q for x in ["highest", "top", "maximum", "most"]):
+    # ---------- JURISDICTION ----------
+    if fuzzy_contains(q, ["jurisdiction", "jurisdction", "juris"]) and fuzzy_contains(q, ["highest", "top", "maximum", "most", "max"]):
         if 'JURISDICTION' in work_df.columns:
             top_jur = work_df['JURISDICTION'].value_counts()
             if top_jur.empty:
                 return "No jurisdiction data available."
             return f"The jurisdiction with highest cases{' in ' + detected_month if detected_month else ''} is **{top_jur.index[0]}** with **{top_jur.iloc[0]:,}** cases."
 
-    # ========== FALLBACK ==========
+    # ---------- FALLBACK ----------
     return ("Sorry, I could not fully understand the question.\n\n"
-            "Try asking:\n"
+            "Try asking (spelling mistakes are okay):\n"
             "- Which station has highest FCOUNT in January?\n"
             "- Top 5 stations in February\n"
             "- Total FCOUNT\n"
@@ -563,7 +604,7 @@ else:
 
         st.markdown("---")
         st.subheader("🤖 AI Chatbot")
-        st.caption("Ask questions on full data (Basic → Advanced)")
+        st.caption("Ask questions on full data (spelling mistakes allowed)")
 
         for chat in st.session_state.chat_history[-8:]:
             if chat["role"] == "user":
