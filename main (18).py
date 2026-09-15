@@ -1,4 +1,3 @@
-
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -227,7 +226,7 @@ OPERATING_TI = {
     "BBD": "TI/KLBG", "KLBG": "TI/KLBG", "TJSP": "TI/KLBG", "HHD": "TI/KLBG", "GDGN": "TI/KLBG",
     "HQR": "TI/WADI", "MR": "TI/WADI", "SDB": "TI/WADI", "WADI": "TI/WADI", "SBD": "TI/WADI",
     "WDS": "TI/KWV", "KWV": "TI/KWV", "DHS": "TI/KWV", "KEM": "TI/KWV",
-    "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV","MA":"TI/KWV",
+    "BLNI": "TI/KWV", "JEUR": "TI/KWV", "WSD": "TI/KWV", "MADHA": "TI/KWV", "MA": "TI/KWV",
     "PSS": "TI/KWV", "LAUL": "TI/KWV",
     "PPJ": "TI/BGVN", "WSB": "TI/BGVN", "KEU": "TI/BGVN", "JNTR": "TI/BGVN",
     "BGVN": "TI/BGVN", "MLM": "TI/BGVN", "BRB": "TI/BGVN", "DD": "TI/BGVN",
@@ -290,7 +289,6 @@ SNT_ADSTE = {
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
-
     stn = str(station).strip().upper().replace(" ", "")
     
     # Normalise common variants
@@ -298,13 +296,10 @@ def get_jurisdiction(station, department):
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
-
     dept = str(department).strip().upper() if pd.notna(department) else ""
-
     # Special case for OPTG → use Operating mapping
     if "OPTG" in dept or "OPERATING" in dept:
         return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
-
     # For all other cases (Attended Only Remark, Others, Failure, Route Stuckup etc.)
     # Use S&T mapping as default (most relevant for Data Logger)
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
@@ -342,28 +337,23 @@ def load_data_from_gsheet():
         client = gspread.authorize(credentials)
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
         df = pd.DataFrame(sheet.get_all_records())
-
         if df.empty:
             st.error("Google Sheet is empty!")
             st.stop()
-
         df.columns = df.columns.str.strip()
         df = df.loc[:, ~df.columns.str.lower().str.replace('.', '', regex=False)
                     .str.contains(r'^(?:sl|sr)\s*no', regex=True)]
-
         if 'FCOUNT' in df.columns:
             df['FCOUNT'] = pd.to_numeric(df['FCOUNT'], errors='coerce').fillna(0).astype(int)
         if 'DATE' in df.columns:
             df['DATE'] = pd.to_datetime(df['DATE'], errors='coerce')
             df['MONTH'] = df['DATE'].dt.strftime('%B')
-
         if 'STATION' in df.columns and 'DEPARTMENT' in df.columns:
             df['JURISDICTION'] = df.apply(
                 lambda row: get_jurisdiction(row['STATION'], row['DEPARTMENT']), axis=1
             )
         else:
             df['JURISDICTION'] = "Unclassified"
-
         return df
     except Exception as e:
         st.error(f"Failed to load data: {e}")
@@ -397,37 +387,29 @@ else:
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
     col_f1 = st.columns([2, 2, 2, 2])
-
     with col_f1[0]:
         stations = sorted(df_original['STATION'].dropna().unique().tolist()) if 'STATION' in df_original.columns else []
         selected_stations = st.multiselect("STATION", options=stations, default=[], key="stn_key")
-
     with col_f1[1]:
         errors = sorted(df_original['ERROR MAIN CATEGORY'].dropna().unique().tolist()) if 'ERROR MAIN CATEGORY' in df_original.columns else []
         selected_errors = st.multiselect("ERROR MAIN CATEGORY", options=errors, default=[], key="err_key")
-
     with col_f1[2]:
         categories = sorted(df_original['DEPARTMENT'].dropna().unique().tolist()) if 'DEPARTMENT' in df_original.columns else []
         selected_categories = st.multiselect("DEPARTMENT", options=categories, default=[], key="cat_key")
-
     with col_f1[3]:
         months = sorted(df_original['MONTH'].dropna().unique().tolist()) if 'MONTH' in df_original.columns else []
         selected_months = st.multiselect("MONTH", options=months, default=[], key="month_key")
 
     col_f2 = st.columns([2, 2, 2, 2])
-
     with col_f2[0]:
         fcount_list = sorted(df_original['FCOUNT'].dropna().unique().tolist()) if 'FCOUNT' in df_original.columns else []
         selected_fcount = st.multiselect("FCOUNT", options=fcount_list, default=[], key="fcount_key")
-
     with col_f2[1]:
         fault_list = sorted(df_original['DL FAULT MESSAGE'].dropna().unique().tolist()) if 'DL FAULT MESSAGE' in df_original.columns else []
         selected_fault = st.multiselect("DL FAULT MESSAGE", options=fault_list, default=[], key="fault_key")
-
     with col_f2[2]:
         remark_list = sorted(df_original['REMARKS GIVEN BY S&T'].dropna().unique().tolist()) if 'REMARKS GIVEN BY S&T' in df_original.columns else []
         selected_remark = st.multiselect("REMARKS GIVEN BY S&T", options=remark_list, default=[], key="remark_key")
-
     with col_f2[3]:
         jurisdictions = sorted(df_original['JURISDICTION'].dropna().unique().tolist()) if 'JURISDICTION' in df_original.columns else []
         selected_jurisdictions = st.multiselect("JURISDICTION", options=jurisdictions, default=[], key="jur_key")
@@ -436,7 +418,6 @@ else:
     with col_date[0]:
         min_date = df_original['DATE'].min().date() if (not df_original.empty and 'DATE' in df_original.columns and pd.notna(df_original['DATE'].min())) else pd.Timestamp.now().date()
         from_date = st.date_input("FROM DATE", value=min_date, key="from_date_key")
-
     with col_date[1]:
         max_date = df_original['DATE'].max().date() if (not df_original.empty and 'DATE' in df_original.columns and pd.notna(df_original['DATE'].max())) else pd.Timestamp.now().date()
         to_date = st.date_input("TO DATE", value=max_date, key="to_date_key")
@@ -445,13 +426,11 @@ else:
 
     # ====================== APPLY FILTERS ======================
     filtered_df = df_original.copy()
-
     if 'DATE' in filtered_df.columns:
         filtered_df = filtered_df[
             (filtered_df['DATE'].dt.date >= from_date) &
             (filtered_df['DATE'].dt.date <= to_date)
         ]
-
     if selected_stations:
         filtered_df = filtered_df[filtered_df['STATION'].isin(selected_stations)]
     if selected_errors and 'ERROR MAIN CATEGORY' in filtered_df.columns:
@@ -465,10 +444,9 @@ else:
     if selected_fault and 'DL FAULT MESSAGE' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['DL FAULT MESSAGE'].isin(selected_fault)]
     if selected_remark and 'REMARKS GIVEN BY S&T' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['REMARKS GIVEN BY S&T'].isin(selected_remark)]
+        filtered_df = filtered_df[filtered_df['DL FAULT MESSAGE'].isin(selected_remark)]
     if selected_jurisdictions and 'JURISDICTION' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['JURISDICTION'].isin(selected_jurisdictions)]
-
     if st.session_state.map_selected_station:
         filtered_df = filtered_df[filtered_df['STATION'] == st.session_state.map_selected_station]
 
@@ -476,7 +454,6 @@ else:
     cat_sum = pd.DataFrame()
     error_sum = pd.DataFrame()
     jur_sum = pd.DataFrame()
-
     if not filtered_df.empty:
         if 'DEPARTMENT' in filtered_df.columns:
             cat_sum = (filtered_df.groupby('DEPARTMENT').size().reset_index(name='Cases').sort_values('Cases', ascending=False))
@@ -492,7 +469,6 @@ else:
 
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
-
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Records", f"{len(filtered_df):,}")
@@ -514,7 +490,6 @@ else:
                 st.metric("Top Station FCOUNT", "0")
 
         st.markdown("---")
-
         col_g1, col_g2 = st.columns([3, 2])
         with col_g1:
             st.markdown('<p class="section-header">Top 15 Stations by FCOUNT</p>', unsafe_allow_html=True)
@@ -523,7 +498,6 @@ else:
                 fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='RdYlGn_r')
                 fig.update_layout(height=520, xaxis_tickangle=45)
                 st.plotly_chart(fig, use_container_width=True)
-
         with col_g2:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
@@ -546,7 +520,6 @@ else:
 
         st.markdown("---")
         st.markdown('<p class="section-header">Detailed Records</p>', unsafe_allow_html=True)
-
         if filtered_df.empty:
             st.warning("No records found.")
         else:
@@ -565,20 +538,17 @@ else:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
-
                     if 'STATION' in filtered_df.columns:
                         station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
                             Total_FCOUNT='sum', Record_Count='count'
                         ).sort_values('Total_FCOUNT', ascending=False).reset_index()
                         station_summary.to_excel(writer, index=False, sheet_name='Station_Summary')
-
                     if not error_sum.empty:
                         error_sum.to_excel(writer, index=False, sheet_name='Error_Summary')
                     if not cat_sum.empty:
                         cat_sum.to_excel(writer, index=False, sheet_name='Category_Summary')
                     if not jur_sum.empty:
                         jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
-
                     # Unclassified sheet only if exists
                     if 'JURISDICTION' in filtered_df.columns:
                         unclass_df = filtered_df[filtered_df['JURISDICTION'] == 'Unclassified'].copy()
@@ -586,7 +556,6 @@ else:
                             if 'DATE' in unclass_df.columns:
                                 unclass_df['DATE'] = pd.to_datetime(unclass_df['DATE'], errors='coerce').dt.date
                             unclass_df.to_excel(writer, index=False, sheet_name='Unclassified_Records')
-
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Professional Excel Report",
@@ -597,137 +566,137 @@ else:
                     use_container_width=True
                 )
 
-with tab_map:
-    st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
-   
-    # Clear Selection
-    if st.session_state.map_selected_station:
-        col_clear1, col_clear2 = st.columns([1, 5])
-        with col_clear1:
-            if st.button("🔄 Clear Station Selection", type="secondary", use_container_width=True):
-                st.session_state.map_selected_station = None
-                st.rerun()
-        st.success(f"📍 Currently viewing: **{st.session_state.map_selected_station}**")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    col_m1, col_m2 = st.columns([3, 2])
-   
-    with col_m1:
-        if filtered_df.empty or 'STATION' not in filtered_df.columns:
-            st.warning("No data available.")
-        else:
-            map_agg = filtered_df.groupby('STATION')['FCOUNT'].sum().reset_index()
-            map_data = []
-           
-            for _, row in map_agg.iterrows():
-                station_name = str(row['STATION']).strip().upper()
-                best_match = None
-                for name, info in station_coords.items():
-                    if name.upper() == station_name or name.upper() in station_name:
-                        best_match = info
-                        break
-                if best_match:
-                    map_data.append({
-                        'STATION': row['STATION'],
-                        'FCOUNT': row['FCOUNT'],
-                        'lat': best_match['lat'],
-                        'lon': best_match['lon']
-                    })
-           
-            map_df = pd.DataFrame(map_data)
-           
-            if not map_df.empty:
-                with st.spinner("Rendering map..."):
-                    m = folium.Map(
-                        location=[17.85, 75.80],
-                        zoom_start=7.2,
-                        tiles=None,                 # keep this
-                        control_scale=True,
-                        zoom_control=True
-                    )
-                
-                    # ---- CartoDB with API key from secrets ----
-                    carto_key = st.secrets["carto"]["api_key"]
-                    folium.TileLayer(
-                        tiles=f"https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}.png?key={carto_key}",
-                        name="🗺️ Light Base (Recommended)",
-                        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                        control=True,
-                        subdomains="abcd",
-                        max_zoom=20
-                    ).add_to(m)
-                
-                    # ---- Other free layers (no key needed) ----
-                    folium.TileLayer("OpenStreetMap", name="🌍 OpenStreetMap", control=True).add_to(m)
-                    folium.TileLayer(
-                        tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-                        attr="Esri World Imagery",
-                        name="🌐 Satellite (Esri)",
-                        control=True
-                    ).add_to(m)
-                    folium.TileLayer(
-                        tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
-                        attr="Google",
-                        name="🛰️ Google Hybrid",
-                        control=True
-                    ).add_to(m)
-                    folium.TileLayer(
-                        tiles="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-                        attr="Google",
-                        name="🛰️ Google Satellite",
-                        control=True
-                    ).add_to(m)
-                
-                    folium.LayerControl(position="topright", collapsed=False).add_to(m)
-                    folium.plugins.Fullscreen().add_to(m)
-                   
-                    # ================== FIXED THRESHOLD COLOR SCHEME ==================
-                    for _, row in map_df.iterrows():
-                        fcount = int(row['FCOUNT'])
-                        
-                        if fcount < 600:
-                            color = "green"
-                        elif fcount <= 1200:
-                            color = "orange"
-                        else:
-                            color = "darkred"
-                        
-                        radius = 8 + min(fcount / 50, 25)
-                        
-                        folium.CircleMarker(
-                            location=[row['lat'], row['lon']],
-                            radius=radius,
-                            popup=f"<h4>{row['STATION']}</h4><b>Total FCOUNT:</b> {fcount:,}",
-                            tooltip=f"{row['STATION']} ({fcount:,})",
-                            color=color,
-                            fill=True,
-                            fill_color=color,
-                            fill_opacity=0.85,
-                            weight=2
+    with tab_map:
+        st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
+       
+        # Clear Selection
+        if st.session_state.map_selected_station:
+            col_clear1, col_clear2 = st.columns([1, 5])
+            with col_clear1:
+                if st.button("🔄 Clear Station Selection", type="secondary", use_container_width=True):
+                    st.session_state.map_selected_station = None
+                    st.rerun()
+            st.success(f"📍 Currently viewing: **{st.session_state.map_selected_station}**")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        col_m1, col_m2 = st.columns([3, 2])
+       
+        with col_m1:
+            if filtered_df.empty or 'STATION' not in filtered_df.columns:
+                st.warning("No data available.")
+            else:
+                map_agg = filtered_df.groupby('STATION')['FCOUNT'].sum().reset_index()
+                map_data = []
+               
+                for _, row in map_agg.iterrows():
+                    station_name = str(row['STATION']).strip().upper()
+                    best_match = None
+                    for name, info in station_coords.items():
+                        if name.upper() == station_name or name.upper() in station_name:
+                            best_match = info
+                            break
+                    if best_match:
+                        map_data.append({
+                            'STATION': row['STATION'],
+                            'FCOUNT': row['FCOUNT'],
+                            'lat': best_match['lat'],
+                            'lon': best_match['lon']
+                        })
+               
+                map_df = pd.DataFrame(map_data)
+               
+                if not map_df.empty:
+                    with st.spinner("Rendering map..."):
+                        m = folium.Map(
+                            location=[17.85, 75.80],
+                            zoom_start=7.2,
+                            tiles=None,
+                            control_scale=True,
+                            zoom_control=True
+                        )
+                    
+                        # ---- CartoDB with API key from secrets ----
+                        carto_key = st.secrets["carto"]["api_key"]
+                        folium.TileLayer(
+                            tiles=f"https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}.png?key={carto_key}",
+                            name="🗺️ Light Base (Recommended)",
+                            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                            control=True,
+                            subdomains="abcd",
+                            max_zoom=20
                         ).add_to(m)
-                   
-                    map_key = f"folium_map_{len(filtered_df)}"
-                    map_return = st_folium(
-                        m, width=950, height=680, key=map_key,
-                        returned_objects=["last_object_clicked"]
-                    )
-                   
-                    if map_return and map_return.get("last_object_clicked"):
-                        lat = map_return["last_object_clicked"]["lat"]
-                        lon = map_return["last_object_clicked"]["lng"]
-                        map_df['dist'] = ((map_df['lat'] - lat)**2 + (map_df['lon'] - lon)**2)**0.5
-                        selected_station = map_df.loc[map_df['dist'].idxmin(), 'STATION']
+                    
+                        # ---- Other free layers (no key needed) ----
+                        folium.TileLayer("OpenStreetMap", name="🌍 OpenStreetMap", control=True).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                            attr="Esri World Imagery",
+                            name="🌐 Satellite (Esri)",
+                            control=True
+                        ).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+                            attr="Google",
+                            name="🛰️ Google Hybrid",
+                            control=True
+                        ).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                            attr="Google",
+                            name="🛰️ Google Satellite",
+                            control=True
+                        ).add_to(m)
+                    
+                        folium.LayerControl(position="topright", collapsed=False).add_to(m)
+                        folium.plugins.Fullscreen().add_to(m)
                        
-                        if st.session_state.map_selected_station != selected_station:
-                            st.session_state.map_selected_station = selected_station
-                            st.rerun()
+                        # ================== FIXED THRESHOLD COLOR SCHEME ==================
+                        for _, row in map_df.iterrows():
+                            fcount = int(row['FCOUNT'])
+                            
+                            if fcount < 600:
+                                color = "green"
+                            elif fcount <= 1200:
+                                color = "orange"
+                            else:
+                                color = "darkred"
+                            
+                            radius = 8 + min(fcount / 50, 25)
+                            
+                            folium.CircleMarker(
+                                location=[row['lat'], row['lon']],
+                                radius=radius,
+                                popup=f"<h4>{row['STATION']}</h4><b>Total FCOUNT:</b> {fcount:,}",
+                                tooltip=f"{row['STATION']} ({fcount:,})",
+                                color=color,
+                                fill=True,
+                                fill_color=color,
+                                fill_opacity=0.85,
+                                weight=2
+                            ).add_to(m)
+                       
+                        map_key = f"folium_map_{len(filtered_df)}"
+                        map_return = st_folium(
+                            m, width=950, height=680, key=map_key,
+                            returned_objects=["last_object_clicked"]
+                        )
+                       
+                        if map_return and map_return.get("last_object_clicked"):
+                            lat = map_return["last_object_clicked"]["lat"]
+                            lon = map_return["last_object_clicked"]["lng"]
+                            map_df['dist'] = ((map_df['lat'] - lat)**2 + (map_df['lon'] - lon)**2)**0.5
+                            selected_station = map_df.loc[map_df['dist'].idxmin(), 'STATION']
+                           
+                            if st.session_state.map_selected_station != selected_station:
+                                st.session_state.map_selected_station = selected_station
+                                st.rerun()
+
         with col_m2:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
                 st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
-
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
             if not jur_sum.empty:
@@ -753,14 +722,12 @@ with tab_map:
                     display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
                     if not jur_sum.empty:
                         jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
-
                     if 'JURISDICTION' in filtered_df.columns:
                         unclass_df = filtered_df[filtered_df['JURISDICTION'] == 'Unclassified'].copy()
                         if not unclass_df.empty:
                             if 'DATE' in unclass_df.columns:
                                 unclass_df['DATE'] = pd.to_datetime(unclass_df['DATE'], errors='coerce').dt.date
                             unclass_df.to_excel(writer, index=False, sheet_name='Unclassified_Records')
-
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Map Filtered Report",
