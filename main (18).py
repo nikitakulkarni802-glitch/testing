@@ -555,7 +555,7 @@ else:
         else:
             st.info("No monthly data available for trend.")
 
-        # ========== DEPARTMENT / ERROR / JURISDICTION CHARTS ==========
+        # ========== DISTRIBUTION CHARTS (IMPROVED) ==========
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
         
@@ -564,8 +564,23 @@ else:
         with col_c1:
             st.markdown("**Department-wise**")
             if not cat_sum.empty:
-                fig_dept = px.pie(cat_sum, names='DEPARTMENT', values='Cases', hole=0.4)
-                fig_dept.update_layout(height=350, showlegend=True)
+                fig_dept = px.pie(
+                    cat_sum, 
+                    names='DEPARTMENT', 
+                    values='Cases', 
+                    hole=0.35,
+                    color_discrete_sequence=px.colors.qualitative.Set2
+                )
+                fig_dept.update_traces(
+                    textposition='inside', 
+                    textinfo='percent+label',
+                    textfont_size=12
+                )
+                fig_dept.update_layout(
+                    height=380, 
+                    showlegend=False,
+                    margin=dict(t=20, b=20, l=20, r=20)
+                )
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
                 st.info("No Department data")
@@ -573,17 +588,48 @@ else:
         with col_c2:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
-                fig_err = px.pie(error_sum, names='ERROR MAIN CATEGORY', values='Cases', hole=0.4)
-                fig_err.update_layout(height=350, showlegend=True)
+                fig_err = px.pie(
+                    error_sum, 
+                    names='ERROR MAIN CATEGORY', 
+                    values='Cases', 
+                    hole=0.35,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_err.update_traces(
+                    textposition='inside', 
+                    textinfo='percent+label',
+                    textfont_size=11
+                )
+                fig_err.update_layout(
+                    height=380, 
+                    showlegend=False,
+                    margin=dict(t=20, b=20, l=20, r=20)
+                )
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
                 st.info("No Error data")
 
         with col_c3:
-            st.markdown("**Jurisdiction-wise**")
+            st.markdown("**Jurisdiction-wise (Top 12)**")
             if not jur_sum.empty:
-                fig_jur = px.pie(jur_sum, names='JURISDICTION', values='Cases', hole=0.4)
-                fig_jur.update_layout(height=350, showlegend=True)
+                # Show only top 12 for clarity
+                jur_top = jur_sum.head(12)
+                fig_jur = px.bar(
+                    jur_top,
+                    x='Cases',
+                    y='JURISDICTION',
+                    orientation='h',
+                    text='Cases',
+                    color='Cases',
+                    color_continuous_scale='Blues'
+                )
+                fig_jur.update_traces(textposition='outside')
+                fig_jur.update_layout(
+                    height=380,
+                    yaxis={'categoryorder': 'total ascending'},
+                    showlegend=False,
+                    margin=dict(t=20, b=20, l=10, r=20)
+                )
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
