@@ -597,10 +597,10 @@ else:
                     use_container_width=True
                 )
 
-    # ====================== MAP TAB ======================
-    with tab_map:
+   with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
-
+       
+        # Clear Selection
         if st.session_state.map_selected_station:
             col_clear1, col_clear2 = st.columns([1, 5])
             with col_clear1:
@@ -608,16 +608,18 @@ else:
                     st.session_state.map_selected_station = None
                     st.rerun()
             st.success(f"📍 Currently viewing: **{st.session_state.map_selected_station}**")
-
+        
         st.markdown("<br>", unsafe_allow_html=True)
+        
         col_m1, col_m2 = st.columns([3, 2])
-
+       
         with col_m1:
             if filtered_df.empty or 'STATION' not in filtered_df.columns:
                 st.warning("No data available.")
             else:
                 map_agg = filtered_df.groupby('STATION')['FCOUNT'].sum().reset_index()
                 map_data = []
+               
                 for _, row in map_agg.iterrows():
                     station_name = str(row['STATION']).strip().upper()
                     best_match = None
@@ -626,38 +628,100 @@ else:
                             best_match = info
                             break
                     if best_match:
-                        map_data.append({'STATION': row['STATION'], 'FCOUNT': row['FCOUNT'], 'lat': best_match['lat'], 'lon': best_match['lon']})
+                        map_data.append({
+                            'STATION': row['STATION'],
+                            'FCOUNT': row['FCOUNT'],
+                            'lat': best_match['lat'],
+                            'lon': best_match['lon']
+                        })
+               
                 map_df = pd.DataFrame(map_data)
-
+               
                 if not map_df.empty:
                     with st.spinner("Rendering map..."):
-                        m = folium.Map(location=[17.85, 75.80], zoom_start=7.2, tiles=None, control_scale=True)
-                        folium.TileLayer("CartoDB positron", name="Light Base", control=True, attr="CartoDB").add_to(m)
-                        folium.TileLayer("OpenStreetMap", name="OpenStreetMap", control=True).add_to(m)
+                        m = folium.Map(
+                            location=[17.85, 75.80],
+                            zoom_start=7.2,
+                            tiles=None,                 # keep this
+                            control_scale=True,
+                            zoom_control=True
+                        )
+                    
+                        # ---- CartoDB with API key from secrets ----
+                        carto_key = st.secrets["carto"]["api_key"]
+                        folium.TileLayer(
+                            tiles=f"https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}.png?key={carto_key}",
+                            name="🗺️ Light Base (Recommended)",
+                            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                            control=True,
+                            subdomains="abcd",
+                            max_zoom=20
+                        ).add_to(m)
+                    
+                        # ---- Other free layers (no key needed) ----
+                        folium.TileLayer("OpenStreetMap", name="🌍 OpenStreetMap", control=True).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                            attr="Esri World Imagery",
+                            name="🌐 Satellite (Esri)",
+                            control=True
+                        ).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+                            attr="Google",
+                            name="🛰️ Google Hybrid",
+                            control=True
+                        ).add_to(m)
+                        folium.TileLayer(
+                            tiles="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                            attr="Google",
+                            name="🛰️ Google Satellite",
+                            control=True
+                        ).add_to(m)
+                    
                         folium.LayerControl(position="topright", collapsed=False).add_to(m)
-                        Fullscreen().add_to(m)
-
+                        folium.plugins.Fullscreen().add_to(m)
+                       
+                        # ================== FIXED THRESHOLD COLOR SCHEME ==================
                         for _, row in map_df.iterrows():
                             fcount = int(row['FCOUNT'])
-                            color = "green" if fcount < 600 else ("orange" if fcount <= 1200 else "darkred")
+                            
+                            if fcount < 600:
+                                color = "green"
+                            elif fcount <= 1200:
+                                color = "orange"
+                            else:
+                                color = "darkred"
+                            
                             radius = 8 + min(fcount / 50, 25)
+                            
                             folium.CircleMarker(
-                                location=[row['lat'], row['lon']], radius=radius,
+                                location=[row['lat'], row['lon']],
+                                radius=radius,
                                 popup=f"<h4>{row['STATION']}</h4><b>Total FCOUNT:</b> {fcount:,}",
                                 tooltip=f"{row['STATION']} ({fcount:,})",
-                                color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2
+                                color=color,
+                                fill=True,
+                                fill_color=color,
+                                fill_opacity=0.85,
+                                weight=2
                             ).add_to(m)
-
-                        map_return = st_folium(m, width=950, height=680, key=f"folium_map_{len(filtered_df)}", returned_objects=["last_object_clicked"])
+                       
+                        map_key = f"folium_map_{len(filtered_df)}"
+                        map_return = st_folium(
+                            m, width=950, height=680, key=map_key,
+                            returned_objects=["last_object_clicked"]
+                        )
+                       
                         if map_return and map_return.get("last_object_clicked"):
                             lat = map_return["last_object_clicked"]["lat"]
                             lon = map_return["last_object_clicked"]["lng"]
                             map_df['dist'] = ((map_df['lat'] - lat)**2 + (map_df['lon'] - lon)**2)**0.5
                             selected_station = map_df.loc[map_df['dist'].idxmin(), 'STATION']
+                           
                             if st.session_state.map_selected_station != selected_station:
                                 st.session_state.map_selected_station = selected_station
                                 st.rerun()
-
         with col_m2:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
