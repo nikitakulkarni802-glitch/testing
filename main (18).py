@@ -40,15 +40,6 @@ st.markdown("""
         margin-bottom: 20px;
         text-align: center;
     }
-    .insight-text {
-        font-size: 0.95rem;
-        color: #555;
-        background-color: #f0f2f6;
-        padding: 8px 12px;
-        border-radius: 6px;
-        margin-top: -10px;
-        margin-bottom: 15px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -564,97 +555,104 @@ else:
         else:
             st.info("No monthly data available for trend.")
 
-        # ========== BEST DISTRIBUTION CHARTS ==========
+        # ========== DISTRIBUTION CHARTS (MODERN PIE ONLY) ==========
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
         
         col_c1, col_c2, col_c3 = st.columns(3)
 
-        # ----- 1. Department (Donut) -----
+        # ----- 1. Department -----
         with col_c1:
-            st.markdown("**1. Department-wise Share**")
+            st.markdown("**Department-wise**")
             if not cat_sum.empty:
                 fig_dept = px.pie(
-                    cat_sum, 
-                    names='DEPARTMENT', 
-                    values='Cases', 
-                    hole=0.45,
-                    color_discrete_sequence=px.colors.qualitative.Set2
+                    cat_sum,
+                    names='DEPARTMENT',
+                    values='Cases',
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Vivid
                 )
                 fig_dept.update_traces(
-                    textposition='inside', 
+                    textposition='inside',
                     textinfo='percent+label',
                     textfont_size=13,
-                    insidetextorientation='horizontal'
+                    marker=dict(line=dict(color='#ffffff', width=2))
                 )
                 fig_dept.update_layout(
-                    height=360, 
+                    height=400,
                     showlegend=False,
-                    margin=dict(t=10, b=10, l=10, r=10)
+                    margin=dict(t=30, b=30, l=20, r=20),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)'
                 )
                 st.plotly_chart(fig_dept, use_container_width=True)
-                
-                # Insight text
-                top_dept = cat_sum.iloc[0]
-                st.markdown(f'<div class="insight-text">📌 <b>{top_dept["DEPARTMENT"]}</b> has the highest share ({top_dept["Cases"]:,} cases)</div>', unsafe_allow_html=True)
             else:
                 st.info("No Department data")
 
-        # ----- 2. Error Main Category (Horizontal Bar) -----
+        # ----- 2. Error Main Category -----
         with col_c2:
-            st.markdown("**2. Error Main Category**")
+            st.markdown("**Error Main Category**")
             if not error_sum.empty:
-                fig_err = px.bar(
-                    error_sum.head(8),
-                    x='Cases',
-                    y='ERROR MAIN CATEGORY',
-                    orientation='h',
-                    text='Cases',
-                    color='Cases',
-                    color_continuous_scale='Teal'
+                fig_err = px.pie(
+                    error_sum,
+                    names='ERROR MAIN CATEGORY',
+                    values='Cases',
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Bold
                 )
-                fig_err.update_traces(textposition='outside')
+                fig_err.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    textfont_size=12,
+                    marker=dict(line=dict(color='#ffffff', width=2))
+                )
                 fig_err.update_layout(
-                    height=360,
-                    yaxis={'categoryorder': 'total ascending'},
+                    height=400,
                     showlegend=False,
-                    margin=dict(t=10, b=10, l=10, r=10),
-                    xaxis_title="",
-                    yaxis_title=""
+                    margin=dict(t=30, b=30, l=20, r=20),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)'
                 )
                 st.plotly_chart(fig_err, use_container_width=True)
-                
-                top_err = error_sum.iloc[0]
-                st.markdown(f'<div class="insight-text">📌 Top issue: <b>{top_err["ERROR MAIN CATEGORY"]}</b> ({top_err["Cases"]:,} cases)</div>', unsafe_allow_html=True)
             else:
                 st.info("No Error data")
 
-        # ----- 3. Jurisdiction (Horizontal Bar) -----
+        # ----- 3. Jurisdiction -----
         with col_c3:
-            st.markdown("**3. Jurisdiction-wise (Top 10)**")
+            st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
-                fig_jur = px.bar(
-                    jur_sum.head(10),
-                    x='Cases',
-                    y='JURISDICTION',
-                    orientation='h',
-                    text='Cases',
-                    color='Cases',
-                    color_continuous_scale='Blues'
+                # Take top 10 + Others for better visibility
+                if len(jur_sum) > 10:
+                    top10 = jur_sum.head(10).copy()
+                    others = pd.DataFrame({
+                        'JURISDICTION': ['Others'],
+                        'Cases': [jur_sum.iloc[10:]['Cases'].sum()]
+                    })
+                    jur_plot = pd.concat([top10, others], ignore_index=True)
+                else:
+                    jur_plot = jur_sum
+
+                fig_jur = px.pie(
+                    jur_plot,
+                    names='JURISDICTION',
+                    values='Cases',
+                    hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
                 )
-                fig_jur.update_traces(textposition='outside')
+                fig_jur.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    textfont_size=11,
+                    marker=dict(line=dict(color='#ffffff', width=2))
+                )
                 fig_jur.update_layout(
-                    height=360,
-                    yaxis={'categoryorder': 'total ascending'},
+                    height=400,
                     showlegend=False,
-                    margin=dict(t=10, b=10, l=10, r=10),
-                    xaxis_title="",
-                    yaxis_title=""
+                    margin=dict(t=30, b=30, l=20, r=20),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)'
                 )
                 st.plotly_chart(fig_jur, use_container_width=True)
-                
-                top_jur = jur_sum.iloc[0]
-                st.markdown(f'<div class="insight-text">📌 Highest: <b>{top_jur["JURISDICTION"]}</b> ({top_jur["Cases"]:,} cases)</div>', unsafe_allow_html=True)
             else:
                 st.info("No Jurisdiction data")
 
