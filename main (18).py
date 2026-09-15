@@ -542,16 +542,48 @@ else:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
                 st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
-        # ========== MONTHLY TREND CHART ==========
+        # ========== MONTHLY TREND CHART (FIXED + ZOOMABLE) ==========
         st.markdown("---")
         st.markdown('<p class="section-header">📈 Monthly Trend of FCOUNT</p>', unsafe_allow_html=True)
+        
         if not filtered_df.empty and 'YEAR_MONTH' in filtered_df.columns:
             monthly = filtered_df.groupby('YEAR_MONTH')['FCOUNT'].sum().reset_index()
             monthly = monthly.sort_values('YEAR_MONTH')
-            fig_trend = px.line(monthly, x='YEAR_MONTH', y='FCOUNT', markers=True, text='FCOUNT')
-            fig_trend.update_traces(textposition="top center")
-            fig_trend.update_layout(height=400, xaxis_title="Month", yaxis_title="Total FCOUNT")
-            st.plotly_chart(fig_trend, use_container_width=True)
+            
+            fig_trend = px.line(
+                monthly, 
+                x='YEAR_MONTH', 
+                y='FCOUNT', 
+                markers=True,
+                text='FCOUNT'
+            )
+            
+            fig_trend.update_traces(
+                textposition="top center",
+                line=dict(width=3),
+                marker=dict(size=10)
+            )
+            
+            fig_trend.update_layout(
+                height=450,
+                xaxis_title="Month",
+                yaxis_title="Total FCOUNT",
+                hovermode="x unified",
+                dragmode="zoom",
+                xaxis=dict(
+                    tickangle=-45,
+                    type='category'
+                )
+            )
+            
+            st.plotly_chart(fig_trend, use_container_width=True, config={
+                'displayModeBar': True,
+                'scrollZoom': True,
+                'displaylogo': False,
+                'modeBarButtonsToAdd': ['zoom2d', 'pan2d', 'autoScale2d', 'resetScale2d']
+            })
+            
+            st.caption("Tip: Click and drag on the chart to zoom. Double-click to reset view.")
         else:
             st.info("No monthly data available for trend.")
 
@@ -621,7 +653,6 @@ else:
         with col_c3:
             st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
-                # Take top 10 + Others for better visibility
                 if len(jur_sum) > 10:
                     top10 = jur_sum.head(10).copy()
                     others = pd.DataFrame({
