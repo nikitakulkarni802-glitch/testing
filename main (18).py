@@ -1,12 +1,22 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 import plotly.express as px
+import plotly.graph_objects as go
 from io import BytesIO
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
+
+# Optional: statsmodels gives proper exponential-smoothing models.
+# If it is not installed the app silently falls back to a linear-trend model.
+try:
+    from statsmodels.tsa.holtwinters import ExponentialSmoothing
+    STATSMODELS_AVAILABLE = True
+except Exception:
+    STATSMODELS_AVAILABLE = False
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
@@ -324,6 +334,124 @@ def get_jurisdiction(station, department):
 
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
+# ====================== FORECASTING ENGINE ======================
+def build_monthly_series(df, how="sum"):
+    """Aggregate records into a month-start time series of FCOUNT (sum) or record count."""
+    if df is None or df.empty or 'DATE' not in df.columns:
+        return pd.Series(dtype=float)
+    d = df.dropna(subset=['DATE'])
+    if d.empty:
+        return pd.Series(dtype=float)
+    d = d.set_index('DATE').sort_index()
+    if how == "count":
+        series = d.resample('MS').size().astype(float)
+    else:
+        if 'FCOUNT' not in d.columns:
+            return pd.Series(dtype=float)
+        series = d['FCOUNT'].resample('MS').sum().astype(float)
+    return series
+
+
+def _linear_forecast(series, periods):
+    """Least-squares straight-line trend — used when there is little history."""
+    y = series.values.astype(float)
+    x = np.arange(len(y), dtype=float)
+    slope, intercept = np.polyfit(x, y, 1)
+    fitted = slope * x + intercept
+    future_x = np.arange(len(y), len(y) + periods, dtype=float)
+    vals = slope * future_x + intercept
+    resid = float(np.std(y - fitted, ddof=0))
+    return vals, "Linear trend regression", resid
+
+
+def forecast_series(series, periods=3):
+    """
+    Pick the best model the available history can support and return
+    (forecast Series, model name, residual std-dev used for the confidence band).
+    """
+    series = series.dropna().astype(float)
+    n = len(series)
+    if n == 0:
+        return pd.Series(dtype=float), "No data", 0.0
+
+    future_idx = pd.date_range(series.index[-1] + pd.DateOffset(months=1),
+                               periods=periods, freq='MS')
+
+    if n < 4:
+        vals = np.repeat(float(series.iloc[-1]), periods)
+        method = "Naive (last observed month) — very little history"
+        resid = float(series.std(ddof=0)) if n > 1 else 0.0
+
+    elif STATSMODELS_AVAILABLE and n >= 24:
+        try:
+            model = ExponentialSmoothing(
+                series, trend="add", seasonal="add", seasonal_periods=12,
+                damped_trend=True, initialization_method="estimated"
+            ).fit(optimized=True)
+            vals = np.asarray(model.forecast(periods), dtype=float)
+            resid = float(np.std(series.values - np.asarray(model.fittedvalues, dtype=float), ddof=0))
+            method = "Holt-Winters (damped trend + 12-month seasonality)"
+        except Exception:
+            vals, method, resid = _linear_forecast(series, periods)
+
+    elif STATSMODELS_AVAILABLE and n >= 6:
+        try:
+            model = ExponentialSmoothing(
+                series, trend="add", damped_trend=True,
+                initialization_method="estimated"
+            ).fit(optimized=True)
+            vals = np.asarray(model.forecast(periods), dtype=float)
+            resid = float(np.std(series.values - np.asarray(model.fittedvalues, dtype=float), ddof=0))
+            method = "Holt exponential smoothing (damped trend)"
+        except Exception:
+            vals, method, resid = _linear_forecast(series, periods)
+
+    else:
+        vals, method, resid = _linear_forecast(series, periods)
+        if not STATSMODELS_AVAILABLE:
+            method += " (install statsmodels for smoothing models)"
+
+    vals = np.clip(np.round(vals), 0, None)
+    return pd.Series(vals, index=future_idx), method, resid
+
+
+def backtest_mape(series, horizon=3):
+    """Hold out the last `horizon` months, refit, and report MAPE %."""
+    series = series.dropna().astype(float)
+    if len(series) < horizon + 4:
+        return None
+    train, test = series.iloc[:-horizon], series.iloc[-horizon:]
+    pred, _, _ = forecast_series(train, horizon)
+    if pred.empty:
+        return None
+    mask = test.values > 0
+    if not mask.any():
+        return None
+    return float(np.mean(np.abs((test.values[mask] - pred.values[:len(test)][mask]) / test.values[mask])) * 100)
+
+
+def forecast_by_group(df, group_col, how, horizon, top_n=10):
+    """Run the same model separately for the busiest `top_n` groups."""
+    if df.empty or group_col not in df.columns:
+        return pd.DataFrame()
+    if how == "count":
+        ranking = df.groupby(group_col).size()
+    else:
+        ranking = df.groupby(group_col)['FCOUNT'].sum()
+    rows = []
+    for g in ranking.sort_values(ascending=False).head(top_n).index:
+        s = build_monthly_series(df[df[group_col] == g], how=how)
+        if s.empty:
+            continue
+        fc, method, _ = forecast_series(s, horizon)
+        row = {group_col: g, "Last month (actual)": int(s.iloc[-1])}
+        for dt, v in fc.items():
+            row[dt.strftime('%b %Y')] = int(v)
+        row["Forecast total"] = int(fc.sum()) if not fc.empty else 0
+        row["Model"] = method
+        rows.append(row)
+    return pd.DataFrame(rows)
+
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -447,30 +575,38 @@ else:
     st.divider()
 
     # ====================== APPLY FILTERS ======================
-    filtered_df = df_original.copy()
+    def apply_category_filters(df):
+        """Every filter except DATE range and MONTH (those would break the time series)."""
+        out = df.copy()
+        if selected_stations and 'STATION' in out.columns:
+            out = out[out['STATION'].isin(selected_stations)]
+        if selected_errors and 'ERROR MAIN CATEGORY' in out.columns:
+            out = out[out['ERROR MAIN CATEGORY'].isin(selected_errors)]
+        if selected_categories and 'DEPARTMENT' in out.columns:
+            out = out[out['DEPARTMENT'].isin(selected_categories)]
+        if selected_fcount and 'FCOUNT' in out.columns:
+            out = out[out['FCOUNT'].isin(selected_fcount)]
+        if selected_fault and 'DL FAULT MESSAGE' in out.columns:
+            out = out[out['DL FAULT MESSAGE'].isin(selected_fault)]
+        if selected_remark and 'REMARKS GIVEN BY S&T' in out.columns:
+            out = out[out['REMARKS GIVEN BY S&T'].isin(selected_remark)]
+        if selected_jurisdictions and 'JURISDICTION' in out.columns:
+            out = out[out['JURISDICTION'].isin(selected_jurisdictions)]
+        if st.session_state.map_selected_station and 'STATION' in out.columns:
+            out = out[out['STATION'] == st.session_state.map_selected_station]
+        return out
+
+    # Forecast uses the full history (date/month filters deliberately not applied)
+    forecast_base_df = apply_category_filters(df_original)
+
+    filtered_df = forecast_base_df.copy()
     if 'DATE' in filtered_df.columns:
         filtered_df = filtered_df[
             (filtered_df['DATE'].dt.date >= from_date) &
             (filtered_df['DATE'].dt.date <= to_date)
         ]
-    if selected_stations:
-        filtered_df = filtered_df[filtered_df['STATION'].isin(selected_stations)]
-    if selected_errors and 'ERROR MAIN CATEGORY' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['ERROR MAIN CATEGORY'].isin(selected_errors)]
-    if selected_categories and 'DEPARTMENT' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['DEPARTMENT'].isin(selected_categories)]
     if selected_months and 'MONTH' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['MONTH'].isin(selected_months)]
-    if selected_fcount and 'FCOUNT' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['FCOUNT'].isin(selected_fcount)]
-    if selected_fault and 'DL FAULT MESSAGE' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['DL FAULT MESSAGE'].isin(selected_fault)]
-    if selected_remark and 'REMARKS GIVEN BY S&T' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['REMARKS GIVEN BY S&T'].isin(selected_remark)]
-    if selected_jurisdictions and 'JURISDICTION' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['JURISDICTION'].isin(selected_jurisdictions)]
-    if st.session_state.map_selected_station:
-        filtered_df = filtered_df[filtered_df['STATION'] == st.session_state.map_selected_station]
 
     # ====================== PRE-COMPUTE SUMMARIES ======================
     cat_sum = pd.DataFrame()
@@ -487,7 +623,9 @@ else:
     st.divider()
 
     # ====================== TABS ======================
-    tab_overview, tab_map = st.tabs(["📊 Overview Dashboard", "🗺️ Map View"])
+    tab_overview, tab_forecast, tab_map = st.tabs(
+        ["📊 Overview Dashboard", "🔮 Forecast (3 Months)", "🗺️ Map View"]
+    )
 
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
@@ -635,6 +773,152 @@ else:
                     type="primary",
                     use_container_width=True
                 )
+
+    # ====================== FORECAST TAB ======================
+    with tab_forecast:
+        st.subheader("🔮 Forecast — next 1 to 3 months")
+        st.caption("The model uses the **complete** history of the sheet (the FROM/TO date and MONTH "
+                   "filters are ignored here). All other filters do apply.")
+
+        fc1, fc2, fc3, fc4 = st.columns([2, 2, 2, 2])
+        with fc1:
+            horizon = st.slider("Months ahead", min_value=1, max_value=3, value=3, key="fc_horizon")
+        with fc2:
+            metric_choice = st.selectbox("Metric to predict", ["Total FCOUNT", "Number of cases"], key="fc_metric")
+        with fc3:
+            level = st.selectbox("Break-up by",
+                                 ["Division total (no break-up)", "Station", "Department", "Jurisdiction", "Error Main Category"],
+                                 key="fc_level")
+        with fc4:
+            top_n = st.number_input("Top N groups", min_value=3, max_value=25, value=10, step=1, key="fc_topn")
+
+        how = "sum" if metric_choice == "Total FCOUNT" else "count"
+        metric_label = "FCOUNT" if how == "sum" else "Cases"
+
+        hist = build_monthly_series(forecast_base_df, how=how)
+
+        if hist.empty:
+            st.warning("Not enough dated records to build a forecast.")
+        else:
+            fc, method, resid = forecast_series(hist, horizon)
+            mape = backtest_mape(hist, horizon=min(3, max(1, len(hist) // 4)))
+
+            k1, k2, k3, k4 = st.columns(4)
+            with k1:
+                st.metric("Months of history", f"{len(hist)}")
+            with k2:
+                st.metric(f"Last month {metric_label}", f"{int(hist.iloc[-1]):,}")
+            with k3:
+                st.metric(f"Next {horizon} months (predicted)", f"{int(fc.sum()):,}")
+            with k4:
+                change = ((fc.mean() - hist.iloc[-1]) / hist.iloc[-1] * 100) if hist.iloc[-1] else 0
+                st.metric("vs last month", f"{change:+.1f}%")
+
+            st.info(f"**Model used:** {method}"
+                    + (f"  •  **Back-test accuracy (MAPE):** {mape:.1f}% error" if mape is not None
+                       else "  •  Back-test skipped (history too short)"))
+
+            # ---- Chart: history + forecast + confidence band ----
+            anchor_x = [hist.index[-1]] + list(fc.index)
+            anchor_y = [float(hist.iloc[-1])] + [float(v) for v in fc.values]
+            margins = [0.0] + [1.96 * resid * np.sqrt(i + 1) for i in range(len(fc))]
+            upper = [y + m for y, m in zip(anchor_y, margins)]
+            lower = [max(0.0, y - m) for y, m in zip(anchor_y, margins)]
+
+            fig_fc = go.Figure()
+            fig_fc.add_trace(go.Scatter(
+                x=list(anchor_x) + list(anchor_x)[::-1],
+                y=upper + lower[::-1],
+                fill='toself', fillcolor='rgba(255,153,51,0.18)',
+                line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip',
+                name='95% confidence range'
+            ))
+            fig_fc.add_trace(go.Scatter(
+                x=hist.index, y=hist.values, mode='lines+markers', name='Actual',
+                line=dict(color='#003087', width=3), marker=dict(size=8)
+            ))
+            fig_fc.add_trace(go.Scatter(
+                x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast',
+                line=dict(color='#FF9933', width=3, dash='dash'), marker=dict(size=10),
+                text=[""] + [f"{int(v):,}" for v in fc.values], textposition='top center'
+            ))
+            fig_fc.update_layout(height=470, hovermode='x unified',
+                                 xaxis_title="Month", yaxis_title=f"Monthly {metric_label}",
+                                 legend=dict(orientation='h', y=1.12))
+            st.plotly_chart(fig_fc, use_container_width=True, config={'displaylogo': False})
+
+            # ---- Division-level forecast table ----
+            fc_table = pd.DataFrame({
+                "Month": [d.strftime('%B %Y') for d in fc.index],
+                f"Predicted {metric_label}": [int(v) for v in fc.values],
+                "Lower estimate": [int(max(0, v - 1.96 * resid * np.sqrt(i + 1))) for i, v in enumerate(fc.values)],
+                "Upper estimate": [int(v + 1.96 * resid * np.sqrt(i + 1)) for i, v in enumerate(fc.values)],
+            })
+            st.markdown('<p class="section-header">Predicted values</p>', unsafe_allow_html=True)
+            st.dataframe(fc_table.style.format({
+                f"Predicted {metric_label}": "{:,}", "Lower estimate": "{:,}", "Upper estimate": "{:,}"
+            }), use_container_width=True, hide_index=True)
+
+            # ---- Group-level forecast ----
+            group_map = {
+                "Station": "STATION",
+                "Department": "DEPARTMENT",
+                "Jurisdiction": "JURISDICTION",
+                "Error Main Category": "ERROR MAIN CATEGORY",
+            }
+            group_table = pd.DataFrame()
+            if level in group_map:
+                gcol = group_map[level]
+                st.markdown("---")
+                st.markdown(f'<p class="section-header">Forecast by {level} (top {int(top_n)})</p>',
+                            unsafe_allow_html=True)
+                with st.spinner("Fitting models group by group..."):
+                    group_table = forecast_by_group(forecast_base_df, gcol, how, horizon, int(top_n))
+
+                if group_table.empty:
+                    st.info("Not enough history for a group-wise forecast.")
+                else:
+                    num_cols = [c for c in group_table.columns if c not in (gcol, "Model")]
+                    st.dataframe(
+                        group_table.style.format({c: "{:,}" for c in num_cols})
+                        .background_gradient(subset=["Forecast total"], cmap='YlOrRd'),
+                        use_container_width=True, hide_index=True
+                    )
+
+                    plot_df = group_table.sort_values("Forecast total", ascending=True)
+                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h',
+                                     text="Forecast total", color="Forecast total",
+                                     color_continuous_scale='RdYlGn_r')
+                    fig_grp.update_traces(textposition='outside', cliponaxis=False)
+                    fig_grp.update_layout(height=480, coloraxis_showscale=False,
+                                          xaxis_title=f"Predicted {metric_label} (next {horizon} months)",
+                                          yaxis_title="", margin=dict(t=30, b=30, l=20, r=60))
+                    st.plotly_chart(fig_grp, use_container_width=True)
+
+            # ---- Download forecast ----
+            st.markdown("---")
+            col_fb1, col_fb2, col_fb3 = st.columns([1, 3, 1])
+            with col_fb2:
+                fout = BytesIO()
+                with pd.ExcelWriter(fout, engine='xlsxwriter') as writer:
+                    fc_table.to_excel(writer, index=False, sheet_name='Division_Forecast')
+                    hist.rename(metric_label).reset_index().rename(
+                        columns={'index': 'Month', 'DATE': 'Month'}
+                    ).to_excel(writer, index=False, sheet_name='Monthly_History')
+                    if not group_table.empty:
+                        group_table.to_excel(writer, index=False, sheet_name='Group_Forecast')
+                fout.seek(0)
+                st.download_button(
+                    label="⬇️ Download Forecast Report",
+                    data=fout.getvalue(),
+                    file_name=f"Datalogger_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    use_container_width=True
+                )
+
+            st.caption("⚠️ Forecasts are statistical projections from past data only. They assume conditions "
+                       "stay broadly the same and should support — not replace — field judgement.")
 
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
