@@ -7,8 +7,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
-import re
-from difflib import SequenceMatcher
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
@@ -42,79 +40,6 @@ st.markdown("""
         font-weight: 600; 
         color: #003087; 
         margin: 1.2rem 0 0.5rem 0; 
-    }
-    .alert-box {
-        background-color: #ff4b4b;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        font-size: 1.15rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    /* ========== COOL CHATBOT STYLING ========== */
-    .chatbot-header {
-        background: linear-gradient(135deg, #003087, #0056b3);
-        color: white;
-        padding: 14px 18px;
-        border-radius: 14px 14px 0 0;
-        font-size: 1.15rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 0;
-        box-shadow: 0 4px 12px rgba(0,48,135,0.25);
-    }
-    .chatbot-header span {
-        background: rgba(255,255,255,0.2);
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    .chat-container {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-top: none;
-        border-radius: 0 0 14px 14px;
-        padding: 16px 14px;
-        max-height: 420px;
-        overflow-y: auto;
-        margin-bottom: 12px;
-    }
-    .chat-message {
-        padding: 12px 16px;
-        border-radius: 18px;
-        margin-bottom: 12px;
-        font-size: 0.95rem;
-        line-height: 1.45;
-        max-width: 92%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        position: relative;
-    }
-    .user-msg {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: white;
-        margin-left: auto;
-        border-bottom-right-radius: 4px;
-        text-align: left;
-    }
-    .bot-msg {
-        background: white;
-        color: #1e293b;
-        border: 1px solid #e2e8f0;
-        margin-right: auto;
-        border-bottom-left-radius: 4px;
-    }
-    .bot-msg b {
-        color: #003087;
-    }
-    .chat-avatar {
-        font-size: 1.1rem;
-        margin-right: 6px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -375,211 +300,35 @@ SNT_ADSTE = {
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
-    
+
     stn = str(station).strip().upper().replace(" ", "")
-    
+
     if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
-    
+
     dept = str(department).strip().upper() if pd.notna(department) else ""
 
     if "OPTG" in dept or "OPERATING" in dept:
         return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
-    
+
     if "ENGG" in dept or "ENGINEERING" in dept or "ADEN" in dept:
         return ENGG_ADEN.get(stn, ENGG_ADEN.get(station, "Unclassified"))
-    
+
     if any(x in dept for x in ["TRD", "TRACTION", "OHE"]):
         return ELECT_TRD_SSE.get(stn, ELECT_TRD_SSE.get(station, "Unclassified"))
-    
+
     if any(x in dept for x in ["ELECT", "ELECTRICAL", "SSE/ELECT"]):
         return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
-    
+
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
-
-# ====================== IMPROVED AI CHATBOT ======================
-def similarity(a, b):
-    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
-
-def fuzzy_contains(text, candidates, threshold=0.72):
-    words = re.findall(r'\w+', text.lower())
-    for word in words:
-        for cand in candidates:
-            if similarity(word, cand) >= threshold or cand in word or word in cand:
-                return True
-    return False
-
-def detect_month(q):
-    month_map = {
-        "january": "January", "jan": "January", "janury": "January", "janu": "January",
-        "february": "February", "feb": "February", "febuary": "February", "februry": "February",
-        "march": "March", "mar": "March", "marchh": "March",
-        "april": "April", "apr": "April", "aprl": "April",
-        "may": "May",
-        "june": "June", "jun": "June",
-        "july": "July", "jul": "July",
-        "august": "August", "aug": "August", "augest": "August",
-        "september": "September", "sep": "September", "sept": "September", "septmber": "September",
-        "october": "October", "oct": "October", "octber": "October",
-        "november": "November", "nov": "November", "novmber": "November",
-        "december": "December", "dec": "December", "decmber": "December"
-    }
-    q_lower = q.lower()
-    for key, value in month_map.items():
-        if key in q_lower:
-            return value
-    for key, value in month_map.items():
-        if fuzzy_contains(q, [key], threshold=0.75):
-            return value
-    return None
-
-def ask_chatbot(question, df):
-    if df is None or df.empty:
-        return "No data available in the system."
-
-    q = question.lower().strip()
-    detected_month = detect_month(q)
-
-    work_df = df.copy()
-    if detected_month and 'MONTH' in work_df.columns:
-        work_df = work_df[work_df['MONTH'] == detected_month]
-        if work_df.empty:
-            return f"No records found for the month of <b>{detected_month}</b>."
-
-    # HELP
-    if fuzzy_contains(q, ["help", "what can you do", "commands", "examples", "how to ask"]):
-        return """I can answer questions even with spelling mistakes. Try these:<br><br>
-<b>Basic</b><br>
-• Total records / Total FCOUNT<br>
-• Top station / Highest station<br>
-• Top 5 stations<br>
-• Tell me about station WADI<br><br>
-<b>With month</b><br>
-• Which station has highest FCOUNT in January?<br>
-• Top 5 stations in February<br>
-• Total cases in March<br><br>
-Just type naturally — even if there are typos."""
-
-    # ========== TOP / HIGHEST / MORE CASES STATION (HIGH PRIORITY) ==========
-    top_keywords = [
-        "top station", "highest station", "station with highest", "which station has highest",
-        "which station has more", "which station has most", "station with most", "station with more",
-        "higest station", "hightest", "top sation", "highest sation", "most cases station",
-        "maximum station", "max station", "more cases", "has more cases", "stations has more",
-        "station has more", "which stations has more", "which station has", "stations with more"
-    ]
-    
-    is_top_station_query = (
-        fuzzy_contains(q, top_keywords) or
-        (fuzzy_contains(q, ["top", "highest", "most", "maximum", "max", "more"]) and 
-         fuzzy_contains(q, ["station", "sation", "statin", "stn", "stations"]))
-    )
-
-    if is_top_station_query:
-        if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
-            top = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
-            if top.empty:
-                return "No station data available for this query."
-            station = top.index[0]
-            value = int(top.iloc[0])
-            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
-            return f"The station with the highest FCOUNT{month_text} is <b>{station}</b> with <b>{value:,}</b> FCOUNT."
-        return "Station or FCOUNT data not available."
-
-    # TOP 5 STATIONS
-    if (fuzzy_contains(q, ["top 5", "top five", "top5"]) and fuzzy_contains(q, ["station", "sation", "statin"])) or \
-       (fuzzy_contains(q, ["top"]) and "5" in q and fuzzy_contains(q, ["station", "sation"])):
-        if 'STATION' in work_df.columns and 'FCOUNT' in work_df.columns:
-            top5 = work_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False).head(5)
-            if top5.empty:
-                return "No data available."
-            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
-            result = f"<b>Top 5 Stations by FCOUNT{month_text}:</b><br><br>"
-            for i, (stn, val) in enumerate(top5.items(), 1):
-                result += f"{i}. <b>{stn}</b> → {int(val):,}<br>"
-            return result
-        return "Station data not available."
-
-    # TOTAL RECORDS
-    if fuzzy_contains(q, ["total record", "how many record", "number of record", "total case", "total cases", "how many case"]):
-        return f"Total records{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(work_df):,}</b>"
-
-    # TOTAL FCOUNT
-    if fuzzy_contains(q, ["total fcount", "overall fcount", "sum of fcount", "total fault", "total f count", "fcountt", "f cout"]):
-        total = work_df['FCOUNT'].sum() if 'FCOUNT' in work_df.columns else 0
-        return f"Total FCOUNT{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{int(total):,}</b>"
-
-    # SPECIFIC STATION
-    if 'STATION' in df.columns:
-        stations = [str(s).strip() for s in df['STATION'].dropna().unique()]
-        best_station = None
-        best_score = 0.0
-        q_words = re.findall(r'\w+', q)
-        for stn in stations:
-            stn_lower = stn.lower()
-            if stn_lower in q or any(similarity(w, stn_lower) > 0.78 for w in q_words):
-                score = max((similarity(w, stn_lower) for w in q_words), default=0)
-                if score > best_score:
-                    best_score = score
-                    best_station = stn
-            if similarity(q, stn_lower) > 0.6 and similarity(q, stn_lower) > best_score:
-                best_score = similarity(q, stn_lower)
-                best_station = stn
-
-        if best_station and best_score > 0.65:
-            stn_df = work_df[work_df['STATION'] == best_station]
-            if stn_df.empty:
-                return f"No records found for station <b>{best_station}</b>{' in <b>' + detected_month + '</b>' if detected_month else ''}."
-            total = int(stn_df['FCOUNT'].sum())
-            count = len(stn_df)
-            month_text = f" in <b>{detected_month}</b>" if detected_month else ""
-            return f"<b>Station {best_station}{month_text}:</b><br>• Total FCOUNT: <b>{total:,}</b><br>• Number of records: <b>{count:,}</b>"
-
-    # DEPARTMENT
-    if fuzzy_contains(q, ["engineering", "engg", "engeniring", "engneering"]):
-        eng = work_df[work_df['DEPARTMENT'].str.contains("Engineering|ENGG", case=False, na=False)]
-        return f"Engineering Department has <b>{len(eng):,}</b> records{' in <b>' + detected_month + '</b>' if detected_month else ''}."
-    
-    if fuzzy_contains(q, ["optg", "operating", "oprating", "operation"]):
-        optg = work_df[work_df['DEPARTMENT'].str.contains("OPTG|Operating", case=False, na=False)]
-        return f"Operating (OPTG) Department has <b>{len(optg):,}</b> records{' in <b>' + detected_month + '</b>' if detected_month else ''}."
-
-    # ERROR CATEGORY
-    if fuzzy_contains(q, ["track circuit", "trackcircuit", "tc failure"]):
-        tc = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Track Circuit", case=False, na=False)]
-        return f"Track Circuit Failure cases{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(tc):,}</b>"
-    
-    if fuzzy_contains(q, ["emergency route", "emergencyroute", "route cancellation"]):
-        er = work_df[work_df['ERROR MAIN CATEGORY'].str.contains("Emergency Route", case=False, na=False)]
-        return f"Emergency Route Cancellation cases{' in <b>' + detected_month + '</b>' if detected_month else ''}: <b>{len(er):,}</b>"
-
-    # JURISDICTION
-    if fuzzy_contains(q, ["jurisdiction", "jurisdction", "juris"]) and fuzzy_contains(q, ["highest", "top", "maximum", "most", "max"]):
-        if 'JURISDICTION' in work_df.columns:
-            top_jur = work_df['JURISDICTION'].value_counts()
-            if top_jur.empty:
-                return "No jurisdiction data available."
-            return f"The jurisdiction with highest cases{' in <b>' + detected_month + '</b>' if detected_month else ''} is <b>{top_jur.index[0]}</b> with <b>{top_jur.iloc[0]:,}</b> cases."
-
-    # FALLBACK
-    return ("Sorry, I could not fully understand the question.<br><br>"
-            "Try asking (spelling mistakes are okay):<br>"
-            "• Which station has highest FCOUNT in January?<br>"
-            "• Top 5 stations in February<br>"
-            "• Total FCOUNT<br>"
-            "• Tell me about station WADI<br>"
-            "• How many cases in Engineering?<br><br>"
-            "Type <b>help</b> for more examples.")
 
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "map_selected_station" not in st.session_state:
     st.session_state.map_selected_station = None
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
 
 # ====================== LOGIN & LOAD DATA ======================
 def login_page():
@@ -656,43 +405,6 @@ else:
         st.header("🔧 Controls")
         if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
             refresh_data()
-
-        st.markdown("---")
-
-        # Cool Chatbot Header
-        st.markdown("""
-        <div class="chatbot-header">
-            🤖 AI Chatbot
-            <span>Spelling tolerant</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Chat messages
-        chat_html = '<div class="chat-container">'
-        for chat in st.session_state.chat_history[-12:]:
-            if chat["role"] == "user":
-                chat_html += f'''
-                <div class="chat-message user-msg">
-                    <span class="chat-avatar">👤</span>{chat["content"]}
-                </div>'''
-            else:
-                chat_html += f'''
-                <div class="chat-message bot-msg">
-                    <span class="chat-avatar">🤖</span>{chat["content"]}
-                </div>'''
-        chat_html += '</div>'
-        st.markdown(chat_html, unsafe_allow_html=True)
-
-        user_question = st.chat_input("Ask me anything about the data...")
-        if user_question:
-            st.session_state.chat_history.append({"role": "user", "content": user_question})
-            answer = ask_chatbot(user_question, df_original)
-            st.session_state.chat_history.append({"role": "assistant", "content": answer})
-            st.rerun()
-
-        if st.button("🗑️ Clear Chat", use_container_width=True):
-            st.session_state.chat_history = []
-            st.rerun()
 
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
@@ -780,19 +492,6 @@ else:
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
 
-        # High FCOUNT Alert
-        if not filtered_df.empty and 'STATION' in filtered_df.columns and 'FCOUNT' in filtered_df.columns:
-            station_fcount = filtered_df.groupby('STATION')['FCOUNT'].sum().sort_values(ascending=False)
-            critical_stations = station_fcount[station_fcount >= 1000]
-            
-            if not critical_stations.empty:
-                alert_text = "⚠️ <b>CRITICAL ALERT</b> — High FCOUNT Stations: "
-                alert_parts = [f"<b>{stn}</b> ({val:,})" for stn, val in critical_stations.head(5).items()]
-                alert_text += " | ".join(alert_parts)
-                if len(critical_stations) > 5:
-                    alert_text += f" + {len(critical_stations)-5} more"
-                st.markdown(f'<div class="alert-box">{alert_text}</div>', unsafe_allow_html=True)
-
         # KPI Metrics
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -832,41 +531,22 @@ else:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
                 st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
-        # Monthly Trend
-        st.markdown("---")
-        st.markdown('<p class="section-header">📈 Monthly Trend of FCOUNT</p>', unsafe_allow_html=True)
-        
-        if not filtered_df.empty and 'YEAR_MONTH' in filtered_df.columns:
-            monthly = filtered_df.groupby('YEAR_MONTH')['FCOUNT'].sum().reset_index()
-            monthly = monthly.sort_values('YEAR_MONTH')
-            
-            fig_trend = px.line(monthly, x='YEAR_MONTH', y='FCOUNT', markers=True, text='FCOUNT')
-            fig_trend.update_traces(textposition="top center", line=dict(width=3), marker=dict(size=10))
-            fig_trend.update_layout(height=450, xaxis_title="Month", yaxis_title="Total FCOUNT",
-                                    hovermode="x unified", dragmode="zoom",
-                                    xaxis=dict(tickangle=-45, type='category'))
-            
-            st.plotly_chart(fig_trend, use_container_width=True, config={
-                'displayModeBar': True, 'scrollZoom': True, 'displaylogo': False
-            })
-            st.caption("Tip: Click and drag to zoom. Double-click to reset.")
-        else:
-            st.info("No monthly data available for trend.")
-
-        # Distribution Charts
+        # Distribution Charts (Horizontal Bars)
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
-        
+
         col_c1, col_c2, col_c3 = st.columns(3)
 
         with col_c1:
             st.markdown("**Department-wise**")
             if not cat_sum.empty:
-                fig_dept = px.pie(cat_sum, names='DEPARTMENT', values='Cases', hole=0.4,
-                                  color_discrete_sequence=px.colors.qualitative.Vivid)
-                fig_dept.update_traces(textposition='inside', textinfo='percent+label', textfont_size=13,
-                                       marker=dict(line=dict(color='#ffffff', width=2)))
-                fig_dept.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
+                dept_plot = cat_sum.sort_values('Cases', ascending=True)
+                fig_dept = px.bar(dept_plot, x='Cases', y='DEPARTMENT', orientation='h',
+                                  text='Cases', color='Cases', color_continuous_scale='Blues')
+                fig_dept.update_traces(textposition='outside', cliponaxis=False)
+                fig_dept.update_layout(height=400, showlegend=False, coloraxis_showscale=False,
+                                       xaxis_title="Cases", yaxis_title="",
+                                       margin=dict(t=30, b=30, l=20, r=50))
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
                 st.info("No Department data")
@@ -874,11 +554,13 @@ else:
         with col_c2:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
-                fig_err = px.pie(error_sum, names='ERROR MAIN CATEGORY', values='Cases', hole=0.4,
-                                 color_discrete_sequence=px.colors.qualitative.Bold)
-                fig_err.update_traces(textposition='inside', textinfo='percent+label', textfont_size=12,
-                                      marker=dict(line=dict(color='#ffffff', width=2)))
-                fig_err.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
+                err_plot = error_sum.head(12).sort_values('Cases', ascending=True)
+                fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h',
+                                 text='Cases', color='Cases', color_continuous_scale='Oranges')
+                fig_err.update_traces(textposition='outside', cliponaxis=False)
+                fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False,
+                                      xaxis_title="Cases", yaxis_title="",
+                                      margin=dict(t=30, b=30, l=20, r=50))
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
                 st.info("No Error data")
@@ -886,18 +568,13 @@ else:
         with col_c3:
             st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
-                if len(jur_sum) > 10:
-                    top10 = jur_sum.head(10).copy()
-                    others = pd.DataFrame({'JURISDICTION': ['Others'], 'Cases': [jur_sum.iloc[10:]['Cases'].sum()]})
-                    jur_plot = pd.concat([top10, others], ignore_index=True)
-                else:
-                    jur_plot = jur_sum
-
-                fig_jur = px.pie(jur_plot, names='JURISDICTION', values='Cases', hole=0.4,
-                                 color_discrete_sequence=px.colors.qualitative.Pastel)
-                fig_jur.update_traces(textposition='inside', textinfo='percent+label', textfont_size=11,
-                                      marker=dict(line=dict(color='#ffffff', width=2)))
-                fig_jur.update_layout(height=400, showlegend=False, margin=dict(t=30, b=30, l=20, r=20))
+                jur_plot = jur_sum.head(12).sort_values('Cases', ascending=True)
+                fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h',
+                                 text='Cases', color='Cases', color_continuous_scale='Teal')
+                fig_jur.update_traces(textposition='outside', cliponaxis=False)
+                fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False,
+                                      xaxis_title="Cases", yaxis_title="",
+                                      margin=dict(t=30, b=30, l=20, r=50))
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
@@ -961,7 +638,7 @@ else:
 
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
-       
+
         if st.session_state.map_selected_station:
             col_clear1, col_clear2 = st.columns([1, 5])
             with col_clear1:
@@ -969,18 +646,18 @@ else:
                     st.session_state.map_selected_station = None
                     st.rerun()
             st.success(f"📍 Currently viewing: **{st.session_state.map_selected_station}**")
-        
+
         st.markdown("<br>", unsafe_allow_html=True)
-        
+
         col_m1, col_m2 = st.columns([3, 2])
-       
+
         with col_m1:
             if filtered_df.empty or 'STATION' not in filtered_df.columns:
                 st.warning("No data available.")
             else:
                 map_agg = filtered_df.groupby('STATION')['FCOUNT'].sum().reset_index()
                 map_data = []
-               
+
                 for _, row in map_agg.iterrows():
                     station_name = str(row['STATION']).strip().upper()
                     best_match = None
@@ -995,13 +672,13 @@ else:
                             'lat': best_match['lat'],
                             'lon': best_match['lon']
                         })
-               
+
                 map_df = pd.DataFrame(map_data)
-               
+
                 if not map_df.empty:
                     with st.spinner("Rendering map..."):
                         m = folium.Map(location=[17.85, 75.80], zoom_start=7.2, tiles=None, control_scale=True)
-                    
+
                         carto_key = st.secrets["carto"]["api_key"]
                         folium.TileLayer(
                             tiles=f"https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}.png?key={carto_key}",
@@ -1009,16 +686,16 @@ else:
                             attr='© OpenStreetMap © CARTO',
                             control=True, subdomains="abcd", max_zoom=20
                         ).add_to(m)
-                    
+
                         folium.TileLayer("OpenStreetMap", name="🌍 OpenStreetMap", control=True).add_to(m)
                         folium.TileLayer(
                             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                             attr="Esri", name="🌐 Satellite", control=True
                         ).add_to(m)
-                    
+
                         folium.LayerControl(position="topright", collapsed=False).add_to(m)
                         Fullscreen().add_to(m)
-                       
+
                         for _, row in map_df.iterrows():
                             fcount = int(row['FCOUNT'])
                             if fcount < 600:
@@ -1028,7 +705,7 @@ else:
                             else:
                                 color = "darkred"
                             radius = 8 + min(fcount / 50, 25)
-                            
+
                             folium.CircleMarker(
                                 location=[row['lat'], row['lon']],
                                 radius=radius,
@@ -1036,16 +713,16 @@ else:
                                 tooltip=f"{row['STATION']} ({fcount:,})",
                                 color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2
                             ).add_to(m)
-                       
+
                         map_key = f"folium_map_{len(filtered_df)}"
                         map_return = st_folium(m, width=950, height=680, key=map_key, returned_objects=["last_object_clicked"])
-                       
+
                         if map_return and map_return.get("last_object_clicked"):
                             lat = map_return["last_object_clicked"]["lat"]
                             lon = map_return["last_object_clicked"]["lng"]
                             map_df['dist'] = ((map_df['lat'] - lat)**2 + (map_df['lon'] - lon)**2)**0.5
                             selected_station = map_df.loc[map_df['dist'].idxmin(), 'STATION']
-                           
+
                             if st.session_state.map_selected_station != selected_station:
                                 st.session_state.map_selected_station = selected_station
                                 st.rerun()
