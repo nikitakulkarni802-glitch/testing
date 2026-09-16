@@ -431,60 +431,25 @@ def backtest_mape(series, horizon=3):
 
 
 def forecast_by_group(df, group_col, how, horizon, top_n=10):
-    """
-    Run the same model for the busiest top_n groups.
-    FIXED: All groups now use the SAME future months (based on the overall last date).
-    This makes the Excel clean and easy to understand – no more empty / shifted columns.
-    """
+    """Run the same model separately for the busiest `top_n` groups."""
     if df.empty or group_col not in df.columns:
         return pd.DataFrame()
-
-    # Find the overall last month in the data so every group uses the same future months
-    all_series = build_monthly_series(df, how=how)
-    if all_series.empty:
-        return pd.DataFrame()
-    
-    global_last = all_series.index[-1]
-    common_future_idx = pd.date_range(
-        global_last + pd.DateOffset(months=1),
-        periods=horizon,
-        freq='MS'
-    )
-
     if how == "count":
         ranking = df.groupby(group_col).size()
     else:
         ranking = df.groupby(group_col)['FCOUNT'].sum()
-
     rows = []
     for g in ranking.sort_values(ascending=False).head(top_n).index:
         s = build_monthly_series(df[df[group_col] == g], how=how)
         if s.empty:
             continue
-
-        # Forecast using the group's own history
         fc, method, _ = forecast_series(s, horizon)
-
-        # Align the forecast to the common future months
-        # (if a group has older data it may start earlier – we just take the values that match)
-        aligned = {}
-        for dt in common_future_idx:
-            if dt in fc.index:
-                aligned[dt] = int(fc[dt])
-            else:
-                # If this month is missing for the group, put 0 (or you can put None)
-                aligned[dt] = 0
-
-        row = {
-            group_col: g,
-            "Last month (actual)": int(s.iloc[-1]) if not s.empty else 0
-        }
-        for dt, v in aligned.items():
-            row[dt.strftime('%b %Y')] = v
-        row["Forecast total"] = sum(aligned.values())
+        row = {group_col: g, "Last month (actual)": int(s.iloc[-1])}
+        for dt, v in fc.items():
+            row[dt.strftime('%b %Y')] = int(v)
+        row["Forecast total"] = int(fc.sum()) if not fc.empty else 0
         row["Model"] = method
         rows.append(row)
-
     return pd.DataFrame(rows)
 
 # ====================== SESSION STATE ======================
@@ -809,50 +774,26 @@ else:
                     use_container_width=True
                 )
 
-    # ====================== FORECAST TAB (Simple language + Fixed Excel) ======================
+    # ====================== FORECAST TAB ======================
     with tab_forecast:
-        st.subheader("🔮 Forecast — What might happen in the next 1 to 3 months?")
-        
-        # ---- Simple explanation for everyone ----
-        with st.expander("ℹ️ How does this forecast work? (Click to read – written in simple language)", expanded=True):
-            st.markdown("""
-            **Think of it like this:**
+        st.subheader("🔮 Forecast — next 1 to 3 months")
+        st.caption("The model uses the **complete** history of the sheet (the FROM/TO date and MONTH "
+                   "filters are ignored here). All other filters do apply.")
 
-            1. The system looks at how many problems happened every month in the past.
-            2. It finds the pattern (are the numbers going up, going down, or staying roughly the same?).
-            3. It continues that pattern into the next 1, 2 or 3 months and gives its best guess.
-            4. It also shows a light-coloured band around the guess.  
-               This means: “I am quite sure the real number will fall somewhere inside this band.”
-
-            **Important**  
-            - This is only a statistical projection based on past data.  
-            - Real conditions on the ground can still change the numbers.  
-            - Use it as a helpful guide, not as a final decision.
-            """)
-
-        st.caption("Note: The model uses the **complete** history of the sheet (FROM/TO date and MONTH filters are ignored here). All other filters still apply.")
-
-        # ---- Controls ----
         fc1, fc2, fc3, fc4 = st.columns([2, 2, 2, 2])
         with fc1:
-            horizon = st.slider("How many months ahead do you want to see?", min_value=1, max_value=3, value=3, key="fc_horizon")
+            horizon = st.slider("Months ahead", min_value=1, max_value=3, value=3, key="fc_horizon")
         with fc2:
-            metric_choice = st.selectbox(
-                "What do you want to predict?",
-                ["Total FCOUNT (total problems)", "Number of cases (number of records)"],
-                key="fc_metric"
-            )
+            metric_choice = st.selectbox("Metric to predict", ["Total FCOUNT", "Number of cases"], key="fc_metric")
         with fc3:
-            level = st.selectbox(
-                "Break the forecast by",
-                ["Division total (no break-up)", "Station", "Department", "Jurisdiction", "Error Main Category"],
-                key="fc_level"
-            )
+            level = st.selectbox("Break-up by",
+                                 ["Division total (no break-up)", "Station", "Department", "Jurisdiction", "Error Main Category"],
+                                 key="fc_level")
         with fc4:
-            top_n = st.number_input("Show top how many groups?", min_value=3, max_value=25, value=10, step=1, key="fc_topn")
+            top_n = st.number_input("Top N groups", min_value=3, max_value=25, value=10, step=1, key="fc_topn")
 
-        how = "sum" if "FCOUNT" in metric_choice else "count"
-        metric_label = "Total problems (FCOUNT)" if how == "sum" else "Number of cases"
+        how = "sum" if metric_choice == "Total FCOUNT" else "count"
+        metric_label = "FCOUNT" if how == "sum" else "Cases"
 
         hist = build_monthly_series(forecast_base_df, how=how)
 
@@ -862,35 +803,22 @@ else:
             fc, method, resid = forecast_series(hist, horizon)
             mape = backtest_mape(hist, horizon=min(3, max(1, len(hist) // 4)))
 
-            # ---- Friendly model name ----
-            if "Holt-Winters" in method:
-                simple_model = "Advanced seasonal pattern (best when we have 2+ years of data)"
-            elif "Holt" in method:
-                simple_model = "Trend-following method (good when numbers are slowly rising or falling)"
-            elif "Linear" in method:
-                simple_model = "Simple straight-line trend"
-            elif "Naive" in method:
-                simple_model = "Simple repeat of last month (used when history is very short)"
-            else:
-                simple_model = method
-
-            # ---- Key numbers ----
             k1, k2, k3, k4 = st.columns(4)
             with k1:
-                st.metric("Months of past data used", f"{len(hist)}")
+                st.metric("Months of history", f"{len(hist)}")
             with k2:
-                st.metric(f"Last month’s actual {metric_label.lower()}", f"{int(hist.iloc[-1]):,}")
+                st.metric(f"Last month {metric_label}", f"{int(hist.iloc[-1]):,}")
             with k3:
-                st.metric(f"Predicted total for next {horizon} month(s)", f"{int(fc.sum()):,}")
+                st.metric(f"Next {horizon} months (predicted)", f"{int(fc.sum()):,}")
             with k4:
                 change = ((fc.mean() - hist.iloc[-1]) / hist.iloc[-1] * 100) if hist.iloc[-1] else 0
-                st.metric("Change vs last month", f"{change:+.1f}%")
+                st.metric("vs last month", f"{change:+.1f}%")
 
-            st.info(f"**Method used:** {simple_model}"
-                    + (f"  •  **How accurate has it been recently?** About {mape:.0f}% average error"
-                       if mape is not None else "  •  Accuracy check skipped (history too short)"))
+            st.info(f"**Model used:** {method}"
+                    + (f"  •  **Back-test accuracy (MAPE):** {mape:.1f}% error" if mape is not None
+                       else "  •  Back-test skipped (history too short)"))
 
-            # ---- Chart ----
+            # ---- Chart: history + forecast + confidence band ----
             anchor_x = [hist.index[-1]] + list(fc.index)
             anchor_y = [float(hist.iloc[-1])] + [float(v) for v in fc.values]
             margins = [0.0] + [1.96 * resid * np.sqrt(i + 1) for i in range(len(fc))]
@@ -903,41 +831,33 @@ else:
                 y=upper + lower[::-1],
                 fill='toself', fillcolor='rgba(255,153,51,0.18)',
                 line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip',
-                name='Most likely range (95% confidence)'
+                name='95% confidence range'
             ))
             fig_fc.add_trace(go.Scatter(
-                x=hist.index, y=hist.values, mode='lines+markers', name='What actually happened',
+                x=hist.index, y=hist.values, mode='lines+markers', name='Actual',
                 line=dict(color='#003087', width=3), marker=dict(size=8)
             ))
             fig_fc.add_trace(go.Scatter(
-                x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast (best guess)',
+                x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast',
                 line=dict(color='#FF9933', width=3, dash='dash'), marker=dict(size=10),
                 text=[""] + [f"{int(v):,}" for v in fc.values], textposition='top center'
             ))
-            fig_fc.update_layout(
-                height=470, hovermode='x unified',
-                xaxis_title="Month",
-                yaxis_title=f"Monthly {metric_label}",
-                legend=dict(orientation='h', y=1.12)
-            )
+            fig_fc.update_layout(height=470, hovermode='x unified',
+                                 xaxis_title="Month", yaxis_title=f"Monthly {metric_label}",
+                                 legend=dict(orientation='h', y=1.12))
             st.plotly_chart(fig_fc, use_container_width=True, config={'displaylogo': False})
 
-            # ---- Simple table ----
+            # ---- Division-level forecast table ----
             fc_table = pd.DataFrame({
                 "Month": [d.strftime('%B %Y') for d in fc.index],
                 f"Predicted {metric_label}": [int(v) for v in fc.values],
-                "Lower estimate (optimistic)": [int(max(0, v - 1.96 * resid * np.sqrt(i + 1))) for i, v in enumerate(fc.values)],
-                "Upper estimate (pessimistic)": [int(v + 1.96 * resid * np.sqrt(i + 1)) for i, v in enumerate(fc.values)],
+                "Lower estimate": [int(max(0, v - 1.96 * resid * np.sqrt(i + 1))) for i, v in enumerate(fc.values)],
+                "Upper estimate": [int(v + 1.96 * resid * np.sqrt(i + 1)) for i, v in enumerate(fc.values)],
             })
-            st.markdown("#### Predicted values for the coming months")
-            st.dataframe(
-                fc_table.style.format({
-                    f"Predicted {metric_label}": "{:,}",
-                    "Lower estimate (optimistic)": "{:,}",
-                    "Upper estimate (pessimistic)": "{:,}"
-                }),
-                use_container_width=True, hide_index=True
-            )
+            st.markdown('<p class="section-header">Predicted values</p>', unsafe_allow_html=True)
+            st.dataframe(fc_table.style.format({
+                f"Predicted {metric_label}": "{:,}", "Lower estimate": "{:,}", "Upper estimate": "{:,}"
+            }), use_container_width=True, hide_index=True)
 
             # ---- Group-level forecast ----
             group_map = {
@@ -950,45 +870,32 @@ else:
             if level in group_map:
                 gcol = group_map[level]
                 st.markdown("---")
-                st.markdown(f"#### Forecast by {level} (top {int(top_n)})")
-                st.caption(f"These are the {level.lower()}s that had the highest numbers in the past. The same method is applied to each one separately. All groups now use the same months so the Excel is clean and easy to read.")
-                
-                with st.spinner("Calculating forecast for each group..."):
+                st.markdown(f'<p class="section-header">Forecast by {level} (top {int(top_n)})</p>',
+                            unsafe_allow_html=True)
+                with st.spinner("Fitting models group by group..."):
                     group_table = forecast_by_group(forecast_base_df, gcol, how, horizon, int(top_n))
 
                 if group_table.empty:
                     st.info("Not enough history for a group-wise forecast.")
                 else:
-                    # Make column names friendlier
-                    rename_map = {
-                        "Last month (actual)": "Last month actual",
-                        "Forecast total": f"Total predicted for next {horizon} month(s)",
-                        "Model": "Method used"
-                    }
-                    display_group = group_table.rename(columns=rename_map)
-                    
-                    num_cols = [c for c in display_group.columns if c not in (gcol, "Method used")]
+                    num_cols = [c for c in group_table.columns if c not in (gcol, "Model")]
                     st.dataframe(
-                        display_group.style.format({c: "{:,}" for c in num_cols})
-                        .background_gradient(subset=[f"Total predicted for next {horizon} month(s)"], cmap='YlOrRd'),
+                        group_table.style.format({c: "{:,}" for c in num_cols})
+                        .background_gradient(subset=["Forecast total"], cmap='YlOrRd'),
                         use_container_width=True, hide_index=True
                     )
 
                     plot_df = group_table.sort_values("Forecast total", ascending=True)
-                    fig_grp = px.bar(
-                        plot_df, x="Forecast total", y=gcol, orientation='h',
-                        text="Forecast total", color="Forecast total",
-                        color_continuous_scale='RdYlGn_r'
-                    )
+                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h',
+                                     text="Forecast total", color="Forecast total",
+                                     color_continuous_scale='RdYlGn_r')
                     fig_grp.update_traces(textposition='outside', cliponaxis=False)
-                    fig_grp.update_layout(
-                        height=480, coloraxis_showscale=False,
-                        xaxis_title=f"Predicted {metric_label} (next {horizon} months)",
-                        yaxis_title="", margin=dict(t=30, b=30, l=20, r=60)
-                    )
+                    fig_grp.update_layout(height=480, coloraxis_showscale=False,
+                                          xaxis_title=f"Predicted {metric_label} (next {horizon} months)",
+                                          yaxis_title="", margin=dict(t=30, b=30, l=20, r=60))
                     st.plotly_chart(fig_grp, use_container_width=True)
 
-            # ---- Download ----
+            # ---- Download forecast ----
             st.markdown("---")
             col_fb1, col_fb2, col_fb3 = st.columns([1, 3, 1])
             with col_fb2:
@@ -1002,7 +909,7 @@ else:
                         group_table.to_excel(writer, index=False, sheet_name='Group_Forecast')
                 fout.seek(0)
                 st.download_button(
-                    label="⬇️ Download Forecast Report (Excel)",
+                    label="⬇️ Download Forecast Report",
                     data=fout.getvalue(),
                     file_name=f"Datalogger_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1010,7 +917,8 @@ else:
                     use_container_width=True
                 )
 
-            st.caption("⚠️ These forecasts are statistical projections from past data only. They assume conditions stay broadly the same and should support — not replace — field judgement.")
+            st.caption("⚠️ Forecasts are statistical projections from past data only. They assume conditions "
+                       "stay broadly the same and should support — not replace — field judgement.")
 
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
