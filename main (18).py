@@ -392,6 +392,48 @@ def trim_incomplete_current_month(series):
         return series.iloc[:-1]
     return series
 
+# ====================== EXCEL EXPORT STYLING ======================
+def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
+    """
+    Write one DataFrame to a sheet that reads like the on-screen table:
+    bold white-on-blue header, borders, sensible column widths sized to the
+    actual content (not Excel's cramped default), a frozen header row, and
+    an autofilter. Numeric and date columns get proper formats instead of
+    raw values, and the column order is exactly the order `df` is given in.
+    """
+    workbook = writer.book
+    df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
+    worksheet = writer.sheets[sheet_name]
+
+    header_fmt = workbook.add_format({
+        'bold': True, 'font_color': 'white', 'bg_color': header_color,
+        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
+    })
+    text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
+    number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
+    date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
+
+    for col_idx, col_name in enumerate(df.columns):
+        worksheet.write(0, col_idx, str(col_name), header_fmt)
+
+        series = df[col_name]
+        if pd.api.types.is_datetime64_any_dtype(series) or str(col_name).strip().upper() == 'DATE':
+            cell_fmt = date_fmt
+        elif pd.api.types.is_numeric_dtype(series):
+            cell_fmt = number_fmt
+        else:
+            cell_fmt = text_fmt
+
+        content_len = int(series.astype(str).map(len).max()) if len(series) else 0
+        width = min(max(max(content_len, len(str(col_name))) + 2, 10), 45)
+        worksheet.set_column(col_idx, col_idx, width, cell_fmt)
+
+    worksheet.set_row(0, 30)
+    worksheet.freeze_panes(1, 0)
+    if len(df) > 0:
+        worksheet.autofilter(0, 0, len(df), len(df.columns) - 1)
+    return worksheet
+
 
 def _linear_forecast(series, periods):
     """Least-squares straight-line trend — used when there is little history."""
@@ -795,18 +837,18 @@ else:
             with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
+                    write_styled_sheet(writer, display_df[cols], 'Filtered_Records')
                     if 'STATION' in filtered_df.columns:
                         station_summary = filtered_df.groupby('STATION')['FCOUNT'].agg(
                             Total_FCOUNT='sum', Record_Count='count'
                         ).sort_values('Total_FCOUNT', ascending=False).reset_index()
-                        station_summary.to_excel(writer, index=False, sheet_name='Station_Summary')
+                        write_styled_sheet(writer, station_summary, 'Station_Summary')
                     if not error_sum.empty:
-                        error_sum.to_excel(writer, index=False, sheet_name='Error_Summary')
+                        write_styled_sheet(writer, error_sum, 'Error_Summary')
                     if not cat_sum.empty:
-                        cat_sum.to_excel(writer, index=False, sheet_name='Category_Summary')
+                        write_styled_sheet(writer, cat_sum, 'Category_Summary')
                     if not jur_sum.empty:
-                        jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
+                        write_styled_sheet(writer, jur_sum, 'Jurisdiction_Summary')
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Professional Excel Report",
@@ -955,13 +997,14 @@ else:
             col_fb1, col_fb2, col_fb3 = st.columns([1, 3, 1])
             with col_fb2:
                 fout = BytesIO()
+                monthly_history_df = hist.rename(metric_label).reset_index().rename(
+                    columns={'index': 'Month', 'DATE': 'Month'}
+                )
                 with pd.ExcelWriter(fout, engine='xlsxwriter') as writer:
-                    fc_table.to_excel(writer, index=False, sheet_name='Division_Forecast')
-                    hist.rename(metric_label).reset_index().rename(
-                        columns={'index': 'Month', 'DATE': 'Month'}
-                    ).to_excel(writer, index=False, sheet_name='Monthly_History')
+                    write_styled_sheet(writer, fc_table, 'Division_Forecast')
+                    write_styled_sheet(writer, monthly_history_df, 'Monthly_History')
                     if not group_table.empty:
-                        group_table.to_excel(writer, index=False, sheet_name='Group_Forecast')
+                        write_styled_sheet(writer, group_table, 'Group_Forecast')
                 fout.seek(0)
                 st.download_button(
                     label="⬇️ Download Forecast Report",
@@ -1093,9 +1136,9 @@ else:
             with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    display_df.to_excel(writer, index=False, sheet_name='Filtered_Records')
+                    write_styled_sheet(writer, display_df[cols], 'Filtered_Records')
                     if not jur_sum.empty:
-                        jur_sum.to_excel(writer, index=False, sheet_name='Jurisdiction_Summary')
+                        write_styled_sheet(writer, jur_sum, 'Jurisdiction_Summary')
                 output.seek(0)
                 st.download_button(
                     label="⬇️ Download Map Filtered Report",
