@@ -335,8 +335,31 @@ def get_jurisdiction(station, department):
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
 # ====================== FORECASTING ENGINE ======================
-def build_monthly_series(df, how="sum"):
-    """Aggregate records into a month-start time series of FCOUNT (sum) or record count."""
+def get_global_month_index(df):
+    """
+    The full set of month-start timestamps spanning the WHOLE dataset's date range.
+    Every group's series gets reindexed onto this same index so that a station with
+    no records in a given month gets an explicit 0 for that month, instead of that
+    month simply not existing in its series. Without this, two stations can end up
+    with different "last" months once resampled individually, and a forecast table
+    built from several stations then has ragged, misaligned month columns.
+    """
+    if df is None or df.empty or 'DATE' not in df.columns:
+        return pd.DatetimeIndex([])
+    d = df.dropna(subset=['DATE'])
+    if d.empty:
+        return pd.DatetimeIndex([])
+    start = d['DATE'].min().to_period('M').to_timestamp()
+    end = d['DATE'].max().to_period('M').to_timestamp()
+    return pd.date_range(start, end, freq='MS')
+
+
+def build_monthly_series(df, how="sum", full_index=None):
+    """
+    Aggregate records into a month-start time series of FCOUNT (sum) or record count.
+    Pass `full_index` (from get_global_month_index) to align every group onto the
+    same calendar and fill genuinely-empty months with 0 rather than leaving a gap.
+    """
     if df is None or df.empty or 'DATE' not in df.columns:
         return pd.Series(dtype=float)
     d = df.dropna(subset=['DATE'])
@@ -349,6 +372,24 @@ def build_monthly_series(df, how="sum"):
         if 'FCOUNT' not in d.columns:
             return pd.Series(dtype=float)
         series = d['FCOUNT'].resample('MS').sum().astype(float)
+    if full_index is not None and len(full_index) > 0:
+        series = series.reindex(full_index, fill_value=0.0)
+    return series
+
+
+def trim_incomplete_current_month(series):
+    """
+    Drop the most recent point if it falls in the current, still-in-progress
+    calendar month. A partial month reads to the model as a real collapse in
+    FCOUNT, which then gets "corrected" in the forecast — the sudden jumps back
+    up to the historical level seen in the exported table are this effect.
+    """
+    if series.empty:
+        return series
+    now = pd.Timestamp.now()
+    current_month_start = pd.Timestamp(year=now.year, month=now.month, day=1)
+    if series.index[-1] == current_month_start:
+        return series.iloc[:-1]
     return series
 
 
@@ -430,8 +471,9 @@ def backtest_mape(series, horizon=3):
     return float(np.mean(np.abs((test.values[mask] - pred.values[:len(test)][mask]) / test.values[mask])) * 100)
 
 
-def forecast_by_group(df, group_col, how, horizon, top_n=10):
-    """Run the same model separately for the busiest `top_n` groups."""
+def forecast_by_group(df, group_col, how, horizon, top_n=10, full_index=None):
+    """Run the same model separately for the busiest `top_n` groups, all anchored
+    to the same `full_index` calendar so every row's month columns line up."""
     if df.empty or group_col not in df.columns:
         return pd.DataFrame()
     if how == "count":
@@ -440,7 +482,8 @@ def forecast_by_group(df, group_col, how, horizon, top_n=10):
         ranking = df.groupby(group_col)['FCOUNT'].sum()
     rows = []
     for g in ranking.sort_values(ascending=False).head(top_n).index:
-        s = build_monthly_series(df[df[group_col] == g], how=how)
+        s = build_monthly_series(df[df[group_col] == g], how=how, full_index=full_index)
+        s = trim_incomplete_current_month(s)
         if s.empty:
             continue
         fc, method, _ = forecast_series(s, horizon)
@@ -795,11 +838,22 @@ else:
         how = "sum" if metric_choice == "Total FCOUNT" else "count"
         metric_label = "FCOUNT" if how == "sum" else "Cases"
 
-        hist = build_monthly_series(forecast_base_df, how=how)
+        # Anchor every series (division-level and each group below) onto the same
+        # month calendar so a group missing records in one month gets an explicit
+        # 0 for that month instead of its series simply ending earlier than others.
+        global_month_index = get_global_month_index(forecast_base_df)
+
+        hist_raw = build_monthly_series(forecast_base_df, how=how, full_index=global_month_index)
+        hist = trim_incomplete_current_month(hist_raw)
+        trimmed_partial_month = len(hist) < len(hist_raw)
 
         if hist.empty:
             st.warning("Not enough dated records to build a forecast.")
         else:
+            if trimmed_partial_month:
+                st.caption(f"ℹ️ **{hist_raw.index[-1].strftime('%B %Y')}** is still in progress in the sheet, "
+                           f"so it's excluded from training and predicted instead — otherwise a half-filled "
+                           f"month reads to the model as a real drop in {metric_label}.")
             fc, method, resid = forecast_series(hist, horizon)
             mape = backtest_mape(hist, horizon=min(3, max(1, len(hist) // 4)))
 
@@ -873,7 +927,8 @@ else:
                 st.markdown(f'<p class="section-header">Forecast by {level} (top {int(top_n)})</p>',
                             unsafe_allow_html=True)
                 with st.spinner("Fitting models group by group..."):
-                    group_table = forecast_by_group(forecast_base_df, gcol, how, horizon, int(top_n))
+                    group_table = forecast_by_group(forecast_base_df, gcol, how, horizon, int(top_n),
+                                                     full_index=global_month_index)
 
                 if group_table.empty:
                     st.info("Not enough history for a group-wise forecast.")
