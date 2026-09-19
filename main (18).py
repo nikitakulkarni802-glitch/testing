@@ -889,7 +889,7 @@ else:
                 st.dataframe(cat_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
         with col_s2:
             if not error_sum.empty:
-                st.markdown('<p class="section-header">Cases": "{:,}"}), use_container_width=True, hide_index=True)
+                st.markdown(<p class="section-header">Cases": "{:,}"}), use_container_width=True, hide_index=True)
         with col_s3:
             if not jur_sum.empty:
                 st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
