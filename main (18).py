@@ -1036,7 +1036,7 @@ else:
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
-st.caption(f"**Logged in as:** {st.session_state.user_name}")
+    st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
     df_original = load_data_from_gsheet()
