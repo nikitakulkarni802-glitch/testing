@@ -24,529 +24,202 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS - PREMIUM RAILWAY UI ======================
+# ====================== CUSTOM CSS - RAILWAY GAMING THEME + DIAGONAL TRAIN ======================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-/* =========================================================
-   PREMIUM RAILWAY / DATA-LOGGER DESIGN
-   IMPORTANT: This is visual-only CSS. Existing forms,
-   fields, labels, keys, workflows and functionality remain unchanged.
-   ========================================================= */
-
-:root {
-    --bg: #0B1220;
-    --surface: #111B2E;
-    --surface-2: #172238;
-    --surface-3: #1D2B42;
-    --border: rgba(148,163,184,.16);
-    --border-active: rgba(34,211,238,.55);
-    --text: #F8FAFC;
-    --muted: #94A3B8;
-    --cyan: #22D3EE;
-    --blue: #3B82F6;
-    --green: #22C55E;
-    --amber: #F59E0B;
-    --red: #EF4444;
-    --violet: #8B5CF6;
-}
-
+/* ========== GLOBAL ========== */
 .stApp {
-    background:
-        radial-gradient(circle at 12% 0%, rgba(34,211,238,.07), transparent 30%),
-        radial-gradient(circle at 90% 8%, rgba(59,130,246,.07), transparent 28%),
-        linear-gradient(145deg, #08101d 0%, #0B1220 48%, #0D1728 100%);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
+    color: #e0e6ed;
+    font-family: 'Rajdhani', sans-serif;
 }
 
-/* subtle engineering grid */
-.stApp::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    opacity: .025;
-    background-image:
-        linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
-    background-size: 42px 42px;
-    z-index: 0;
-}
-
-/* Main content */
-.block-container {
-    padding-top: 1.35rem;
-    padding-bottom: 3rem;
-    max-width: 1600px;
-}
-
-/* =========================================================
-   HEADER
-   ========================================================= */
+/* ========== HEADER TITLE ========== */
 .dashboard-title {
-    font-family: 'Inter', sans-serif !important;
-    font-size: clamp(2rem, 3.2vw, 3.15rem) !important;
-    line-height: 1.05 !important;
-    font-weight: 800 !important;
-    letter-spacing: -1.5px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 2.9rem !important;
+    font-weight: 900 !important;
+    background: linear-gradient(90deg, #FF9933, #FFD700, #FF9933);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     text-align: center;
-    color: #F8FAFC !important;
-    margin: .35rem 0 .25rem 0;
-    text-shadow: 0 0 35px rgba(34,211,238,.12);
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(255, 153, 51, 0.4);
+    margin-bottom: 0.1rem;
+    animation: glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { filter: drop-shadow(0 0 5px rgba(255,153,51,0.3)); }
+    to   { filter: drop-shadow(0 0 18px rgba(255,153,51,0.7)); }
 }
 
 .subtitle {
-    font-family: 'Inter', sans-serif;
-    font-size: .92rem;
-    color: #8FA8C2;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.35rem;
+    color: #7ec8e3;
     text-align: center;
     font-weight: 600;
-    letter-spacing: 2.2px;
-    text-transform: uppercase;
-    margin-top: .1rem;
+    letter-spacing: 2px;
+    margin-top: -0.3rem;
 }
 
-/* =========================================================
-   SECTION HEADERS
-   ========================================================= */
+/* ========== SECTION HEADERS ========== */
 .section-header {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 1.08rem !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.45rem !important;
     font-weight: 700 !important;
-    color: #E8F7FF !important;
-    margin: 1.35rem 0 .65rem 0;
-    border-left: 3px solid var(--cyan);
-    padding: .25rem 0 .25rem .75rem;
-    letter-spacing: .2px;
+    color: #FF9933 !important;
+    margin: 1.4rem 0 0.6rem 0;
+    border-left: 5px solid #FF9933;
+    padding-left: 12px;
+    text-shadow: 0 0 10px rgba(255,153,51,0.3);
 }
 
-/* Generic Streamlit headings */
-h1, h2, h3 {
-    color: #EAF4FF !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-h2, h3 {
-    letter-spacing: -.25px;
-}
-
-/* =========================================================
-   METRIC CARDS
-   ========================================================= */
+/* ========== METRIC CARDS ========== */
 div[data-testid="stMetric"] {
-    background:
-        linear-gradient(145deg, rgba(23,34,56,.96), rgba(14,25,43,.96));
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 15px;
-    box-shadow:
-        0 12px 30px rgba(0,0,0,.20),
-        inset 0 1px 0 rgba(255,255,255,.035);
-    transition: .22s ease;
+    background: linear-gradient(145deg, #132f4c, #0d2137);
+    border: 1px solid #1e4a6e;
+    border-radius: 16px;
+    padding: 18px 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
 }
 
 div[data-testid="stMetric"]:hover {
-    transform: translateY(-2px);
-    border-color: var(--border-active);
-    box-shadow:
-        0 16px 34px rgba(0,0,0,.27),
-        0 0 22px rgba(34,211,238,.07);
+    transform: translateY(-5px);
+    border-color: #FF9933;
+    box-shadow: 0 12px 30px rgba(255,153,51,0.25);
 }
 
 div[data-testid="stMetric"] label {
-    color: #8FA8C2 !important;
+    color: #7ec8e3 !important;
     font-weight: 600 !important;
-    font-size: .78rem !important;
-    letter-spacing: .55px;
-    text-transform: uppercase;
+    font-size: 0.95rem !important;
 }
 
 div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-    color: #F8FAFC !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 1.72rem !important;
-    font-weight: 600 !important;
+    color: #FFD700 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.8rem !important;
 }
 
-/* =========================================================
-   INPUTS / EXISTING FORMS - STYLE ONLY
-   ========================================================= */
-.stTextInput > div > div,
-.stNumberInput > div > div,
-.stDateInput > div > div,
-.stTimeInput > div > div,
-.stSelectbox > div > div,
-.stMultiSelect > div > div {
-    background: rgba(17,27,46,.92) !important;
-    border: 1px solid rgba(148,163,184,.18) !important;
-    border-radius: 9px !important;
-    color: #F8FAFC !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
-    transition: border-color .18s ease, box-shadow .18s ease;
-}
-
-.stTextInput > div > div:focus-within,
-.stNumberInput > div > div:focus-within,
-.stDateInput > div > div:focus-within,
-.stTimeInput > div > div:focus-within,
-.stSelectbox > div > div:focus-within,
-.stMultiSelect > div > div:focus-within {
-    border-color: rgba(34,211,238,.65) !important;
-    box-shadow: 0 0 0 2px rgba(34,211,238,.08), 0 0 18px rgba(34,211,238,.05);
-}
-
-input, textarea {
-    color: #F8FAFC !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-label {
-    color: #B7C7D9 !important;
-    font-weight: 600 !important;
-}
-
-/* select dropdown chips */
-.stMultiSelect [data-baseweb="tag"] {
-    background: rgba(34,211,238,.14) !important;
-    border: 1px solid rgba(34,211,238,.22) !important;
-    color: #DDFBFF !important;
-    border-radius: 6px !important;
-}
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-.stButton > button,
-.stDownloadButton > button {
-    background: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%) !important;
-    color: #06111E !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 800 !important;
-    letter-spacing: .15px;
-    border: 0 !important;
-    border-radius: 9px !important;
-    min-height: 2.55rem;
-    padding: .55rem 1.05rem !important;
-    box-shadow: 0 7px 22px rgba(34,211,238,.13);
-    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-}
-
-.stButton > button:hover,
-.stDownloadButton > button:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.06);
-    box-shadow: 0 10px 27px rgba(34,211,238,.22) !important;
-}
-
-/* Secondary buttons remain visually restrained */
-.stButton > button[kind="secondary"] {
-    background: rgba(23,34,56,.95) !important;
-    color: #CFE0F2 !important;
-    border: 1px solid rgba(148,163,184,.20) !important;
-    box-shadow: none !important;
-}
-
-/* =========================================================
-   TABS
-   ========================================================= */
+/* ========== TABS ========== */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 5px;
-    background: rgba(10,18,32,.72);
-    padding: 5px;
-    border: 1px solid var(--border);
-    border-radius: 11px;
+    gap: 8px;
+    background: transparent;
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border-radius: 7px;
-    color: #8FA8C2;
-    font-family: 'Inter', sans-serif;
-    font-weight: 650;
-    font-size: .88rem;
-    border: 0;
-    padding: 9px 18px;
-    transition: .18s ease;
-}
-
-.stTabs [data-baseweb="tab"]:hover {
-    color: #DDFBFF;
-    background: rgba(34,211,238,.06);
+    background: #132f4c;
+    border-radius: 12px 12px 0 0;
+    color: #7ec8e3;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: 1px solid #1e4a6e;
+    padding: 10px 22px;
 }
 
 .stTabs [aria-selected="true"] {
-    background: rgba(34,211,238,.13) !important;
-    color: #CFFAFF !important;
-    box-shadow: inset 0 -2px 0 #22D3EE, 0 0 18px rgba(34,211,238,.06);
+    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
+    color: #0a0f1c !important;
+    border-color: #FF9933 !important;
+    box-shadow: 0 0 20px rgba(255,153,51,0.4);
 }
 
-/* =========================================================
-   SIDEBAR
-   ========================================================= */
-section[data-testid="stSidebar"] {
-    background:
-        linear-gradient(180deg, #091323 0%, #0C1728 100%);
-    border-right: 1px solid rgba(148,163,184,.12);
-}
-
-section[data-testid="stSidebar"] .stMarkdown h2,
-section[data-testid="stSidebar"] h2 {
-    color: #DDFBFF !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-section[data-testid="stSidebar"] .stButton > button {
-    width: 100%;
-}
-
-/* =========================================================
-   DATAFRAMES / TABLES
-   ========================================================= */
-.stDataFrame {
-    border-radius: 11px;
-    overflow: hidden;
-    border: 1px solid rgba(148,163,184,.14);
-    box-shadow: 0 10px 26px rgba(0,0,0,.18);
-}
-
-[data-testid="stDataFrame"] div[role="columnheader"] {
-    background: #172238 !important;
-    color: #CFE0F2 !important;
+/* ========== BUTTONS ========== */
+.stButton > button {
+    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
+    color: #0a0f1c !important;
+    font-family: 'Orbitron', sans-serif !important;
     font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1.4rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(255,153,51,0.3);
 }
 
-[data-testid="stDataFrame"] div[role="gridcell"] {
-    background: #101B2D !important;
-    color: #DCE8F5 !important;
+.stButton > button:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
 }
 
-/* =========================================================
-   CINEMATIC REAL LOCOMOTIVE — FULL APP BACKGROUND
-   ========================================================= */
-
-/* Full-page railway atmosphere behind the Streamlit UI */
-.stApp {
-    position: relative;
-    overflow-x: hidden;
-    background:
-        radial-gradient(circle at 78% 12%, rgba(34,211,238,.10), transparent 26%),
-        radial-gradient(circle at 12% 88%, rgba(59,130,246,.09), transparent 30%),
-        linear-gradient(135deg, #060C17 0%, #0B1220 48%, #07101E 100%);
+/* ========== SIDEBAR ========== */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
+    border-right: 1px solid #1e4a6e;
 }
 
-/* Real locomotive layer — intentionally behind the entire PP/UI */
-.stApp::before {
-    content: "";
+section[data-testid="stSidebar"] .stMarkdown h2 {
+    color: #FF9933 !important;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* ========== DATAFRAMES ========== */
+.stDataFrame {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1e4a6e;
+}
+
+/* ========== DIAGONAL REAL TRAIN BACKGROUND ========== */
+.train-bg {
     position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
     z-index: 0;
-    width: 720px;
-    height: 330px;
-    left: -760px;
-    bottom: -30px;
-    pointer-events: none;
-    opacity: .82;
-
-    background-image:
-        linear-gradient(90deg, rgba(4,9,17,.10), rgba(4,9,17,.02)),
-        url("https://cdn.digitonic.dev/d6b98a36-b75e-4d48-bf9c-f7a39a0eb6db/18256ec5-56b9-4119-b873-8b33f0199b35/presets/auto/rail-transportation.webp");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
-    border-radius: 16px;
-    filter:
-        saturate(1.18)
-        contrast(1.12)
-        brightness(.78)
-        drop-shadow(0 28px 35px rgba(0,0,0,.75))
-        drop-shadow(0 0 28px rgba(34,211,238,.16));
-
-    transform: rotate(-8deg) scale(1.06);
-    animation: locomotiveDiagonalRun 15s cubic-bezier(.36,0,.2,1) infinite;
+    overflow: hidden;
 }
 
-/* Large cinematic rails + locomotive motion trail */
-.stApp::after {
-    content: "";
-    position: fixed;
-    z-index: 0;
-    left: -15%;
-    bottom: 7%;
-    width: 130%;
-    height: 24%;
-    pointer-events: none;
-    opacity: .28;
-
-    background:
-        linear-gradient(11deg,
-            transparent 0 37%,
-            rgba(148,163,184,.45) 38% 38.5%,
-            transparent 39% 57%,
-            rgba(148,163,184,.32) 58% 58.5%,
-            transparent 59%),
-        repeating-linear-gradient(
-            96deg,
-            transparent 0 44px,
-            rgba(148,163,184,.18) 45px 48px
-        );
-
-    transform: perspective(520px) rotateX(58deg);
-    transform-origin: bottom center;
-    animation: railwayPerspective 7s linear infinite;
+.train-wrapper {
+    position: absolute;
+    bottom: -80px;
+    left: -450px;
+    animation: diagonalTrain 32s linear infinite;
+    opacity: 0.20;
+    transform: rotate(-11deg);
 }
 
-/* Keep the complete Streamlit content above the moving train */
-[data-testid="stAppViewContainer"],
-[data-testid="stHeader"],
-[data-testid="stSidebar"],
-.main,
-.block-container {
-    position: relative;
-    z-index: 2;
+.train-img {
+    height: 95px;
+    filter: drop-shadow(0 0 15px rgba(255, 153, 51, 0.45));
 }
 
-/* Semi-transparent UI surfaces let the locomotive remain visible behind them */
-[data-testid="stAppViewContainer"] .main {
-    background: transparent;
-}
-
-.block-container {
-    background: rgba(6, 12, 23, .12);
-}
-
-/* Atmospheric light passing over the interface */
-.stApp .main::before {
-    content: "";
-    position: fixed;
-    z-index: -1;
-    width: 42vw;
-    height: 18vh;
-    left: -45vw;
-    top: 22vh;
-    pointer-events: none;
-    background: linear-gradient(
-        100deg,
-        transparent,
-        rgba(34,211,238,.08),
-        rgba(255,255,255,.05),
-        transparent
-    );
-    filter: blur(12px);
-    transform: rotate(-8deg);
-    animation: cinematicSweep 6s linear infinite;
-}
-
-@keyframes locomotiveDiagonalRun {
+@keyframes diagonalTrain {
     0% {
-        left: -760px;
-        bottom: -70px;
-        opacity: 0;
-        transform: rotate(-8deg) scale(1.02);
-    }
-    7% {
-        opacity: .78;
-    }
-    30% {
-        left: 5vw;
-        bottom: 4vh;
-        opacity: .86;
-        transform: rotate(-8deg) scale(1.06);
-    }
-    55% {
-        left: 37vw;
-        bottom: 18vh;
-        opacity: .82;
-        transform: rotate(-8deg) scale(1.11);
-    }
-    78% {
-        left: 72vw;
-        bottom: 34vh;
-        opacity: .70;
-        transform: rotate(-8deg) scale(1.17);
+        transform: translate(0, 0) rotate(-11deg);
     }
     100% {
-        left: 115vw;
-        bottom: 55vh;
-        opacity: 0;
-        transform: rotate(-8deg) scale(1.25);
+        transform: translate(170vw, -120vh) rotate(-11deg);
     }
 }
 
-@keyframes railwayPerspective {
-    0% { transform: perspective(520px) rotateX(58deg) translateX(-2%); }
-    50% { transform: perspective(520px) rotateX(58deg) translateX(2%); }
-    100% { transform: perspective(520px) rotateX(58deg) translateX(-2%); }
-}
-
-@keyframes cinematicSweep {
-    0% { left: -45vw; opacity: 0; }
-    12% { opacity: .7; }
-    50% { opacity: .35; }
-    100% { left: 110vw; opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .stApp::before,
-    .stApp::after,
-    .stApp .main::before {
-        animation: none !important;
-    }
-}
-
-/* =========================================================
-   DIVIDERS / CAPTIONS / STATUS
-   ========================================================= */
-hr {
-    border-color: rgba(148,163,184,.12) !important;
-}
-
-.stCaption, .stMarkdown p {
-    color: #8FA8C2 !important;
-}
-
-[data-testid="stAlert"] {
-    border-radius: 9px !important;
-    border: 1px solid rgba(148,163,184,.15) !important;
-}
-
-[data-testid="stNotification"] {
-    border-radius: 9px !important;
-}
-
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
+/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #091323;
+    background: #0d2137;
 }
 ::-webkit-scrollbar-thumb {
-    background: #29415E;
+    background: #FF9933;
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #22D3EE;
+    background: #FFD700;
 }
 
-/* Reduce excessive Streamlit chrome */
-[data-testid="stToolbar"] {
-    background: transparent !important;
-}
-
-/* Mobile safety */
-@media (max-width: 900px) {
-    .dashboard-title {
-        font-size: 2rem !important;
-    }
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+/* ========== CAPTION ========== */
+.stCaption, .stMarkdown p {
+    color: #8ba3b5 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -869,12 +542,18 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
-    header_fmt = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': header_color, 'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
+
+    header_fmt = workbook.add_format({
+        'bold': True, 'font_color': 'white', 'bg_color': header_color,
+        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
+    })
     text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
     number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
     date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
+
     for col_idx, col_name in enumerate(df.columns):
         worksheet.write(0, col_idx, str(col_name), header_fmt)
+
         series = df[col_name]
         if pd.api.types.is_datetime64_any_dtype(series) or str(col_name).strip().upper() == 'DATE':
             cell_fmt = date_fmt
@@ -882,9 +561,11 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
             cell_fmt = number_fmt
         else:
             cell_fmt = text_fmt
+
         content_len = int(series.astype(str).map(len).max()) if len(series) else 0
         width = min(max(max(content_len, len(str(col_name))) + 2, 10), 45)
         worksheet.set_column(col_idx, col_idx, width, cell_fmt)
+
     worksheet.set_row(0, 30)
     worksheet.freeze_panes(1, 0)
     if len(df) > 0:
@@ -1030,12 +711,22 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
+    # Diagonal Real Train Background
+    st.markdown("""
+    <div class="train-bg">
+        <div class="train-wrapper">
+            <img class="train-img" src="https://i.imgur.com/8QZ7Y9K.png" alt="Train">
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([3, 3, 1])
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
+
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
