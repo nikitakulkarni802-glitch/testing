@@ -336,14 +336,6 @@ def get_jurisdiction(station, department):
 
 # ====================== FORECASTING ENGINE ======================
 def get_global_month_index(df):
-    """
-    The full set of month-start timestamps spanning the WHOLE dataset's date range.
-    Every group's series gets reindexed onto this same index so that a station with
-    no records in a given month gets an explicit 0 for that month, instead of that
-    month simply not existing in its series. Without this, two stations can end up
-    with different "last" months once resampled individually, and a forecast table
-    built from several stations then has ragged, misaligned month columns.
-    """
     if df is None or df.empty or 'DATE' not in df.columns:
         return pd.DatetimeIndex([])
     d = df.dropna(subset=['DATE'])
@@ -355,11 +347,6 @@ def get_global_month_index(df):
 
 
 def build_monthly_series(df, how="sum", full_index=None):
-    """
-    Aggregate records into a month-start time series of FCOUNT (sum) or record count.
-    Pass `full_index` (from get_global_month_index) to align every group onto the
-    same calendar and fill genuinely-empty months with 0 rather than leaving a gap.
-    """
     if df is None or df.empty or 'DATE' not in df.columns:
         return pd.Series(dtype=float)
     d = df.dropna(subset=['DATE'])
@@ -378,12 +365,6 @@ def build_monthly_series(df, how="sum", full_index=None):
 
 
 def trim_incomplete_current_month(series):
-    """
-    Drop the most recent point if it falls in the current, still-in-progress
-    calendar month. A partial month reads to the model as a real collapse in
-    FCOUNT, which then gets "corrected" in the forecast — the sudden jumps back
-    up to the historical level seen in the exported table are this effect.
-    """
     if series.empty:
         return series
     now = pd.Timestamp.now()
@@ -394,13 +375,6 @@ def trim_incomplete_current_month(series):
 
 # ====================== EXCEL EXPORT STYLING ======================
 def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
-    """
-    Write one DataFrame to a sheet that reads like the on-screen table:
-    bold white-on-blue header, borders, sensible column widths sized to the
-    actual content (not Excel's cramped default), a frozen header row, and
-    an autofilter. Numeric and date columns get proper formats instead of
-    raw values, and the column order is exactly the order `df` is given in.
-    """
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
@@ -436,7 +410,6 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
 
 
 def _linear_forecast(series, periods):
-    """Least-squares straight-line trend — used when there is little history."""
     y = series.values.astype(float)
     x = np.arange(len(y), dtype=float)
     slope, intercept = np.polyfit(x, y, 1)
@@ -448,10 +421,6 @@ def _linear_forecast(series, periods):
 
 
 def forecast_series(series, periods=3):
-    """
-    Pick the best model the available history can support and return
-    (forecast Series, model name, residual std-dev used for the confidence band).
-    """
     series = series.dropna().astype(float)
     n = len(series)
     if n == 0:
@@ -499,7 +468,6 @@ def forecast_series(series, periods=3):
 
 
 def backtest_mape(series, horizon=3):
-    """Hold out the last `horizon` months, refit, and report MAPE %."""
     series = series.dropna().astype(float)
     if len(series) < horizon + 4:
         return None
@@ -514,8 +482,6 @@ def backtest_mape(series, horizon=3):
 
 
 def forecast_by_group(df, group_col, how, horizon, top_n=10, full_index=None):
-    """Run the same model separately for the busiest `top_n` groups, all anchored
-    to the same `full_index` calendar so every row's month columns line up."""
     if df.empty or group_col not in df.columns:
         return pd.DataFrame()
     if how == "count":
@@ -661,7 +627,6 @@ else:
 
     # ====================== APPLY FILTERS ======================
     def apply_category_filters(df):
-        """Every filter except DATE range and MONTH (those would break the time series)."""
         out = df.copy()
         if selected_stations and 'STATION' in out.columns:
             out = out[out['STATION'].isin(selected_stations)]
@@ -681,7 +646,6 @@ else:
             out = out[out['STATION'] == st.session_state.map_selected_station]
         return out
 
-    # Forecast uses the full history (date/month filters deliberately not applied)
     forecast_base_df = apply_category_filters(df_original)
 
     filtered_df = forecast_base_df.copy()
@@ -802,6 +766,83 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
+        # ====================== ANIMATED TIME SERIES ======================
+        st.markdown("---")
+        st.markdown('<p class="section-header">🎬 Animated Monthly Cases / FCOUNT by Station</p>', unsafe_allow_html=True)
+
+        if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
+            st.warning("Not enough data for animation.")
+        else:
+            anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
+
+            col_anim1, col_anim2 = st.columns([2, 2])
+            with col_anim1:
+                metric = st.radio(
+                    "Metric to animate",
+                    ["Number of Cases", "Total FCOUNT"],
+                    horizontal=True,
+                    key="anim_metric"
+                )
+            with col_anim2:
+                top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
+
+            if metric == "Number of Cases":
+                monthly = (
+                    anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')])
+                    .size()
+                    .reset_index(name='Value')
+                )
+                y_label = "Cases"
+            else:
+                monthly = (
+                    anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')])
+                    ['FCOUNT'].sum()
+                    .reset_index(name='Value')
+                )
+                y_label = "FCOUNT"
+
+            monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
+            monthly = monthly.sort_values('DATE')
+
+            top_stations = (
+                monthly.groupby('STATION')['Value']
+                .sum()
+                .nlargest(top_n_anim)
+                .index
+                .tolist()
+            )
+            monthly = monthly[monthly['STATION'].isin(top_stations)]
+
+            if monthly.empty:
+                st.info("No data available for the selected metric / stations.")
+            else:
+                fig_anim = px.bar(
+                    monthly,
+                    x='STATION',
+                    y='Value',
+                    color='Value',
+                    animation_frame='Month',
+                    animation_group='STATION',
+                    range_y=[0, monthly['Value'].max() * 1.15],
+                    color_continuous_scale='RdYlGn_r',
+                    labels={'Value': y_label, 'STATION': 'Station'},
+                    title=f"Monthly {y_label} by Station"
+                )
+
+                fig_anim.update_layout(
+                    height=560,
+                    xaxis_tickangle=-45,
+                    coloraxis_showscale=False,
+                    margin=dict(t=60, b=100)
+                )
+
+                # Make animation smoother
+                fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 900
+                fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = 500
+
+                st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
+                st.caption("Use the ▶️ Play button at the bottom of the chart to animate month by month.")
+
         # Summary Tables
         st.markdown("---")
         col_s1, col_s2, col_s3 = st.columns(3)
@@ -880,9 +921,6 @@ else:
         how = "sum" if metric_choice == "Total FCOUNT" else "count"
         metric_label = "FCOUNT" if how == "sum" else "Cases"
 
-        # Anchor every series (division-level and each group below) onto the same
-        # month calendar so a group missing records in one month gets an explicit
-        # 0 for that month instead of its series simply ending earlier than others.
         global_month_index = get_global_month_index(forecast_base_df)
 
         hist_raw = build_monthly_series(forecast_base_df, how=how, full_index=global_month_index)
@@ -914,7 +952,7 @@ else:
                     + (f"  •  **Back-test accuracy (MAPE):** {mape:.1f}% error" if mape is not None
                        else "  •  Back-test skipped (history too short)"))
 
-            # ---- Chart: history + forecast + confidence band ----
+            # Chart: history + forecast + confidence band
             anchor_x = [hist.index[-1]] + list(fc.index)
             anchor_y = [float(hist.iloc[-1])] + [float(v) for v in fc.values]
             margins = [0.0] + [1.96 * resid * np.sqrt(i + 1) for i in range(len(fc))]
@@ -943,7 +981,7 @@ else:
                                  legend=dict(orientation='h', y=1.12))
             st.plotly_chart(fig_fc, use_container_width=True, config={'displaylogo': False})
 
-            # ---- Division-level forecast table ----
+            # Division-level forecast table
             fc_table = pd.DataFrame({
                 "Month": [d.strftime('%B %Y') for d in fc.index],
                 f"Predicted {metric_label}": [int(v) for v in fc.values],
@@ -955,7 +993,7 @@ else:
                 f"Predicted {metric_label}": "{:,}", "Lower estimate": "{:,}", "Upper estimate": "{:,}"
             }), use_container_width=True, hide_index=True)
 
-            # ---- Group-level forecast ----
+            # Group-level forecast
             group_map = {
                 "Station": "STATION",
                 "Department": "DEPARTMENT",
@@ -992,7 +1030,7 @@ else:
                                           yaxis_title="", margin=dict(t=30, b=30, l=20, r=60))
                     st.plotly_chart(fig_grp, use_container_width=True)
 
-            # ---- Download forecast ----
+            # Download forecast
             st.markdown("---")
             col_fb1, col_fb2, col_fb3 = st.columns([1, 3, 1])
             with col_fb2:
