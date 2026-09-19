@@ -880,7 +880,7 @@ else:
                 use_container_width=True
             )
 
-        # Summary Tables
+                # Summary Tables
         st.markdown("---")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
@@ -889,7 +889,8 @@ else:
                 st.dataframe(cat_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
         with col_s2:
             if not error_sum.empty:
-                st.markdown(<p class="section-header">Cases": "{:,}"}), use_container_width=True, hide_index=True)
+                st.markdown('<p class="section-header">ERROR MAIN CATEGORY</p>', unsafe_allow_html=True)
+                st.dataframe(error_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
         with col_s3:
             if not jur_sum.empty:
                 st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
