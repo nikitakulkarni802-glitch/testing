@@ -10,7 +10,6 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Fullscreen
 
-# Optional: statsmodels gives proper exponential-smoothing models.
 try:
     from statsmodels.tsa.holtwinters import ExponentialSmoothing
     STATSMODELS_AVAILABLE = True
@@ -366,10 +365,7 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
-    header_fmt = workbook.add_format({
-        'bold': True, 'font_color': 'white', 'bg_color': header_color,
-        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
-    })
+    header_fmt = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': header_color, 'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
     text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
     number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
     date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
@@ -413,8 +409,7 @@ def forecast_series(series, periods=3):
         resid = float(series.std(ddof=0)) if n > 1 else 0.0
     elif STATSMODELS_AVAILABLE and n >= 24:
         try:
-            model = ExponentialSmoothing(series, trend="add", seasonal="add", seasonal_periods=12,
-                                         damped_trend=True, initialization_method="estimated").fit(optimized=True)
+            model = ExponentialSmoothing(series, trend="add", seasonal="add", seasonal_periods=12, damped_trend=True, initialization_method="estimated").fit(optimized=True)
             vals = np.asarray(model.forecast(periods), dtype=float)
             resid = float(np.std(series.values - np.asarray(model.fittedvalues, dtype=float), ddof=0))
             method = "Holt-Winters (damped trend + 12-month seasonality)"
@@ -422,8 +417,7 @@ def forecast_series(series, periods=3):
             vals, method, resid = _linear_forecast(series, periods)
     elif STATSMODELS_AVAILABLE and n >= 6:
         try:
-            model = ExponentialSmoothing(series, trend="add", damped_trend=True,
-                                         initialization_method="estimated").fit(optimized=True)
+            model = ExponentialSmoothing(series, trend="add", damped_trend=True, initialization_method="estimated").fit(optimized=True)
             vals = np.asarray(model.forecast(periods), dtype=float)
             resid = float(np.std(series.values - np.asarray(model.fittedvalues, dtype=float), ddof=0))
             method = "Holt exponential smoothing (damped trend)"
@@ -734,26 +728,56 @@ else:
             monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
             monthly = monthly.sort_values('DATE')
 
-            top_stations = monthly.groupby('STATION')['Value'].sum().nlargest(top_n_anim).index.tolist()
-            monthly = monthly[monthly['STATION'].isin(top_stations)]
+            # Fixed order: Highest → Lowest total
+            station_order = (
+                monthly.groupby('STATION')['Value']
+                .sum()
+                .sort_values(ascending=False)
+                .head(top_n_anim)
+                .index
+                .tolist()
+            )
+            monthly = monthly[monthly['STATION'].isin(station_order)]
+            monthly['STATION'] = pd.Categorical(monthly['STATION'], categories=station_order, ordered=True)
+            monthly = monthly.sort_values(['DATE', 'STATION'])
 
             if monthly.empty:
                 st.info("No data available for the selected metric / stations.")
             else:
                 fig_anim = px.bar(
-                    monthly, x='STATION', y='Value', color='Value',
-                    animation_frame='Month', animation_group='STATION',
-                    range_y=[0, monthly['Value'].max() * 1.15],
+                    monthly,
+                    x='STATION',
+                    y='Value',
+                    color='Value',
+                    animation_frame='Month',
+                    animation_group='STATION',
+                    range_y=[0, monthly['Value'].max() * 1.18],
                     color_continuous_scale='RdYlGn_r',
                     labels={'Value': y_label, 'STATION': 'Station'},
-                    title=f"Monthly {y_label} by Station — Animated"
+                    title=f"Monthly {y_label} by Station — Animated (Highest → Lowest)",
+                    text='Value'
                 )
-                fig_anim.update_layout(height=580, xaxis_tickangle=-45, coloraxis_showscale=False, margin=dict(t=70, b=110), title_x=0.5)
+
+                fig_anim.update_traces(
+                    texttemplate='%{text:,}',
+                    textposition='outside',
+                    cliponaxis=False
+                )
+
+                fig_anim.update_layout(
+                    height=600,
+                    xaxis_tickangle=-45,
+                    coloraxis_showscale=False,
+                    margin=dict(t=70, b=120),
+                    title_x=0.5,
+                    xaxis={'categoryorder': 'array', 'categoryarray': station_order}
+                )
+
                 fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
                 fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
 
                 st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-                st.caption(f"Current speed: **{anim_speed}** • Use ▶️ Play button below the chart")
+                st.caption(f"Current speed: **{anim_speed}** • Bars fixed Highest → Lowest • Use ▶️ Play button")
 
                 st.markdown("")
                 col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
