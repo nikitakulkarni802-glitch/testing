@@ -29,14 +29,12 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-/* ========== GLOBAL ========== */
 .stApp {
     background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
     color: #e0e6ed;
     font-family: 'Rajdhani', sans-serif;
 }
 
-/* ========== HEADER TITLE ========== */
 .dashboard-title {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 2.9rem !important;
@@ -66,7 +64,6 @@ st.markdown("""
     margin-top: -0.3rem;
 }
 
-/* ========== SECTION HEADERS ========== */
 .section-header {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.45rem !important;
@@ -78,7 +75,6 @@ st.markdown("""
     text-shadow: 0 0 10px rgba(255,153,51,0.3);
 }
 
-/* ========== METRIC CARDS ========== */
 div[data-testid="stMetric"] {
     background: linear-gradient(145deg, #132f4c, #0d2137);
     border: 1px solid #1e4a6e;
@@ -106,7 +102,6 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     font-size: 1.8rem !important;
 }
 
-/* ========== TABS ========== */
 .stTabs [data-baseweb="tab-list"] {
     gap: 8px;
     background: transparent;
@@ -130,7 +125,6 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     box-shadow: 0 0 20px rgba(255,153,51,0.4);
 }
 
-/* ========== BUTTONS ========== */
 .stButton > button {
     background: linear-gradient(90deg, #FF9933, #e67e22) !important;
     color: #0a0f1c !important;
@@ -148,7 +142,6 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
 }
 
-/* ========== SIDEBAR ========== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
     border-right: 1px solid #1e4a6e;
@@ -159,14 +152,12 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     font-family: 'Orbitron', sans-serif;
 }
 
-/* ========== DATAFRAMES ========== */
 .stDataFrame {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #1e4a6e;
 }
 
-/* ========== ANIMATED TRAIN ========== */
 .train-container {
     width: 100%;
     height: 48px;
@@ -191,7 +182,6 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     100% { left: 110%; }
 }
 
-/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -207,7 +197,6 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     background: #FFD700;
 }
 
-/* ========== CAPTION ========== */
 .stCaption, .stMarkdown p {
     color: #8ba3b5 !important;
 }
@@ -532,12 +521,18 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
-    header_fmt = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': header_color, 'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
+
+    header_fmt = workbook.add_format({
+        'bold': True, 'font_color': 'white', 'bg_color': header_color,
+        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
+    })
     text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
     number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
     date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
+
     for col_idx, col_name in enumerate(df.columns):
         worksheet.write(0, col_idx, str(col_name), header_fmt)
+
         series = df[col_name]
         if pd.api.types.is_datetime64_any_dtype(series) or str(col_name).strip().upper() == 'DATE':
             cell_fmt = date_fmt
@@ -545,9 +540,11 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
             cell_fmt = number_fmt
         else:
             cell_fmt = text_fmt
+
         content_len = int(series.astype(str).map(len).max()) if len(series) else 0
         width = min(max(max(content_len, len(str(col_name))) + 2, 10), 45)
         worksheet.set_column(col_idx, col_idx, width, cell_fmt)
+
     worksheet.set_row(0, 30)
     worksheet.freeze_panes(1, 0)
     if len(df) > 0:
