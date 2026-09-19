@@ -24,39 +24,206 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS ======================
+# ====================== CUSTOM CSS - RAILWAY GAMING THEME ======================
 st.markdown("""
 <style>
-    .dashboard-title {
-        font-size: 2.85rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #FF9933, #003087);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0.2rem;
-    }
-    .subtitle { 
-        font-size: 1.4rem; 
-        color: #003087; 
-        text-align: center; 
-        font-weight: 500; 
-        margin-top: -0.4rem; 
-    }
-    .section-header { 
-        font-size: 1.6rem; 
-        font-weight: 600; 
-        color: #003087; 
-        margin: 1.2rem 0 0.5rem 0; 
-    }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+/* ========== GLOBAL ========== */
+.stApp {
+    background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
+    color: #e0e6ed;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+/* ========== HEADER TITLE ========== */
+.dashboard-title {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 2.9rem !important;
+    font-weight: 900 !important;
+    background: linear-gradient(90deg, #FF9933, #FFD700, #FF9933);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(255, 153, 51, 0.4);
+    margin-bottom: 0.1rem;
+    animation: glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { filter: drop-shadow(0 0 5px rgba(255,153,51,0.3)); }
+    to   { filter: drop-shadow(0 0 18px rgba(255,153,51,0.7)); }
+}
+
+.subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.35rem;
+    color: #7ec8e3;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-top: -0.3rem;
+}
+
+/* ========== SECTION HEADERS ========== */
+.section-header {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #FF9933 !important;
+    margin: 1.4rem 0 0.6rem 0;
+    border-left: 5px solid #FF9933;
+    padding-left: 12px;
+    text-shadow: 0 0 10px rgba(255,153,51,0.3);
+}
+
+/* ========== METRIC CARDS ========== */
+div[data-testid="stMetric"] {
+    background: linear-gradient(145deg, #132f4c, #0d2137);
+    border: 1px solid #1e4a6e;
+    border-radius: 16px;
+    padding: 18px 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
+}
+
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-5px);
+    border-color: #FF9933;
+    box-shadow: 0 12px 30px rgba(255,153,51,0.25);
+}
+
+div[data-testid="stMetric"] label {
+    color: #7ec8e3 !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+}
+
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    color: #FFD700 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.8rem !important;
+}
+
+/* ========== TABS ========== */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background: transparent;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: #132f4c;
+    border-radius: 12px 12px 0 0;
+    color: #7ec8e3;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: 1px solid #1e4a6e;
+    padding: 10px 22px;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
+    color: #0a0f1c !important;
+    border-color: #FF9933 !important;
+    box-shadow: 0 0 20px rgba(255,153,51,0.4);
+}
+
+/* ========== BUTTONS ========== */
+.stButton > button {
+    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
+    color: #0a0f1c !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1.4rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(255,153,51,0.3);
+}
+
+.stButton > button:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
+}
+
+/* ========== SIDEBAR ========== */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
+    border-right: 1px solid #1e4a6e;
+}
+
+section[data-testid="stSidebar"] .stMarkdown h2 {
+    color: #FF9933 !important;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* ========== DATAFRAMES ========== */
+.stDataFrame {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1e4a6e;
+}
+
+/* ========== ANIMATED TRAIN ========== */
+.train-container {
+    width: 100%;
+    height: 48px;
+    overflow: hidden;
+    position: relative;
+    margin: 10px 0 20px 0;
+    background: linear-gradient(90deg, transparent, rgba(255,153,51,0.08), transparent);
+    border-radius: 8px;
+}
+
+.train {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 28px;
+    animation: moveTrain 12s linear infinite;
+    color: #FF9933;
+    text-shadow: 0 0 12px rgba(255,153,51,0.6);
+}
+
+@keyframes moveTrain {
+    0%   { left: -300px; }
+    100% { left: 110%; }
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0d2137;
+}
+::-webkit-scrollbar-thumb {
+    background: #FF9933;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #FFD700;
+}
+
+/* ========== CAPTION ========== */
+.stCaption, .stMarkdown p {
+    color: #8ba3b5 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ====================== CONFIG ======================
 IR_LOGO_URL = "https://raw.githubusercontent.com/srdsoproject/testing/main/Central%20Railway%20Logo.png"
-SHEET_ID = st.secrets["google_sheets"]["sheet_id"]
-SHEET_NAME = st.secrets["google_sheets"]["sheet_name"]
-USERS = st.secrets["users"]
+
+try:
+    SHEET_ID = st.secrets["google_sheets"]["sheet_id"]
+    SHEET_NAME = st.secrets["google_sheets"]["sheet_name"]
+    USERS = st.secrets["users"]
+except Exception:
+    st.error("⚠️ Secrets not configured properly. Please check .streamlit/secrets.toml")
+    st.stop()
 
 # ====================== STATION COORDINATES ======================
 station_coords = {
@@ -529,8 +696,19 @@ else:
     col1, col2, col3 = st.columns([3, 3, 1])
     with col2:
         st.image(IR_LOGO_URL, width=220)
+
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
+
+    # Animated Train
+    st.markdown("""
+    <div class="train-container">
+        <div class="train">
+            🚄═══════════🚄═══════════🚄═══════════🚄═══════════🚄
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
@@ -654,7 +832,7 @@ else:
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 top15 = filtered_df.groupby('STATION')['FCOUNT'].sum().nlargest(15).reset_index()
                 fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='RdYlGn_r')
-                fig.update_layout(height=480, xaxis_tickangle=45)
+                fig.update_layout(height=480, xaxis_tickangle=45, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
                 st.plotly_chart(fig, use_container_width=True)
         with col_g2:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
@@ -672,7 +850,7 @@ else:
                 dept_plot = cat_sum.sort_values('Cases', ascending=True)
                 fig_dept = px.bar(dept_plot, x='Cases', y='DEPARTMENT', orientation='h', text='Cases', color='Cases', color_continuous_scale='Blues')
                 fig_dept.update_traces(textposition='outside', cliponaxis=False)
-                fig_dept.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50))
+                fig_dept.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
                 st.info("No Department data")
@@ -682,7 +860,7 @@ else:
                 err_plot = error_sum.head(12).sort_values('Cases', ascending=True)
                 fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h', text='Cases', color='Cases', color_continuous_scale='Oranges')
                 fig_err.update_traces(textposition='outside', cliponaxis=False)
-                fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50))
+                fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
                 st.info("No Error data")
@@ -692,7 +870,7 @@ else:
                 jur_plot = jur_sum.head(12).sort_values('Cases', ascending=True)
                 fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h', text='Cases', color='Cases', color_continuous_scale='Teal')
                 fig_jur.update_traces(textposition='outside', cliponaxis=False)
-                fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50))
+                fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
@@ -728,7 +906,6 @@ else:
             monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
             monthly = monthly.sort_values('DATE')
 
-            # Fixed order: Highest → Lowest total
             station_order = (
                 monthly.groupby('STATION')['Value']
                 .sum()
@@ -758,19 +935,17 @@ else:
                     text='Value'
                 )
 
-                fig_anim.update_traces(
-                    texttemplate='%{text:,}',
-                    textposition='outside',
-                    cliponaxis=False
-                )
-
+                fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
                 fig_anim.update_layout(
                     height=600,
                     xaxis_tickangle=-45,
                     coloraxis_showscale=False,
                     margin=dict(t=70, b=120),
                     title_x=0.5,
-                    xaxis={'categoryorder': 'array', 'categoryarray': station_order}
+                    xaxis={'categoryorder': 'array', 'categoryarray': station_order},
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#e0e6ed'
                 )
 
                 fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
@@ -901,7 +1076,7 @@ else:
             fig_fc.add_trace(go.Scatter(x=list(anchor_x) + list(anchor_x)[::-1], y=upper + lower[::-1], fill='toself', fillcolor='rgba(255,153,51,0.18)', line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip', name='95% confidence range'))
             fig_fc.add_trace(go.Scatter(x=hist.index, y=hist.values, mode='lines+markers', name='Actual', line=dict(color='#003087', width=3), marker=dict(size=8)))
             fig_fc.add_trace(go.Scatter(x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast', line=dict(color='#FF9933', width=3, dash='dash'), marker=dict(size=10), text=[""] + [f"{int(v):,}" for v in fc.values], textposition='top center'))
-            fig_fc.update_layout(height=470, hovermode='x unified', xaxis_title="Month", yaxis_title=f"Monthly {metric_label}", legend=dict(orientation='h', y=1.12))
+            fig_fc.update_layout(height=470, hovermode='x unified', xaxis_title="Month", yaxis_title=f"Monthly {metric_label}", legend=dict(orientation='h', y=1.12), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
             st.plotly_chart(fig_fc, use_container_width=True, config={'displaylogo': False})
 
             fc_table = pd.DataFrame({
@@ -929,7 +1104,7 @@ else:
                     plot_df = group_table.sort_values("Forecast total", ascending=True)
                     fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='RdYlGn_r')
                     fig_grp.update_traces(textposition='outside', cliponaxis=False)
-                    fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted {metric_label} (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60))
+                    fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted {metric_label} (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
                     st.plotly_chart(fig_grp, use_container_width=True)
 
             st.markdown("---")
