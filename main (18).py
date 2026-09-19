@@ -24,181 +24,397 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS - RAILWAY GAMING THEME ======================
+# ====================== CUSTOM CSS - PREMIUM RAILWAY UI ======================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* =========================================================
+   PREMIUM RAILWAY / DATA-LOGGER DESIGN
+   IMPORTANT: This is visual-only CSS. Existing forms,
+   fields, labels, keys, workflows and functionality remain unchanged.
+   ========================================================= */
+
+:root {
+    --bg: #0B1220;
+    --surface: #111B2E;
+    --surface-2: #172238;
+    --surface-3: #1D2B42;
+    --border: rgba(148,163,184,.16);
+    --border-active: rgba(34,211,238,.55);
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+    --cyan: #22D3EE;
+    --blue: #3B82F6;
+    --green: #22C55E;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --violet: #8B5CF6;
+}
 
 .stApp {
-    background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
-    color: #e0e6ed;
-    font-family: 'Rajdhani', sans-serif;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(34,211,238,.07), transparent 30%),
+        radial-gradient(circle at 90% 8%, rgba(59,130,246,.07), transparent 28%),
+        linear-gradient(145deg, #08101d 0%, #0B1220 48%, #0D1728 100%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
 }
 
+/* subtle engineering grid */
+.stApp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .025;
+    background-image:
+        linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+    background-size: 42px 42px;
+    z-index: 0;
+}
+
+/* Main content */
+.block-container {
+    padding-top: 1.35rem;
+    padding-bottom: 3rem;
+    max-width: 1600px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
 .dashboard-title {
-    font-family: 'Orbitron', sans-serif !important;
-    font-size: 2.9rem !important;
-    font-weight: 900 !important;
-    background: linear-gradient(90deg, #FF9933, #FFD700, #FF9933);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: 'Inter', sans-serif !important;
+    font-size: clamp(2rem, 3.2vw, 3.15rem) !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    letter-spacing: -1.5px !important;
     text-align: center;
-    letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(255, 153, 51, 0.4);
-    margin-bottom: 0.1rem;
-    animation: glow 2.5s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 0 5px rgba(255,153,51,0.3)); }
-    to   { filter: drop-shadow(0 0 18px rgba(255,153,51,0.7)); }
+    color: #F8FAFC !important;
+    margin: .35rem 0 .25rem 0;
+    text-shadow: 0 0 35px rgba(34,211,238,.12);
 }
 
 .subtitle {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.35rem;
-    color: #7ec8e3;
+    font-family: 'Inter', sans-serif;
+    font-size: .92rem;
+    color: #8FA8C2;
     text-align: center;
     font-weight: 600;
-    letter-spacing: 2px;
-    margin-top: -0.3rem;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    margin-top: .1rem;
 }
 
+/* =========================================================
+   SECTION HEADERS
+   ========================================================= */
 .section-header {
-    font-family: 'Orbitron', sans-serif !important;
-    font-size: 1.45rem !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1.08rem !important;
     font-weight: 700 !important;
-    color: #FF9933 !important;
-    margin: 1.4rem 0 0.6rem 0;
-    border-left: 5px solid #FF9933;
-    padding-left: 12px;
-    text-shadow: 0 0 10px rgba(255,153,51,0.3);
+    color: #E8F7FF !important;
+    margin: 1.35rem 0 .65rem 0;
+    border-left: 3px solid var(--cyan);
+    padding: .25rem 0 .25rem .75rem;
+    letter-spacing: .2px;
 }
 
+/* Generic Streamlit headings */
+h1, h2, h3 {
+    color: #EAF4FF !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+h2, h3 {
+    letter-spacing: -.25px;
+}
+
+/* =========================================================
+   METRIC CARDS
+   ========================================================= */
 div[data-testid="stMetric"] {
-    background: linear-gradient(145deg, #132f4c, #0d2137);
-    border: 1px solid #1e4a6e;
-    border-radius: 16px;
-    padding: 18px 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-    transition: all 0.3s ease;
+    background:
+        linear-gradient(145deg, rgba(23,34,56,.96), rgba(14,25,43,.96));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 15px;
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.035);
+    transition: .22s ease;
 }
 
 div[data-testid="stMetric"]:hover {
-    transform: translateY(-5px);
-    border-color: #FF9933;
-    box-shadow: 0 12px 30px rgba(255,153,51,0.25);
+    transform: translateY(-2px);
+    border-color: var(--border-active);
+    box-shadow:
+        0 16px 34px rgba(0,0,0,.27),
+        0 0 22px rgba(34,211,238,.07);
 }
 
 div[data-testid="stMetric"] label {
-    color: #7ec8e3 !important;
+    color: #8FA8C2 !important;
     font-weight: 600 !important;
-    font-size: 0.95rem !important;
+    font-size: .78rem !important;
+    letter-spacing: .55px;
+    text-transform: uppercase;
 }
 
 div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-    color: #FFD700 !important;
-    font-family: 'Orbitron', sans-serif !important;
-    font-size: 1.8rem !important;
+    color: #F8FAFC !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 1.72rem !important;
+    font-weight: 600 !important;
 }
 
+/* =========================================================
+   INPUTS / EXISTING FORMS - STYLE ONLY
+   ========================================================= */
+.stTextInput > div > div,
+.stNumberInput > div > div,
+.stDateInput > div > div,
+.stTimeInput > div > div,
+.stSelectbox > div > div,
+.stMultiSelect > div > div {
+    background: rgba(17,27,46,.92) !important;
+    border: 1px solid rgba(148,163,184,.18) !important;
+    border-radius: 9px !important;
+    color: #F8FAFC !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.stTextInput > div > div:focus-within,
+.stNumberInput > div > div:focus-within,
+.stDateInput > div > div:focus-within,
+.stTimeInput > div > div:focus-within,
+.stSelectbox > div > div:focus-within,
+.stMultiSelect > div > div:focus-within {
+    border-color: rgba(34,211,238,.65) !important;
+    box-shadow: 0 0 0 2px rgba(34,211,238,.08), 0 0 18px rgba(34,211,238,.05);
+}
+
+input, textarea {
+    color: #F8FAFC !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+label {
+    color: #B7C7D9 !important;
+    font-weight: 600 !important;
+}
+
+/* select dropdown chips */
+.stMultiSelect [data-baseweb="tag"] {
+    background: rgba(34,211,238,.14) !important;
+    border: 1px solid rgba(34,211,238,.22) !important;
+    color: #DDFBFF !important;
+    border-radius: 6px !important;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.stButton > button,
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #22D3EE 0%, #3B82F6 100%) !important;
+    color: #06111E !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: .15px;
+    border: 0 !important;
+    border-radius: 9px !important;
+    min-height: 2.55rem;
+    padding: .55rem 1.05rem !important;
+    box-shadow: 0 7px 22px rgba(34,211,238,.13);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.stButton > button:hover,
+.stDownloadButton > button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow: 0 10px 27px rgba(34,211,238,.22) !important;
+}
+
+/* Secondary buttons remain visually restrained */
+.stButton > button[kind="secondary"] {
+    background: rgba(23,34,56,.95) !important;
+    color: #CFE0F2 !important;
+    border: 1px solid rgba(148,163,184,.20) !important;
+    box-shadow: none !important;
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background: transparent;
+    gap: 5px;
+    background: rgba(10,18,32,.72);
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: #132f4c;
-    border-radius: 12px 12px 0 0;
-    color: #7ec8e3;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border: 1px solid #1e4a6e;
-    padding: 10px 22px;
+    background: transparent;
+    border-radius: 7px;
+    color: #8FA8C2;
+    font-family: 'Inter', sans-serif;
+    font-weight: 650;
+    font-size: .88rem;
+    border: 0;
+    padding: 9px 18px;
+    transition: .18s ease;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    color: #DDFBFF;
+    background: rgba(34,211,238,.06);
 }
 
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
-    color: #0a0f1c !important;
-    border-color: #FF9933 !important;
-    box-shadow: 0 0 20px rgba(255,153,51,0.4);
+    background: rgba(34,211,238,.13) !important;
+    color: #CFFAFF !important;
+    box-shadow: inset 0 -2px 0 #22D3EE, 0 0 18px rgba(34,211,238,.06);
 }
 
-.stButton > button {
-    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
-    color: #0a0f1c !important;
-    font-family: 'Orbitron', sans-serif !important;
-    font-weight: 700 !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 0.6rem 1.4rem !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 4px 15px rgba(255,153,51,0.3);
-}
-
-.stButton > button:hover {
-    transform: scale(1.04);
-    box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
-}
-
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
-    border-right: 1px solid #1e4a6e;
+    background:
+        linear-gradient(180deg, #091323 0%, #0C1728 100%);
+    border-right: 1px solid rgba(148,163,184,.12);
 }
 
-section[data-testid="stSidebar"] .stMarkdown h2 {
-    color: #FF9933 !important;
-    font-family: 'Orbitron', sans-serif;
+section[data-testid="stSidebar"] .stMarkdown h2,
+section[data-testid="stSidebar"] h2 {
+    color: #DDFBFF !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
+section[data-testid="stSidebar"] .stButton > button {
+    width: 100%;
+}
+
+/* =========================================================
+   DATAFRAMES / TABLES
+   ========================================================= */
 .stDataFrame {
-    border-radius: 12px;
+    border-radius: 11px;
     overflow: hidden;
-    border: 1px solid #1e4a6e;
+    border: 1px solid rgba(148,163,184,.14);
+    box-shadow: 0 10px 26px rgba(0,0,0,.18);
 }
 
+[data-testid="stDataFrame"] div[role="columnheader"] {
+    background: #172238 !important;
+    color: #CFE0F2 !important;
+    font-weight: 700 !important;
+}
+
+[data-testid="stDataFrame"] div[role="gridcell"] {
+    background: #101B2D !important;
+    color: #DCE8F5 !important;
+}
+
+/* =========================================================
+   LIVE TRAIN STRIP
+   ========================================================= */
 .train-container {
     width: 100%;
-    height: 48px;
+    height: 54px;
     overflow: hidden;
     position: relative;
-    margin: 10px 0 20px 0;
-    background: linear-gradient(90deg, transparent, rgba(255,153,51,0.08), transparent);
-    border-radius: 8px;
+    margin: 18px 0 22px 0;
+    background:
+        linear-gradient(90deg, transparent, rgba(34,211,238,.06), transparent);
+    border-top: 1px solid rgba(34,211,238,.09);
+    border-bottom: 1px solid rgba(34,211,238,.09);
+}
+
+.train-container::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(148,163,184,.38), transparent);
+    box-shadow: 0 5px 0 rgba(148,163,184,.10);
 }
 
 .train {
     position: absolute;
     white-space: nowrap;
     font-size: 28px;
-    animation: moveTrain 12s linear infinite;
-    color: #FF9933;
-    text-shadow: 0 0 12px rgba(255,153,51,0.6);
+    line-height: 54px;
+    animation: moveTrain 13s linear infinite;
+    color: #CFFAFF;
+    text-shadow: 0 0 14px rgba(34,211,238,.45);
 }
 
 @keyframes moveTrain {
-    0%   { left: -300px; }
+    0% { left: -340px; }
     100% { left: 110%; }
 }
 
+/* =========================================================
+   DIVIDERS / CAPTIONS / STATUS
+   ========================================================= */
+hr {
+    border-color: rgba(148,163,184,.12) !important;
+}
+
+.stCaption, .stMarkdown p {
+    color: #8FA8C2 !important;
+}
+
+[data-testid="stAlert"] {
+    border-radius: 9px !important;
+    border: 1px solid rgba(148,163,184,.15) !important;
+}
+
+[data-testid="stNotification"] {
+    border-radius: 9px !important;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #0d2137;
+    background: #091323;
 }
 ::-webkit-scrollbar-thumb {
-    background: #FF9933;
+    background: #29415E;
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #FFD700;
+    background: #22D3EE;
 }
 
-.stCaption, .stMarkdown p {
-    color: #8ba3b5 !important;
+/* Reduce excessive Streamlit chrome */
+[data-testid="stToolbar"] {
+    background: transparent !important;
+}
+
+/* Mobile safety */
+@media (max-width: 900px) {
+    .dashboard-title {
+        font-size: 2rem !important;
+    }
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -521,18 +737,12 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
-
-    header_fmt = workbook.add_format({
-        'bold': True, 'font_color': 'white', 'bg_color': header_color,
-        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
-    })
+    header_fmt = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': header_color, 'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
     text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
     number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
     date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
-
     for col_idx, col_name in enumerate(df.columns):
         worksheet.write(0, col_idx, str(col_name), header_fmt)
-
         series = df[col_name]
         if pd.api.types.is_datetime64_any_dtype(series) or str(col_name).strip().upper() == 'DATE':
             cell_fmt = date_fmt
@@ -540,11 +750,9 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
             cell_fmt = number_fmt
         else:
             cell_fmt = text_fmt
-
         content_len = int(series.astype(str).map(len).max()) if len(series) else 0
         width = min(max(max(content_len, len(str(col_name))) + 2, 10), 45)
         worksheet.set_column(col_idx, col_idx, width, cell_fmt)
-
     worksheet.set_row(0, 30)
     worksheet.freeze_panes(1, 0)
     if len(df) > 0:
