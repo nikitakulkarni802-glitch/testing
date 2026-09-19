@@ -323,44 +323,147 @@ section[data-testid="stSidebar"] .stButton > button {
 }
 
 /* =========================================================
-   LIVE TRAIN STRIP
+   CINEMATIC REAL TRAIN — DIAGONAL PASS
    ========================================================= */
 .train-container {
     width: 100%;
-    height: 54px;
+    height: 185px;
     overflow: hidden;
     position: relative;
     margin: 18px 0 22px 0;
+    border-radius: 18px;
+    border: 1px solid rgba(34,211,238,.16);
     background:
-        linear-gradient(90deg, transparent, rgba(34,211,238,.06), transparent);
-    border-top: 1px solid rgba(34,211,238,.09);
-    border-bottom: 1px solid rgba(34,211,238,.09);
+        radial-gradient(circle at 50% 120%, rgba(34,211,238,.16), transparent 48%),
+        linear-gradient(180deg, rgba(7,15,29,.95), rgba(11,18,32,.98));
+    box-shadow:
+        inset 0 0 60px rgba(0,0,0,.55),
+        0 14px 40px rgba(0,0,0,.24);
 }
 
+/* Distant railway corridor */
 .train-container::before {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 10px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(148,163,184,.38), transparent);
-    box-shadow: 0 5px 0 rgba(148,163,184,.10);
+    left: -10%;
+    right: -10%;
+    bottom: 25px;
+    height: 42px;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 28px,
+            rgba(148,163,184,.20) 29px 31px
+        ),
+        linear-gradient(
+            7deg,
+            transparent 0 37%,
+            rgba(148,163,184,.42) 38% 39%,
+            transparent 40% 61%,
+            rgba(148,163,184,.32) 62% 63%,
+            transparent 64%
+        );
+    transform: perspective(400px) rotateX(55deg);
+    transform-origin: bottom center;
+    opacity: .75;
 }
 
-.train {
+/* Moving light streaks */
+.train-container::after {
+    content: "";
     position: absolute;
-    white-space: nowrap;
-    font-size: 28px;
-    line-height: 54px;
-    animation: moveTrain 13s linear infinite;
-    color: #CFFAFF;
-    text-shadow: 0 0 14px rgba(34,211,238,.45);
+    inset: 0;
+    background:
+        linear-gradient(115deg, transparent 35%, rgba(34,211,238,.12) 42%, transparent 50%),
+        linear-gradient(115deg, transparent 55%, rgba(59,130,246,.09) 62%, transparent 70%);
+    animation: railStreaks 2.4s linear infinite;
+    pointer-events: none;
 }
 
-@keyframes moveTrain {
-    0% { left: -340px; }
-    100% { left: 110%; }
+.real-train {
+    position: absolute;
+    z-index: 3;
+    width: 470px;
+    height: 185px;
+    object-fit: cover;
+    object-position: 38% 58%;
+    border-radius: 8px;
+    filter:
+        saturate(1.15)
+        contrast(1.12)
+        brightness(.92)
+        drop-shadow(0 18px 18px rgba(0,0,0,.65))
+        drop-shadow(0 0 22px rgba(34,211,238,.18));
+    transform: rotate(-9deg) scale(1.08);
+    transform-origin: center center;
+    animation: diagonalTrainPass 9s cubic-bezier(.42,0,.18,1) infinite;
+    will-change: transform, left, top;
+}
+
+/* Headlight flare */
+.train-headlight {
+    position: absolute;
+    z-index: 4;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0 7%, rgba(34,211,238,.42) 20%, transparent 68%);
+    filter: blur(2px);
+    pointer-events: none;
+    animation: headlightPass 9s cubic-bezier(.42,0,.18,1) infinite;
+}
+
+/* Cinematic diagonal movement: bottom-left → top-right */
+@keyframes diagonalTrainPass {
+    0% {
+        left: -540px;
+        top: 105px;
+        opacity: 0;
+        transform: rotate(-9deg) scale(1.08);
+    }
+    8% {
+        opacity: 1;
+    }
+    45% {
+        left: 30%;
+        top: 22px;
+        opacity: 1;
+        transform: rotate(-9deg) scale(1.12);
+    }
+    78% {
+        left: 72%;
+        top: -8px;
+        opacity: 1;
+        transform: rotate(-9deg) scale(1.16);
+    }
+    100% {
+        left: 112%;
+        top: -55px;
+        opacity: 0;
+        transform: rotate(-9deg) scale(1.20);
+    }
+}
+
+@keyframes headlightPass {
+    0% { left: -450px; top: 102px; opacity: 0; }
+    8% { opacity: .95; }
+    45% { left: 43%; top: 48px; opacity: .8; }
+    78% { left: 82%; top: 8px; opacity: .5; }
+    100% { left: 115%; top: -40px; opacity: 0; }
+}
+
+@keyframes railStreaks {
+    0% { transform: translateX(-12%); opacity: .35; }
+    50% { opacity: .8; }
+    100% { transform: translateX(12%); opacity: .35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .real-train,
+    .train-headlight,
+    .train-container::after {
+        animation: none !important;
+    }
 }
 
 /* =========================================================
@@ -905,12 +1008,15 @@ else:
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
 
-    # Animated Train
+    # Cinematic real train passing diagonally
     st.markdown("""
-    <div class="train-container">
-        <div class="train">
-            🚄═══════════🚄═══════════🚄═══════════🚄═══════════🚄
-        </div>
+    <div class="train-container" aria-label="Animated real train passing diagonally">
+        <img
+            class="real-train"
+            src="https://cdn.digitonic.dev/d6b98a36-b75e-4d48-bf9c-f7a39a0eb6db/18256ec5-56b9-4119-b873-8b33f0199b35/presets/auto/rail-transportation.webp"
+            alt="Real railway locomotive approaching on tracks"
+        >
+        <div class="train-headlight"></div>
     </div>
     """, unsafe_allow_html=True)
 
