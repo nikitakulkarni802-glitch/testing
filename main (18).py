@@ -24,17 +24,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS - RAILWAY GAMING THEME ======================
+# ====================== CUSTOM CSS - RAILWAY GAMING THEME + DIAGONAL TRAIN ======================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
+/* ========== GLOBAL ========== */
 .stApp {
     background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
     color: #e0e6ed;
     font-family: 'Rajdhani', sans-serif;
 }
 
+/* ========== HEADER TITLE ========== */
 .dashboard-title {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 2.9rem !important;
@@ -64,6 +66,7 @@ st.markdown("""
     margin-top: -0.3rem;
 }
 
+/* ========== SECTION HEADERS ========== */
 .section-header {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.45rem !important;
@@ -75,6 +78,7 @@ st.markdown("""
     text-shadow: 0 0 10px rgba(255,153,51,0.3);
 }
 
+/* ========== METRIC CARDS ========== */
 div[data-testid="stMetric"] {
     background: linear-gradient(145deg, #132f4c, #0d2137);
     border: 1px solid #1e4a6e;
@@ -102,6 +106,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     font-size: 1.8rem !important;
 }
 
+/* ========== TABS ========== */
 .stTabs [data-baseweb="tab-list"] {
     gap: 8px;
     background: transparent;
@@ -125,6 +130,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     box-shadow: 0 0 20px rgba(255,153,51,0.4);
 }
 
+/* ========== BUTTONS ========== */
 .stButton > button {
     background: linear-gradient(90deg, #FF9933, #e67e22) !important;
     color: #0a0f1c !important;
@@ -142,6 +148,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
 }
 
+/* ========== SIDEBAR ========== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
     border-right: 1px solid #1e4a6e;
@@ -152,36 +159,49 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     font-family: 'Orbitron', sans-serif;
 }
 
+/* ========== DATAFRAMES ========== */
 .stDataFrame {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #1e4a6e;
 }
 
-.train-container {
+/* ========== DIAGONAL REAL TRAIN BACKGROUND ========== */
+.train-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 48px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
     overflow: hidden;
-    position: relative;
-    margin: 10px 0 20px 0;
-    background: linear-gradient(90deg, transparent, rgba(255,153,51,0.08), transparent);
-    border-radius: 8px;
 }
 
-.train {
+.train-wrapper {
     position: absolute;
-    white-space: nowrap;
-    font-size: 28px;
-    animation: moveTrain 12s linear infinite;
-    color: #FF9933;
-    text-shadow: 0 0 12px rgba(255,153,51,0.6);
+    bottom: -80px;
+    left: -450px;
+    animation: diagonalTrain 32s linear infinite;
+    opacity: 0.20;
+    transform: rotate(-11deg);
 }
 
-@keyframes moveTrain {
-    0%   { left: -300px; }
-    100% { left: 110%; }
+.train-img {
+    height: 95px;
+    filter: drop-shadow(0 0 15px rgba(255, 153, 51, 0.45));
 }
 
+@keyframes diagonalTrain {
+    0% {
+        transform: translate(0, 0) rotate(-11deg);
+    }
+    100% {
+        transform: translate(170vw, -120vh) rotate(-11deg);
+    }
+}
+
+/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -197,6 +217,7 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     background: #FFD700;
 }
 
+/* ========== CAPTION ========== */
 .stCaption, .stMarkdown p {
     color: #8ba3b5 !important;
 }
@@ -690,21 +711,21 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
+    # Diagonal Real Train Background
+    st.markdown("""
+    <div class="train-bg">
+        <div class="train-wrapper">
+            <img class="train-img" src="https://i.imgur.com/8QZ7Y9K.png" alt="Train">
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([3, 3, 1])
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
-
-    # Animated Train
-    st.markdown("""
-    <div class="train-container">
-        <div class="train">
-            🚄═══════════🚄═══════════🚄═══════════🚄═══════════🚄
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
