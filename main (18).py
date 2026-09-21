@@ -28,7 +28,7 @@ st.set_page_config(
 if "theme" not in st.session_state:
     st.session_state.theme = "Light"
 
-# ====================== THEME + WATERMARK + TRAIN CSS ======================
+# ====================== THEME + LOGO + TRAIN CSS ======================
 def apply_theme(theme):
     if theme == "Dark":
         css = """
@@ -49,14 +49,14 @@ def apply_theme(theme):
             -webkit-text-fill-color: transparent;
             text-align: center;
             letter-spacing: 2px;
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.2rem;
         }
         .subtitle {
             font-size: 1.25rem;
             color: #7ec8e3;
             text-align: center;
             font-weight: 600;
-            margin-top: -0.3rem;
+            margin-top: 0.3rem;
         }
         .section-header {
             font-family: 'Orbitron', sans-serif !important;
@@ -98,31 +98,34 @@ def apply_theme(theme):
             background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
         }
 
-        /* Indian Railway Watermark - More Visible */
-        .railway-watermark {
+        /* Central Railway Logo Watermark */
+        .logo-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-26deg);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 4.2rem;
-            font-weight: 800;
-            color: rgba(255, 153, 51, 0.11);
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+            width: 450px;
+        }
+
+        /* Moving Bullet Train */
+        .train-moving {
+            position: fixed;
+            bottom: 30px;
+            left: -450px;
+            font-size: 2.3rem;
+            animation: moveTrain 24s linear infinite;
+            opacity: 0.20;
             z-index: 0;
             pointer-events: none;
             white-space: nowrap;
-            letter-spacing: 6px;
-            user-select: none;
-        }
-
-        /* Train below title */
-        .train-under-title {
-            text-align: center;
-            font-size: 1.9rem;
-            margin: 6px 0 12px 0;
             color: #FF9933;
-            letter-spacing: 4px;
-            opacity: 0.85;
+        }
+        @keyframes moveTrain {
+            0%   { left: -450px; }
+            100% { left: 115%; }
         }
         </style>
         """
@@ -145,14 +148,14 @@ def apply_theme(theme):
             -webkit-text-fill-color: transparent;
             text-align: center;
             letter-spacing: 2px;
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.2rem;
         }
         .subtitle {
             font-size: 1.25rem;
             color: #0369a1;
             text-align: center;
             font-weight: 600;
-            margin-top: -0.3rem;
+            margin-top: 0.3rem;
         }
         .section-header {
             font-family: 'Orbitron', sans-serif !important;
@@ -196,31 +199,34 @@ def apply_theme(theme):
             border-right: 1px solid #cbd5e1;
         }
 
-        /* Indian Railway Watermark - More Visible */
-        .railway-watermark {
+        /* Central Railway Logo Watermark */
+        .logo-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-26deg);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 4.2rem;
-            font-weight: 800;
-            color: rgba(194, 65, 12, 0.09);
+            transform: translate(-50%, -50%);
+            opacity: 0.07;
+            z-index: 0;
+            pointer-events: none;
+            width: 450px;
+        }
+
+        /* Moving Bullet Train */
+        .train-moving {
+            position: fixed;
+            bottom: 30px;
+            left: -450px;
+            font-size: 2.3rem;
+            animation: moveTrain 24s linear infinite;
+            opacity: 0.18;
             z-index: 0;
             pointer-events: none;
             white-space: nowrap;
-            letter-spacing: 6px;
-            user-select: none;
-        }
-
-        /* Train below title */
-        .train-under-title {
-            text-align: center;
-            font-size: 1.9rem;
-            margin: 6px 0 12px 0;
             color: #c2410c;
-            letter-spacing: 4px;
-            opacity: 0.85;
+        }
+        @keyframes moveTrain {
+            0%   { left: -450px; }
+            100% { left: 115%; }
         }
         </style>
         """
@@ -465,10 +471,17 @@ else:
         if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
             refresh_data()
 
-    # ========== WATERMARK (Background) ==========
+    # ========== CENTRAL RAILWAY LOGO WATERMARK ==========
+    st.markdown(f"""
+    <div class="logo-watermark">
+        <img src="{IR_LOGO_URL}" width="450">
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ========== MOVING BULLET TRAIN ==========
     st.markdown("""
-    <div class="railway-watermark">
-        INDIAN RAILWAYS • CENTRAL RAILWAY • CR
+    <div class="train-moving">
+        🚅═══════🚅═══════🚅═══════🚅═══════🚅═══════🚅
     </div>
     """, unsafe_allow_html=True)
 
@@ -478,14 +491,6 @@ else:
         st.image(IR_LOGO_URL, width=200)
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
-
-    # ========== TRAIN RIGHT BELOW TITLE ==========
-    st.markdown("""
-    <div class="train-under-title">
-        🚄═══════════🚄═══════════🚄═══════════🚄
-    </div>
-    """, unsafe_allow_html=True)
-
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
@@ -725,4 +730,4 @@ else:
         st.subheader("🗺️ Interactive Map View")
         st.info("Map logic remains the same as your previous working version.")
 
-    st.caption("🚄 Safety Branch | Central Railway, Solapur Division")
+    st.caption("🚅 Safety Branch | Central Railway, Solapur Division")
