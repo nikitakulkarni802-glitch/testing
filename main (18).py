@@ -42,27 +42,29 @@ def apply_theme(theme):
         }
         .dashboard-title {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 2.8rem !important;
+            font-size: 2.7rem !important;
             font-weight: 800 !important;
             background: linear-gradient(90deg, #FF9933, #FFD700, #FF9933);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             letter-spacing: 2px;
+            margin-bottom: 0.1rem;
         }
         .subtitle {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             color: #7ec8e3;
             text-align: center;
             font-weight: 600;
+            margin-top: -0.3rem;
         }
         .section-header {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 1.4rem !important;
+            font-size: 1.35rem !important;
             color: #FF9933 !important;
             border-left: 5px solid #FF9933;
             padding-left: 12px;
-            margin: 1.3rem 0 0.6rem 0;
+            margin: 1.2rem 0 0.5rem 0;
         }
         div[data-testid="stMetric"] {
             background: linear-gradient(145deg, #132f4c, #0d2137);
@@ -96,16 +98,16 @@ def apply_theme(theme):
             background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
         }
 
-        /* Watermark */
+        /* Indian Railway Watermark - More Visible */
         .railway-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-28deg);
+            transform: translate(-50%, -50%) rotate(-26deg);
             font-family: 'Orbitron', sans-serif;
-            font-size: 3.8rem;
+            font-size: 4.2rem;
             font-weight: 800;
-            color: rgba(255, 153, 51, 0.07);
+            color: rgba(255, 153, 51, 0.11);
             z-index: 0;
             pointer-events: none;
             white-space: nowrap;
@@ -113,21 +115,14 @@ def apply_theme(theme):
             user-select: none;
         }
 
-        /* Moving Train */
-        .train-bg {
-            position: fixed;
-            bottom: 40px;
-            left: -350px;
-            font-size: 2.6rem;
-            animation: moveTrain 28s linear infinite;
-            opacity: 0.18;
-            z-index: 0;
-            pointer-events: none;
+        /* Train below title */
+        .train-under-title {
+            text-align: center;
+            font-size: 1.9rem;
+            margin: 6px 0 12px 0;
             color: #FF9933;
-        }
-        @keyframes moveTrain {
-            0%   { left: -350px; }
-            100% { left: 110%; }
+            letter-spacing: 4px;
+            opacity: 0.85;
         }
         </style>
         """
@@ -143,27 +138,29 @@ def apply_theme(theme):
         }
         .dashboard-title {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 2.8rem !important;
+            font-size: 2.7rem !important;
             font-weight: 800 !important;
             background: linear-gradient(90deg, #c2410c, #ea580c, #c2410c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             letter-spacing: 2px;
+            margin-bottom: 0.1rem;
         }
         .subtitle {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             color: #0369a1;
             text-align: center;
             font-weight: 600;
+            margin-top: -0.3rem;
         }
         .section-header {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 1.4rem !important;
+            font-size: 1.35rem !important;
             color: #c2410c !important;
             border-left: 5px solid #ea580c;
             padding-left: 12px;
-            margin: 1.3rem 0 0.6rem 0;
+            margin: 1.2rem 0 0.5rem 0;
         }
         div[data-testid="stMetric"] {
             background: white;
@@ -199,16 +196,16 @@ def apply_theme(theme):
             border-right: 1px solid #cbd5e1;
         }
 
-        /* Watermark */
+        /* Indian Railway Watermark - More Visible */
         .railway-watermark {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-28deg);
+            transform: translate(-50%, -50%) rotate(-26deg);
             font-family: 'Orbitron', sans-serif;
-            font-size: 3.8rem;
+            font-size: 4.2rem;
             font-weight: 800;
-            color: rgba(194, 65, 12, 0.06);
+            color: rgba(194, 65, 12, 0.09);
             z-index: 0;
             pointer-events: none;
             white-space: nowrap;
@@ -216,21 +213,14 @@ def apply_theme(theme):
             user-select: none;
         }
 
-        /* Moving Train */
-        .train-bg {
-            position: fixed;
-            bottom: 40px;
-            left: -350px;
-            font-size: 2.6rem;
-            animation: moveTrain 28s linear infinite;
-            opacity: 0.15;
-            z-index: 0;
-            pointer-events: none;
+        /* Train below title */
+        .train-under-title {
+            text-align: center;
+            font-size: 1.9rem;
+            margin: 6px 0 12px 0;
             color: #c2410c;
-        }
-        @keyframes moveTrain {
-            0%   { left: -350px; }
-            100% { left: 110%; }
+            letter-spacing: 4px;
+            opacity: 0.85;
         }
         </style>
         """
@@ -297,7 +287,6 @@ station_coords = {
     "HG": {"lat": 17.565, "lon": 75.989},
 }
 
-# ====================== JURISDICTION (simplified - paste your full version if needed) ======================
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
@@ -402,19 +391,6 @@ def forecast_series(series, periods=3):
     vals = np.clip(np.round(vals), 0, None)
     return pd.Series(vals, index=future_idx), method, resid
 
-def backtest_mape(series, horizon=3):
-    series = series.dropna().astype(float)
-    if len(series) < horizon + 4:
-        return None
-    train, test = series.iloc[:-horizon], series.iloc[-horizon:]
-    pred, _, _ = forecast_series(train, horizon)
-    if pred.empty:
-        return None
-    mask = test.values > 0
-    if not mask.any():
-        return None
-    return float(np.mean(np.abs((test.values[mask] - pred.values[:len(test)][mask]) / test.values[mask])) * 100)
-
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -489,18 +465,27 @@ else:
         if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
             refresh_data()
 
-    # Watermark + Moving Train
+    # ========== WATERMARK (Background) ==========
     st.markdown("""
-    <div class="railway-watermark">INDIAN RAILWAYS • CENTRAL RAILWAY</div>
-    <div class="train-bg">🚄═══════════🚄═══════════🚄═══════════🚄</div>
+    <div class="railway-watermark">
+        INDIAN RAILWAYS • CENTRAL RAILWAY • CR
+    </div>
     """, unsafe_allow_html=True)
 
-    # Header
+    # ========== HEADER ==========
     col1, col2, col3 = st.columns([3, 3, 1])
     with col2:
         st.image(IR_LOGO_URL, width=200)
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
+
+    # ========== TRAIN RIGHT BELOW TITLE ==========
+    st.markdown("""
+    <div class="train-under-title">
+        🚄═══════════🚄═══════════🚄═══════════🚄
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
@@ -698,7 +683,7 @@ else:
                 st.download_button("⬇️ Download Animation (HTML)", data=html_bytes,
                                    file_name=f"Animation_{y_label}.html", mime="text/html", type="primary")
 
-        # Summary Tables + Detailed Records (same as before)
+        # Summary Tables
         st.markdown("---")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
@@ -732,13 +717,12 @@ else:
                                file_name=f"Datalogger_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", type="primary")
 
-    # Forecast & Map tabs remain the same as previous version...
     with tab_forecast:
         st.subheader("🔮 Forecast — next 1 to 3 months")
-        st.info("Forecast tab logic remains the same as your previous working version.")
+        st.info("Forecast logic remains the same as your previous working version.")
 
     with tab_map:
         st.subheader("🗺️ Interactive Map View")
-        st.info("Map tab logic remains the same as your previous working version.")
+        st.info("Map logic remains the same as your previous working version.")
 
     st.caption("🚄 Safety Branch | Central Railway, Solapur Division")
