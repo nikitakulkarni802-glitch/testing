@@ -24,15 +24,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS - RAILWAY GAMING THEME + DIAGONAL TRAIN ======================
+# ====================== CUSTOM CSS - LIGHT SKY BLUE THEME + WATERMARK + MOVING TRAIN EMOJI ======================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
-/* ========== GLOBAL ========== */
+/* ========== GLOBAL - LIGHT SKY BLUE THEME ========== */
 .stApp {
-    background: linear-gradient(135deg, #0a0f1c 0%, #0d1b2a 40%, #1b263b 100%);
-    color: #e0e6ed;
+    background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 40%, #e1f5fe 100%);
+    color: #0d1b2a;
     font-family: 'Rajdhani', sans-serif;
 }
 
@@ -41,29 +41,41 @@ st.markdown("""
     font-family: 'Orbitron', sans-serif !important;
     font-size: 2.9rem !important;
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #FF9933, #FFD700, #FF9933);
+    background: linear-gradient(90deg, #0277bd, #0288d1, #01579b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
     letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(255, 153, 51, 0.4);
     margin-bottom: 0.1rem;
-    animation: glow 2.5s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: drop-shadow(0 0 5px rgba(255,153,51,0.3)); }
-    to   { filter: drop-shadow(0 0 18px rgba(255,153,51,0.7)); }
 }
 
 .subtitle {
     font-family: 'Rajdhani', sans-serif;
     font-size: 1.35rem;
-    color: #7ec8e3;
+    color: #01579b;
     text-align: center;
     font-weight: 600;
     letter-spacing: 2px;
     margin-top: -0.3rem;
+}
+
+/* ========== MOVING TRAIN EMOJI BELOW TITLE ========== */
+.train-emoji-container {
+    text-align: center;
+    margin: 8px 0 18px 0;
+    overflow: hidden;
+    height: 42px;
+}
+
+.train-emoji {
+    display: inline-block;
+    font-size: 2.2rem;
+    animation: moveTrain 8s linear infinite;
+}
+
+@keyframes moveTrain {
+    0%   { transform: translateX(-60vw); }
+    100% { transform: translateX(60vw); }
 }
 
 /* ========== SECTION HEADERS ========== */
@@ -71,37 +83,36 @@ st.markdown("""
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.45rem !important;
     font-weight: 700 !important;
-    color: #FF9933 !important;
+    color: #0277bd !important;
     margin: 1.4rem 0 0.6rem 0;
-    border-left: 5px solid #FF9933;
+    border-left: 5px solid #0288d1;
     padding-left: 12px;
-    text-shadow: 0 0 10px rgba(255,153,51,0.3);
 }
 
 /* ========== METRIC CARDS ========== */
 div[data-testid="stMetric"] {
-    background: linear-gradient(145deg, #132f4c, #0d2137);
-    border: 1px solid #1e4a6e;
+    background: linear-gradient(145deg, #ffffff, #e1f5fe);
+    border: 1px solid #81d4fa;
     border-radius: 16px;
     padding: 18px 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: 0 6px 18px rgba(2, 119, 189, 0.12);
     transition: all 0.3s ease;
 }
 
 div[data-testid="stMetric"]:hover {
-    transform: translateY(-5px);
-    border-color: #FF9933;
-    box-shadow: 0 12px 30px rgba(255,153,51,0.25);
+    transform: translateY(-4px);
+    border-color: #0288d1;
+    box-shadow: 0 10px 25px rgba(2, 119, 189, 0.22);
 }
 
 div[data-testid="stMetric"] label {
-    color: #7ec8e3 !important;
+    color: #0277bd !important;
     font-weight: 600 !important;
     font-size: 0.95rem !important;
 }
 
 div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-    color: #FFD700 !important;
+    color: #01579b !important;
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.8rem !important;
 }
@@ -113,49 +124,49 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: #132f4c;
+    background: #e1f5fe;
     border-radius: 12px 12px 0 0;
-    color: #7ec8e3;
+    color: #01579b;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 700;
     font-size: 1.1rem;
-    border: 1px solid #1e4a6e;
+    border: 1px solid #81d4fa;
     padding: 10px 22px;
 }
 
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
-    color: #0a0f1c !important;
-    border-color: #FF9933 !important;
-    box-shadow: 0 0 20px rgba(255,153,51,0.4);
+    background: linear-gradient(90deg, #0288d1, #0277bd) !important;
+    color: #ffffff !important;
+    border-color: #0277bd !important;
+    box-shadow: 0 0 15px rgba(2, 136, 209, 0.35);
 }
 
 /* ========== BUTTONS ========== */
 .stButton > button {
-    background: linear-gradient(90deg, #FF9933, #e67e22) !important;
-    color: #0a0f1c !important;
+    background: linear-gradient(90deg, #0288d1, #0277bd) !important;
+    color: #ffffff !important;
     font-family: 'Orbitron', sans-serif !important;
     font-weight: 700 !important;
     border: none !important;
     border-radius: 10px !important;
     padding: 0.6rem 1.4rem !important;
     transition: all 0.3s ease !important;
-    box-shadow: 0 4px 15px rgba(255,153,51,0.3);
+    box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
 }
 
 .stButton > button:hover {
     transform: scale(1.04);
-    box-shadow: 0 6px 25px rgba(255,153,51,0.55) !important;
+    box-shadow: 0 6px 20px rgba(2, 136, 209, 0.45) !important;
 }
 
 /* ========== SIDEBAR ========== */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
-    border-right: 1px solid #1e4a6e;
+    background: linear-gradient(180deg, #e0f7fa 0%, #b3e5fc 100%);
+    border-right: 1px solid #81d4fa;
 }
 
 section[data-testid="stSidebar"] .stMarkdown h2 {
-    color: #FF9933 !important;
+    color: #01579b !important;
     font-family: 'Orbitron', sans-serif;
 }
 
@@ -163,42 +174,25 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
 .stDataFrame {
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #1e4a6e;
+    border: 1px solid #81d4fa;
 }
 
-/* ========== DIAGONAL REAL TRAIN BACKGROUND ========== */
-.train-bg {
+/* ========== WATERMARK (Central Railway / Madhya Rail Logo) ========== */
+.watermark {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.07;
     z-index: 0;
-    overflow: hidden;
+    pointer-events: none;
+    width: 520px;
+    max-width: 70vw;
 }
 
-.train-wrapper {
-    position: absolute;
-    bottom: -80px;
-    left: -450px;
-    animation: diagonalTrain 32s linear infinite;
-    opacity: 0.20;
-    transform: rotate(-11deg);
-}
-
-.train-img {
-    height: 95px;
-    filter: drop-shadow(0 0 15px rgba(255, 153, 51, 0.45));
-}
-
-@keyframes diagonalTrain {
-    0% {
-        transform: translate(0, 0) rotate(-11deg);
-    }
-    100% {
-        transform: translate(170vw, -120vh) rotate(-11deg);
-    }
+.watermark img {
+    width: 100%;
+    height: auto;
 }
 
 /* ========== SCROLLBAR ========== */
@@ -207,19 +201,19 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #0d2137;
+    background: #e0f7fa;
 }
 ::-webkit-scrollbar-thumb {
-    background: #FF9933;
+    background: #0288d1;
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #FFD700;
+    background: #01579b;
 }
 
 /* ========== CAPTION ========== */
 .stCaption, .stMarkdown p {
-    color: #8ba3b5 !important;
+    color: #37474f !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -538,7 +532,7 @@ def trim_incomplete_current_month(series):
         return series.iloc[:-1]
     return series
 
-def write_styled_sheet(writer, df, sheet_name, header_color="#003087"):
+def write_styled_sheet(writer, df, sheet_name, header_color="#0277bd"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
@@ -711,12 +705,10 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # Diagonal Real Train Background
-    st.markdown("""
-    <div class="train-bg">
-        <div class="train-wrapper">
-            <img class="train-img" src="https://i.imgur.com/8QZ7Y9K.png" alt="Train">
-        </div>
+    # ========== WATERMARK (Central Railway / Madhya Rail Logo) ==========
+    st.markdown(f"""
+    <div class="watermark">
+        <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
     </div>
     """, unsafe_allow_html=True)
 
@@ -725,6 +717,14 @@ else:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
+
+    # ========== MOVING TRAIN EMOJI DIRECTLY BELOW TITLE ==========
+    st.markdown("""
+    <div class="train-emoji-container">
+        <span class="train-emoji">🚄</span>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
 
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
@@ -849,14 +849,14 @@ else:
             st.markdown('<p class="section-header">Top 15 Stations by FCOUNT</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 top15 = filtered_df.groupby('STATION')['FCOUNT'].sum().nlargest(15).reset_index()
-                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='RdYlGn_r')
-                fig.update_layout(height=480, xaxis_tickangle=45, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='Blues')
+                fig.update_layout(height=480, xaxis_tickangle=45, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig, use_container_width=True)
         with col_g2:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='Blues'), use_container_width=True)
 
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
@@ -868,7 +868,7 @@ else:
                 dept_plot = cat_sum.sort_values('Cases', ascending=True)
                 fig_dept = px.bar(dept_plot, x='Cases', y='DEPARTMENT', orientation='h', text='Cases', color='Cases', color_continuous_scale='Blues')
                 fig_dept.update_traces(textposition='outside', cliponaxis=False)
-                fig_dept.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+                fig_dept.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig_dept, use_container_width=True)
             else:
                 st.info("No Department data")
@@ -876,9 +876,9 @@ else:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
                 err_plot = error_sum.head(12).sort_values('Cases', ascending=True)
-                fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h', text='Cases', color='Cases', color_continuous_scale='Oranges')
+                fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h', text='Cases', color='Cases', color_continuous_scale='Teal')
                 fig_err.update_traces(textposition='outside', cliponaxis=False)
-                fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+                fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig_err, use_container_width=True)
             else:
                 st.info("No Error data")
@@ -886,9 +886,9 @@ else:
             st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
                 jur_plot = jur_sum.head(12).sort_values('Cases', ascending=True)
-                fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h', text='Cases', color='Cases', color_continuous_scale='Teal')
+                fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h', text='Cases', color='Cases', color_continuous_scale='Blues')
                 fig_jur.update_traces(textposition='outside', cliponaxis=False)
-                fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+                fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig_jur, use_container_width=True)
             else:
                 st.info("No Jurisdiction data")
@@ -947,7 +947,7 @@ else:
                     animation_frame='Month',
                     animation_group='STATION',
                     range_y=[0, monthly['Value'].max() * 1.18],
-                    color_continuous_scale='RdYlGn_r',
+                    color_continuous_scale='Blues',
                     labels={'Value': y_label, 'STATION': 'Station'},
                     title=f"Monthly {y_label} by Station — Animated (Highest → Lowest)",
                     text='Value'
@@ -963,7 +963,7 @@ else:
                     xaxis={'categoryorder': 'array', 'categoryarray': station_order},
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#e0e6ed'
+                    font_color='#0d1b2a'
                 )
 
                 fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
@@ -1091,10 +1091,10 @@ else:
             lower = [max(0.0, y - m) for y, m in zip(anchor_y, margins)]
 
             fig_fc = go.Figure()
-            fig_fc.add_trace(go.Scatter(x=list(anchor_x) + list(anchor_x)[::-1], y=upper + lower[::-1], fill='toself', fillcolor='rgba(255,153,51,0.18)', line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip', name='95% confidence range'))
-            fig_fc.add_trace(go.Scatter(x=hist.index, y=hist.values, mode='lines+markers', name='Actual', line=dict(color='#003087', width=3), marker=dict(size=8)))
-            fig_fc.add_trace(go.Scatter(x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast', line=dict(color='#FF9933', width=3, dash='dash'), marker=dict(size=10), text=[""] + [f"{int(v):,}" for v in fc.values], textposition='top center'))
-            fig_fc.update_layout(height=470, hovermode='x unified', xaxis_title="Month", yaxis_title=f"Monthly {metric_label}", legend=dict(orientation='h', y=1.12), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+            fig_fc.add_trace(go.Scatter(x=list(anchor_x) + list(anchor_x)[::-1], y=upper + lower[::-1], fill='toself', fillcolor='rgba(2, 136, 209, 0.18)', line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip', name='95% confidence range'))
+            fig_fc.add_trace(go.Scatter(x=hist.index, y=hist.values, mode='lines+markers', name='Actual', line=dict(color='#0277bd', width=3), marker=dict(size=8)))
+            fig_fc.add_trace(go.Scatter(x=anchor_x, y=anchor_y, mode='lines+markers+text', name='Forecast', line=dict(color='#0288d1', width=3, dash='dash'), marker=dict(size=10), text=[""] + [f"{int(v):,}" for v in fc.values], textposition='top center'))
+            fig_fc.update_layout(height=470, hovermode='x unified', xaxis_title="Month", yaxis_title=f"Monthly {metric_label}", legend=dict(orientation='h', y=1.12), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
             st.plotly_chart(fig_fc, use_container_width=True, config={'displaylogo': False})
 
             fc_table = pd.DataFrame({
@@ -1118,11 +1118,11 @@ else:
                     st.info("Not enough history for a group-wise forecast.")
                 else:
                     num_cols = [c for c in group_table.columns if c not in (gcol, "Model")]
-                    st.dataframe(group_table.style.format({c: "{:,}" for c in num_cols}).background_gradient(subset=["Forecast total"], cmap='YlOrRd'), use_container_width=True, hide_index=True)
+                    st.dataframe(group_table.style.format({c: "{:,}" for c in num_cols}).background_gradient(subset=["Forecast total"], cmap='Blues'), use_container_width=True, hide_index=True)
                     plot_df = group_table.sort_values("Forecast total", ascending=True)
-                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='RdYlGn_r')
+                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='Blues')
                     fig_grp.update_traces(textposition='outside', cliponaxis=False)
-                    fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted {metric_label} (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#e0e6ed')
+                    fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted {metric_label} (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                     st.plotly_chart(fig_grp, use_container_width=True)
 
             st.markdown("---")
@@ -1209,7 +1209,7 @@ else:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='Blues'), use_container_width=True)
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
             if not jur_sum.empty:
