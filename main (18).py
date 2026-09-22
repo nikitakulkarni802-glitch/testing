@@ -873,92 +873,111 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-        # ====================== ANIMATED TIME SERIES (Highest → Lowest) ======================
-        st.markdown("---")
-        st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest)</p>', unsafe_allow_html=True)
+       # ====================== ANIMATED TIME SERIES (Highest → Lowest) ======================
+st.markdown("---")
+st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest)</p>', unsafe_allow_html=True)
 
-        if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
-            st.warning("Not enough data for animation.")
-        else:
-            anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
+if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
+    st.warning("Not enough data for animation.")
+else:
+    anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
 
-            col_anim1, col_anim2 = st.columns([2, 2])
-            with col_anim1:
-                top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
-            with col_anim2:
-                anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
+    col_anim1, col_anim2 = st.columns([2, 2])
+    with col_anim1:
+        top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
+    with col_anim2:
+        anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
 
-            speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
-            frame_duration = speed_map[anim_speed]
-            transition_duration = int(frame_duration * 0.55)
+    speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
+    frame_duration = speed_map[anim_speed]
+    transition_duration = int(frame_duration * 0.55)
 
-            monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
-            monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
-            monthly = monthly.sort_values('DATE')
+    monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
+    monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
+    monthly = monthly.sort_values('DATE')
 
-            # Force Highest → Lowest order
-            station_order = (
-                monthly.groupby('STATION')['Value']
-                .sum()
-                .sort_values(ascending=False)
-                .head(top_n_anim)
-                .index
-                .tolist()
-            )
+    # Force Highest → Lowest order
+    station_order = (
+        monthly.groupby('STATION')['Value']
+        .sum()
+        .sort_values(ascending=False)
+        .head(top_n_anim)
+        .index
+        .tolist()
+    )
 
-            monthly = monthly[monthly['STATION'].isin(station_order)]
-            monthly['STATION'] = pd.Categorical(monthly['STATION'], categories=station_order, ordered=True)
-            monthly = monthly.sort_values(['DATE', 'STATION'])
+    monthly = monthly[monthly['STATION'].isin(station_order)]
+    monthly['STATION'] = pd.Categorical(monthly['STATION'], categories=station_order, ordered=True)
+    monthly = monthly.sort_values(['DATE', 'STATION'])
 
-            if monthly.empty:
-                st.info("No data available for animation.")
-            else:
-                fig_anim = px.bar(
-                    monthly,
-                    x='STATION',
-                    y='Value',
-                    color='Value',
-                    animation_frame='Month',
-                    animation_group='STATION',
-                    range_y=[0, monthly['Value'].max() * 1.18],
-                    color_continuous_scale='RdYlGn_r',
-                    labels={'Value': 'Cases', 'STATION': 'Station'},
-                    title="Monthly Cases by Station — Highest → Lowest",
-                    text='Value',
-                    category_orders={"STATION": station_order}
-                )
+    if monthly.empty:
+        st.info("No data available for animation.")
+    else:
+        fig_anim = px.bar(
+            monthly,
+            x='STATION',
+            y='Value',
+            color='Value',
+            animation_frame='Month',
+            animation_group='STATION',
+            range_y=[0, monthly['Value'].max() * 1.18],
+            color_continuous_scale='RdYlGn_r',
+            labels={'Value': 'Cases', 'STATION': 'Station'},
+            title="Monthly Cases by Station — Highest → Lowest",
+            text='Value',
+            category_orders={"STATION": station_order}
+        )
 
-                fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
+        fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
+        
+        fig_anim.update_layout(
+            height=600,
+            xaxis_tickangle=-45,
+            coloraxis_showscale=False,
+            margin=dict(t=70, b=120),
+            title_x=0.5,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#0d1b2a'
+        )
+
+        # Force x-axis order
+        fig_anim.update_xaxes(categoryorder='array', categoryarray=station_order)
+
+        # Safe animation speed setting
+        try:
+            if (hasattr(fig_anim.layout, "updatemenus") and 
+                fig_anim.layout.updatemenus and 
+                len(fig_anim.layout.updatemenus) > 0 and
+                fig_anim.layout.updatemenus[0].buttons and
+                len(fig_anim.layout.updatemenus[0].buttons) > 0):
                 
-                fig_anim.update_layout(
-                    height=600,
-                    xaxis_tickangle=-45,
-                    coloraxis_showscale=False,
-                    margin=dict(t=70, b=120),
-                    title_x=0.5,
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#0d1b2a'
-                )
+                fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
+                fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
+        except Exception:
+            pass
 
-                # Force x-axis order
-                fig_anim.update_xaxes(categoryorder='array', categoryarray=station_order)
+        st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
+        st.caption(f"Current speed: **{anim_speed}** • Bars always ordered Highest → Lowest")
 
-                # Safe animation speed setting
-                try:
-                    if (hasattr(fig_anim.layout, "updatemenus") and 
-                        fig_anim.layout.updatemenus and 
-                        len(fig_anim.layout.updatemenus) > 0 and
-                        fig_anim.layout.updatemenus[0].buttons and
-                        len(fig_anim.layout.updatemenus[0].buttons) > 0):
-                        
-                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
-                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
-                except Exception:
-                    pass
-
-                st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-                st.caption(f"Current speed: **{anim_speed}** • Bars always ordered Highest → Lowest")
+        # ========== DOWNLOAD BUTTON ==========
+        st.markdown("")
+        col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
+        with col_dl2:
+            html_bytes = fig_anim.to_html(
+                full_html=True, 
+                include_plotlyjs='cdn', 
+                config={'displaylogo': False, 'responsive': True}
+            ).encode('utf-8')
+            
+            st.download_button(
+                label="⬇️ Download Animation (Interactive HTML)",
+                data=html_bytes,
+                file_name=f"Station_Animation_Cases_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
+                mime="text/html",
+                type="primary",
+                use_container_width=True
+            )
 
         # ====================== SUMMARY TABLES ======================
         st.markdown("---")
