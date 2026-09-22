@@ -35,64 +35,98 @@ st.markdown("""
     font-family: 'Rajdhani', sans-serif;
 }
 
+.title-hero {
+    text-align: center;
+    margin: 0.4rem auto 0.6rem auto;
+    padding: 1.1rem 1.5rem 1.2rem 1.5rem;
+    max-width: 820px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.72), rgba(225,245,254,0.55));
+    border: 1.5px solid rgba(2, 136, 209, 0.35);
+    border-radius: 22px;
+    box-shadow: 0 10px 32px rgba(2, 119, 189, 0.14), inset 0 1px 0 rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+}
+
+.title-badge {
+    display: inline-block;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #ffffff;
+    background: linear-gradient(90deg, #0277bd, #0288d1);
+    padding: 4px 16px;
+    border-radius: 20px;
+    margin-bottom: 0.55rem;
+    box-shadow: 0 3px 10px rgba(2, 136, 209, 0.35);
+    text-transform: uppercase;
+}
+
 .dashboard-title {
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 3.4rem !important;
+    font-size: 3.5rem !important;
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #01579b 0%, #0288d1 35%, #00bcd4 65%, #0277bd 100%);
-    background-size: 200% auto;
+    background: linear-gradient(90deg, #01579b 0%, #0288d1 30%, #00bcd4 55%, #0277bd 80%, #01579b 100%);
+    background-size: 300% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    letter-spacing: 8px;
-    margin-bottom: 0.2rem;
-    animation: titleShine 5s ease-in-out infinite alternate;
-    filter: drop-shadow(0 4px 12px rgba(2, 136, 209, 0.25));
+    letter-spacing: 10px;
+    margin: 0.1rem 0 0.35rem 0 !important;
+    animation: titleShine 4s linear infinite;
+    filter: drop-shadow(0 3px 10px rgba(2, 136, 209, 0.3));
+    line-height: 1.15 !important;
 }
 
 @keyframes titleShine {
     0%   { background-position: 0% center; }
-    100% { background-position: 100% center; }
+    100% { background-position: 300% center; }
 }
 
 .title-acronym {
     display: block;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 500;
-    letter-spacing: 1.6px;
-    color: #455a64;
+    letter-spacing: 1.4px;
+    color: #546e7a;
     text-align: center;
-    margin: 0.35rem auto 0.5rem auto;
-    line-height: 1.65;
-    max-width: 720px;
+    margin: 0.2rem auto 0.45rem auto;
+    line-height: 1.7;
+    max-width: 680px;
 }
 
 .title-acronym b {
     color: #01579b;
     font-weight: 800;
-    font-size: 1.08em;
-    letter-spacing: 0.5px;
+    font-size: 1.12em;
+    background: linear-gradient(180deg, #e1f5fe, #b3e5fc);
+    padding: 1px 4px;
+    border-radius: 4px;
+    border-bottom: 2px solid #0288d1;
 }
 
 .title-divider {
-    width: 140px;
-    height: 3.5px;
-    margin: 8px auto 14px auto;
+    width: 160px;
+    height: 4px;
+    margin: 6px auto 0 auto;
     background: linear-gradient(90deg, transparent, #0288d1, #00acc1, #0288d1, transparent);
     border-radius: 4px;
-    box-shadow: 0 0 10px rgba(2, 136, 209, 0.4);
+    box-shadow: 0 0 14px rgba(2, 136, 209, 0.55);
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 2.2px;
-    margin-top: 0.4rem;
-    margin-bottom: 0.1rem;
+    letter-spacing: 2.5px;
+    margin-top: 0.5rem;
+    margin-bottom: 0.15rem;
+    padding: 6px 18px;
+    display: inline-block;
+    width: 100%;
 }
 
 .train-emoji-container {
@@ -733,12 +767,15 @@ else:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown("""
-    <h1 class="dashboard-title">DRISHTI RAIL</h1>
-    <span class="title-acronym">
-        <b>D</b>ata <b>L</b>ogger <b>R</b>eview, <b>I</b>dentification &amp; <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings<br>
-        <b>R</b>ailway <b>A</b>nalysis &amp; <b>I</b>nterpretation of <b>L</b>ogger <b>E</b>xceptions
-    </span>
-    <div class="title-divider"></div>
+    <div class="title-hero">
+        <div class="title-badge">✦ Safety Branch Intelligence</div>
+        <h1 class="dashboard-title">DRISHTI RAIL</h1>
+        <span class="title-acronym">
+            <b>D</b>ata <b>L</b>ogger <b>R</b>eview, <b>I</b>dentification &amp; <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings<br>
+            <b>R</b>ailway <b>A</b>nalysis &amp; <b>I</b>nterpretation of <b>L</b>ogger <b>E</b>xceptions
+        </span>
+        <div class="title-divider"></div>
+    </div>
     """, unsafe_allow_html=True)
 
     # 4 Moving Trains
@@ -750,7 +787,6 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    
     st.markdown(
         '<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
         unsafe_allow_html=True
