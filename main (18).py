@@ -758,14 +758,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<p class="subtitle">Data Logger Review, Identification &amp; Significant Technical Happenings</p>',
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        '<p class="subtitle-secondary">Railway Analysis &amp; Interpretation of Logger Exceptions</p>',
-        unsafe_allow_html=True
-    )
+    
     st.markdown(
         '<p style="text-align:center; font-family:\'Rajdhani\',sans-serif; font-size:0.95rem; color:#01579b; font-weight:600; letter-spacing:1.8px; margin-top:0.3rem;">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
         unsafe_allow_html=True
