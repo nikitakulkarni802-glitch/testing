@@ -873,9 +873,9 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-       # ====================== ANIMATED TIME SERIES (Highest → Lowest) ======================
+       # ====================== ANIMATED TIME SERIES (Highest → Lowest every month) ======================
 st.markdown("---")
-st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest)</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
 
 if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
     st.warning("Not enough data for animation.")
@@ -892,12 +892,13 @@ else:
     frame_duration = speed_map[anim_speed]
     transition_duration = int(frame_duration * 0.55)
 
+    # Calculate monthly cases
     monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
     monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
     monthly = monthly.sort_values('DATE')
 
-    # Force Highest → Lowest order
-    station_order = (
+    # Keep only Top N stations based on overall cases (to avoid too many stations)
+    top_stations = (
         monthly.groupby('STATION')['Value']
         .sum()
         .sort_values(ascending=False)
@@ -905,10 +906,10 @@ else:
         .index
         .tolist()
     )
+    monthly = monthly[monthly['STATION'].isin(top_stations)]
 
-    monthly = monthly[monthly['STATION'].isin(station_order)]
-    monthly['STATION'] = pd.Categorical(monthly['STATION'], categories=station_order, ordered=True)
-    monthly = monthly.sort_values(['DATE', 'STATION'])
+    # ========== IMPORTANT: Sort by Value (Highest → Lowest) for every month ==========
+    monthly = monthly.sort_values(['DATE', 'Value'], ascending=[True, False])
 
     if monthly.empty:
         st.info("No data available for animation.")
@@ -923,9 +924,8 @@ else:
             range_y=[0, monthly['Value'].max() * 1.18],
             color_continuous_scale='RdYlGn_r',
             labels={'Value': 'Cases', 'STATION': 'Station'},
-            title="Monthly Cases by Station — Highest → Lowest",
-            text='Value',
-            category_orders={"STATION": station_order}
+            title="Monthly Cases by Station — Highest → Lowest (changes every month)",
+            text='Value'
         )
 
         fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
@@ -938,11 +938,10 @@ else:
             title_x=0.5,
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#0d1b2a'
+            font_color='#0d1b2a',
+            # This helps keep the order looking better
+            xaxis={'categoryorder': 'total descending'}
         )
-
-        # Force x-axis order
-        fig_anim.update_xaxes(categoryorder='array', categoryarray=station_order)
 
         # Safe animation speed setting
         try:
@@ -958,9 +957,9 @@ else:
             pass
 
         st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-        st.caption(f"Current speed: **{anim_speed}** • Bars always ordered Highest → Lowest")
+        st.caption(f"Current speed: **{anim_speed}** • Bars re-ordered Highest → Lowest every month")
 
-        # ========== DOWNLOAD BUTTON ==========
+        # Download button
         st.markdown("")
         col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
         with col_dl2:
@@ -978,6 +977,8 @@ else:
                 type="primary",
                 use_container_width=True
             )
+
+        
 
         # ====================== SUMMARY TABLES ======================
         st.markdown("---")
