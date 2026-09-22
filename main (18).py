@@ -35,47 +35,81 @@ st.markdown("""
     font-family: 'Rajdhani', sans-serif;
 }
 
-/* ===== DRISHTI RAIL TITLE — UI/UX ===== */
-.drishti-header {
+/* ===== DRISHTI RAIL — Magazine-style header ===== */
+.drishti-banner {
+    position: relative;
     text-align: center;
-    margin: 0.2rem auto 0.8rem auto;
-    max-width: 900px;
-    padding: 0 12px;
+    margin: 0.15rem auto 0.7rem auto;
+    max-width: 920px;
+    padding: 1.35rem 1.6rem 1.45rem 1.6rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(165deg,
+            #0a2744 0%,
+            #0d3b66 28%,
+            #0e4d7a 55%,
+            #0a3558 100%);
+    box-shadow:
+        0 14px 40px rgba(8, 40, 80, 0.35),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+/* soft light streak like magazine sky */
+.drishti-banner::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    left: -20%;
+    width: 70%;
+    height: 90%;
+    background: radial-gradient(ellipse at center, rgba(79, 195, 247, 0.18) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+.drishti-banner::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #f9a825 20%, #ffca28 50%, #f9a825 80%, transparent);
+    opacity: 0.9;
 }
 
 .drishti-name {
+    position: relative;
+    z-index: 1;
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 3.6rem !important;
+    font-size: 3.45rem !important;
     font-weight: 900 !important;
-    letter-spacing: 12px !important;
-    line-height: 1.05 !important;
-    margin: 0 0 0.55rem 0 !important;
-    background: linear-gradient(100deg, #0d47a1 0%, #0277bd 40%, #00acc1 70%, #01579b 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: drishtiFlow 6s ease-in-out infinite alternate;
-    filter: drop-shadow(0 2px 8px rgba(1, 87, 155, 0.22));
-}
-
-@keyframes drishtiFlow {
-    0%   { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
+    letter-spacing: 11px !important;
+    line-height: 1.08 !important;
+    margin: 0 0 0.5rem 0 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background: none !important;
+    text-shadow:
+        0 2px 0 rgba(0,0,0,0.25),
+        0 8px 24px rgba(0, 40, 80, 0.45);
 }
 
 .drishti-expand {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px 4px;
-    max-width: 780px;
-    margin: 0 auto 0.65rem auto;
+    gap: 5px 3px;
+    max-width: 820px;
+    margin: 0 auto 0.55rem auto;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.86rem;
     font-weight: 600;
-    letter-spacing: 0.4px;
-    color: #546e7a;
-    line-height: 1.9;
+    letter-spacing: 0.6px;
+    color: rgba(227, 242, 253, 0.92);
+    line-height: 1.85;
 }
 
 .drishti-expand .word {
@@ -84,27 +118,29 @@ st.markdown("""
 
 .drishti-expand .key {
     display: inline-block;
-    color: #01579b;
+    color: #ffca28;
     font-weight: 800;
-    font-size: 0.95em;
-    border-bottom: 2.5px solid #0288d1;
+    font-size: 1.05em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    border-bottom: 2px solid rgba(255, 202, 40, 0.75);
     padding: 0 1px 1px 1px;
     margin-right: 1px;
 }
 
 .drishti-track {
     position: relative;
-    width: 220px;
-    height: 6px;
-    margin: 0.15rem auto 0.1rem auto;
+    z-index: 1;
+    width: 180px;
+    height: 8px;
+    margin: 0.35rem auto 0 auto;
 }
 
 .drishti-track::before {
     content: "";
     position: absolute;
-    left: 0; right: 0; top: 2px;
+    left: 0; right: 0; top: 3px;
     height: 2px;
-    background: linear-gradient(90deg, transparent 0%, #81d4fa 15%, #0288d1 50%, #81d4fa 85%, transparent 100%);
+    background: linear-gradient(90deg, transparent, rgba(255,202,40,0.35), #ffca28, rgba(255,202,40,0.35), transparent);
     border-radius: 2px;
 }
 
@@ -112,37 +148,33 @@ st.markdown("""
     content: "";
     position: absolute;
     left: 50%;
-    top: -3px;
-    width: 12px;
-    height: 12px;
-    margin-left: -6px;
+    top: -2px;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #4fc3f7, #0277bd);
-    box-shadow: 0 0 10px rgba(2, 136, 209, 0.55);
-    animation: signalPulse 2.2s ease-in-out infinite;
+    background: radial-gradient(circle at 30% 30%, #fff59d, #f9a825 55%, #ef6c00);
+    box-shadow: 0 0 12px rgba(249, 168, 37, 0.7);
+    animation: signalPulse 2.4s ease-in-out infinite;
 }
 
 @keyframes signalPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50%      { transform: scale(1.18); opacity: 0.85; }
+    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px rgba(249,168,37,0.55); }
+    50%      { transform: scale(1.2); opacity: 0.9; box-shadow: 0 0 18px rgba(249,168,37,0.85); }
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.02rem;
+    font-size: 1.05rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 2.8px;
-    margin: 0.55rem 0 0.1rem 0;
-    opacity: 0.95;
+    letter-spacing: 2.6px;
+    margin: 0.5rem 0 0.1rem 0;
 }
 
-.dashboard-title { display: none; }
-.title-acronym { display: none; }
-.title-divider { display: none; }
-.title-hero { display: none; }
-.title-badge { display: none; }
+/* hide old classes if any leftover */
+.dashboard-title, .title-acronym, .title-divider, .title-hero, .title-badge { display: none !important; }
 
 .train-emoji-container {
     text-align: center;
@@ -782,7 +814,7 @@ else:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown("""
-    <div class="drishti-header">
+    <div class="drishti-banner">
         <h1 class="drishti-name">DRISHTI RAIL</h1>
         <div class="drishti-expand">
             <span class="word"><span class="key">D</span>ata</span>
