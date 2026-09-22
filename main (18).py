@@ -18,7 +18,7 @@ except Exception:
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
-    page_title="Data-Logger | SUR Division",
+    page_title="DRISHTI RAIL | SUR Division",
     page_icon="🚄",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -37,24 +37,70 @@ st.markdown("""
 
 .dashboard-title {
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 2.9rem !important;
+    font-size: 3.2rem !important;
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #0277bd, #0288d1, #01579b);
+    background: linear-gradient(90deg, #01579b 0%, #0288d1 40%, #00acc1 70%, #0277bd 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    letter-spacing: 3px;
-    margin-bottom: 0.1rem;
+    letter-spacing: 6px;
+    margin-bottom: 0.15rem;
+    animation: titleShine 4s ease-in-out infinite alternate;
+    text-shadow: 0 0 30px rgba(2, 136, 209, 0.25);
+}
+
+@keyframes titleShine {
+    0%   { background-position: 0% center; }
+    100% { background-position: 100% center; }
+}
+
+.title-acronym {
+    display: block;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: 1.8px;
+    color: #37474f;
+    text-align: center;
+    margin: 0.25rem 0 0.4rem 0;
+    line-height: 1.55;
+}
+
+.title-acronym b {
+    color: #01579b;
+    font-weight: 800;
+    font-size: 1.05em;
 }
 
 .subtitle {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.35rem;
+    font-size: 1.28rem;
     color: #01579b;
     text-align: center;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-top: 0.2rem;
+    margin-bottom: 0.15rem;
+}
+
+.subtitle-secondary {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.0rem;
+    color: #0277bd;
+    text-align: center;
     font-weight: 600;
-    letter-spacing: 2px;
-    margin-top: -0.3rem;
+    letter-spacing: 1.2px;
+    margin-top: 0;
+    opacity: 0.92;
+}
+
+.title-divider {
+    width: 180px;
+    height: 3px;
+    margin: 10px auto 6px auto;
+    background: linear-gradient(90deg, transparent, #0288d1, #00acc1, #0288d1, transparent);
+    border-radius: 2px;
 }
 
 .train-emoji-container {
@@ -694,7 +740,14 @@ else:
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
-    st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
+    st.markdown("""
+    <h1 class="dashboard-title">DRISHTI RAIL</h1>
+    <span class="title-acronym">
+        <b>D</b>ata <b>L</b>ogger <b>R</b>eview, <b>I</b>dentification &amp; <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings<br>
+        <b>R</b>ailway <b>A</b>nalysis &amp; <b>I</b>nterpretation of <b>L</b>ogger <b>E</b>xceptions
+    </span>
+    <div class="title-divider"></div>
+    """, unsafe_allow_html=True)
 
     # 4 Moving Trains
     st.markdown("""
@@ -705,7 +758,18 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<p class="subtitle">Central Railway • Solapur Division • Safety Branch</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="subtitle">Data Logger Review, Identification &amp; Significant Technical Happenings</p>',
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        '<p class="subtitle-secondary">Railway Analysis &amp; Interpretation of Logger Exceptions</p>',
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        '<p style="text-align:center; font-family:\'Rajdhani\',sans-serif; font-size:0.95rem; color:#01579b; font-weight:600; letter-spacing:1.8px; margin-top:0.3rem;">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
+        unsafe_allow_html=True
+    )
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
@@ -873,112 +937,103 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-       # ====================== ANIMATED TIME SERIES (Highest → Lowest every month) ======================
-st.markdown("---")
-st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
+        # ====================== ANIMATED TIME SERIES ======================
+        st.markdown("---")
+        st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
 
-if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
-    st.warning("Not enough data for animation.")
-else:
-    anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
+        if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
+            st.warning("Not enough data for animation.")
+        else:
+            anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
 
-    col_anim1, col_anim2 = st.columns([2, 2])
-    with col_anim1:
-        top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
-    with col_anim2:
-        anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
+            col_anim1, col_anim2 = st.columns([2, 2])
+            with col_anim1:
+                top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
+            with col_anim2:
+                anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
 
-    speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
-    frame_duration = speed_map[anim_speed]
-    transition_duration = int(frame_duration * 0.55)
+            speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
+            frame_duration = speed_map[anim_speed]
+            transition_duration = int(frame_duration * 0.55)
 
-    # Calculate monthly cases
-    monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
-    monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
-    monthly = monthly.sort_values('DATE')
+            monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
+            monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
+            monthly = monthly.sort_values('DATE')
 
-    # Keep only Top N stations based on overall cases (to avoid too many stations)
-    top_stations = (
-        monthly.groupby('STATION')['Value']
-        .sum()
-        .sort_values(ascending=False)
-        .head(top_n_anim)
-        .index
-        .tolist()
-    )
-    monthly = monthly[monthly['STATION'].isin(top_stations)]
-
-    # ========== IMPORTANT: Sort by Value (Highest → Lowest) for every month ==========
-    monthly = monthly.sort_values(['DATE', 'Value'], ascending=[True, False])
-
-    if monthly.empty:
-        st.info("No data available for animation.")
-    else:
-        fig_anim = px.bar(
-            monthly,
-            x='STATION',
-            y='Value',
-            color='Value',
-            animation_frame='Month',
-            animation_group='STATION',
-            range_y=[0, monthly['Value'].max() * 1.18],
-            color_continuous_scale='RdYlGn_r',
-            labels={'Value': 'Cases', 'STATION': 'Station'},
-            title="Monthly Cases by Station — Highest → Lowest (changes every month)",
-            text='Value'
-        )
-
-        fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
-        
-        fig_anim.update_layout(
-            height=600,
-            xaxis_tickangle=-45,
-            coloraxis_showscale=False,
-            margin=dict(t=70, b=120),
-            title_x=0.5,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#0d1b2a',
-            # This helps keep the order looking better
-            xaxis={'categoryorder': 'total descending'}
-        )
-
-        # Safe animation speed setting
-        try:
-            if (hasattr(fig_anim.layout, "updatemenus") and 
-                fig_anim.layout.updatemenus and 
-                len(fig_anim.layout.updatemenus) > 0 and
-                fig_anim.layout.updatemenus[0].buttons and
-                len(fig_anim.layout.updatemenus[0].buttons) > 0):
-                
-                fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
-                fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
-        except Exception:
-            pass
-
-        st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-        st.caption(f"Current speed: **{anim_speed}** • Bars re-ordered Highest → Lowest every month")
-
-        # Download button
-        st.markdown("")
-        col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
-        with col_dl2:
-            html_bytes = fig_anim.to_html(
-                full_html=True, 
-                include_plotlyjs='cdn', 
-                config={'displaylogo': False, 'responsive': True}
-            ).encode('utf-8')
-            
-            st.download_button(
-                label="⬇️ Download Animation (Interactive HTML)",
-                data=html_bytes,
-                file_name=f"Station_Animation_Cases_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
-                mime="text/html",
-                type="primary",
-                use_container_width=True
+            top_stations = (
+                monthly.groupby('STATION')['Value']
+                .sum()
+                .sort_values(ascending=False)
+                .head(top_n_anim)
+                .index
+                .tolist()
             )
+            monthly = monthly[monthly['STATION'].isin(top_stations)]
+            monthly = monthly.sort_values(['DATE', 'Value'], ascending=[True, False])
 
-        
+            if monthly.empty:
+                st.info("No data available for animation.")
+            else:
+                fig_anim = px.bar(
+                    monthly,
+                    x='STATION',
+                    y='Value',
+                    color='Value',
+                    animation_frame='Month',
+                    animation_group='STATION',
+                    range_y=[0, monthly['Value'].max() * 1.18],
+                    color_continuous_scale='RdYlGn_r',
+                    labels={'Value': 'Cases', 'STATION': 'Station'},
+                    title="Monthly Cases by Station — Highest → Lowest (changes every month)",
+                    text='Value'
+                )
+
+                fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
+                
+                fig_anim.update_layout(
+                    height=600,
+                    xaxis_tickangle=-45,
+                    coloraxis_showscale=False,
+                    margin=dict(t=70, b=120),
+                    title_x=0.5,
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#0d1b2a',
+                    xaxis={'categoryorder': 'total descending'}
+                )
+
+                try:
+                    if (hasattr(fig_anim.layout, "updatemenus") and 
+                        fig_anim.layout.updatemenus and 
+                        len(fig_anim.layout.updatemenus) > 0 and
+                        fig_anim.layout.updatemenus[0].buttons and
+                        len(fig_anim.layout.updatemenus[0].buttons) > 0):
+                        
+                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
+                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
+                except Exception:
+                    pass
+
+                st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
+                st.caption(f"Current speed: **{anim_speed}** • Bars re-ordered Highest → Lowest every month")
+
+                st.markdown("")
+                col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
+                with col_dl2:
+                    html_bytes = fig_anim.to_html(
+                        full_html=True, 
+                        include_plotlyjs='cdn', 
+                        config={'displaylogo': False, 'responsive': True}
+                    ).encode('utf-8')
+                    
+                    st.download_button(
+                        label="⬇️ Download Animation (Interactive HTML)",
+                        data=html_bytes,
+                        file_name=f"Station_Animation_Cases_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
+                        mime="text/html",
+                        type="primary",
+                        use_container_width=True
+                    )
 
         # ====================== SUMMARY TABLES ======================
         st.markdown("---")
