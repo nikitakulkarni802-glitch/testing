@@ -37,17 +37,17 @@ st.markdown("""
 
 .dashboard-title {
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 3.2rem !important;
+    font-size: 3.4rem !important;
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #01579b 0%, #0288d1 40%, #00acc1 70%, #0277bd 100%);
+    background: linear-gradient(90deg, #01579b 0%, #0288d1 35%, #00bcd4 65%, #0277bd 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    letter-spacing: 6px;
-    margin-bottom: 0.15rem;
-    animation: titleShine 4s ease-in-out infinite alternate;
-    text-shadow: 0 0 30px rgba(2, 136, 209, 0.25);
+    letter-spacing: 8px;
+    margin-bottom: 0.2rem;
+    animation: titleShine 5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 4px 12px rgba(2, 136, 209, 0.25));
 }
 
 @keyframes titleShine {
@@ -58,49 +58,41 @@ st.markdown("""
 .title-acronym {
     display: block;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 500;
-    letter-spacing: 1.8px;
-    color: #37474f;
+    letter-spacing: 1.6px;
+    color: #455a64;
     text-align: center;
-    margin: 0.25rem 0 0.4rem 0;
-    line-height: 1.55;
+    margin: 0.35rem auto 0.5rem auto;
+    line-height: 1.65;
+    max-width: 720px;
 }
 
 .title-acronym b {
     color: #01579b;
     font-weight: 800;
-    font-size: 1.05em;
-}
-
-.subtitle {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.28rem;
-    color: #01579b;
-    text-align: center;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    margin-top: 0.2rem;
-    margin-bottom: 0.15rem;
-}
-
-.subtitle-secondary {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.0rem;
-    color: #0277bd;
-    text-align: center;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-    margin-top: 0;
-    opacity: 0.92;
+    font-size: 1.08em;
+    letter-spacing: 0.5px;
 }
 
 .title-divider {
-    width: 180px;
-    height: 3px;
-    margin: 10px auto 6px auto;
+    width: 140px;
+    height: 3.5px;
+    margin: 8px auto 14px auto;
     background: linear-gradient(90deg, transparent, #0288d1, #00acc1, #0288d1, transparent);
-    border-radius: 2px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(2, 136, 209, 0.4);
+}
+
+.brand-line {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.05rem;
+    color: #01579b;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 2.2px;
+    margin-top: 0.4rem;
+    margin-bottom: 0.1rem;
 }
 
 .train-emoji-container {
@@ -760,7 +752,7 @@ else:
 
     
     st.markdown(
-        '<p style="text-align:center; font-family:\'Rajdhani\',sans-serif; font-size:0.95rem; color:#01579b; font-weight:600; letter-spacing:1.8px; margin-top:0.3rem;">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
+        '<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
         unsafe_allow_html=True
     )
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
