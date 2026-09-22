@@ -35,99 +35,114 @@ st.markdown("""
     font-family: 'Rajdhani', sans-serif;
 }
 
-.title-hero {
+/* ===== DRISHTI RAIL TITLE — UI/UX ===== */
+.drishti-header {
     text-align: center;
-    margin: 0.4rem auto 0.6rem auto;
-    padding: 1.1rem 1.5rem 1.2rem 1.5rem;
-    max-width: 820px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.72), rgba(225,245,254,0.55));
-    border: 1.5px solid rgba(2, 136, 209, 0.35);
-    border-radius: 22px;
-    box-shadow: 0 10px 32px rgba(2, 119, 189, 0.14), inset 0 1px 0 rgba(255,255,255,0.8);
-    backdrop-filter: blur(8px);
+    margin: 0.2rem auto 0.8rem auto;
+    max-width: 900px;
+    padding: 0 12px;
 }
 
-.title-badge {
-    display: inline-block;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #ffffff;
-    background: linear-gradient(90deg, #0277bd, #0288d1);
-    padding: 4px 16px;
-    border-radius: 20px;
-    margin-bottom: 0.55rem;
-    box-shadow: 0 3px 10px rgba(2, 136, 209, 0.35);
-    text-transform: uppercase;
-}
-
-.dashboard-title {
+.drishti-name {
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 3.5rem !important;
+    font-size: 3.6rem !important;
     font-weight: 900 !important;
-    background: linear-gradient(90deg, #01579b 0%, #0288d1 30%, #00bcd4 55%, #0277bd 80%, #01579b 100%);
-    background-size: 300% auto;
+    letter-spacing: 12px !important;
+    line-height: 1.05 !important;
+    margin: 0 0 0.55rem 0 !important;
+    background: linear-gradient(100deg, #0d47a1 0%, #0277bd 40%, #00acc1 70%, #01579b 100%);
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-align: center;
-    letter-spacing: 10px;
-    margin: 0.1rem 0 0.35rem 0 !important;
-    animation: titleShine 4s linear infinite;
-    filter: drop-shadow(0 3px 10px rgba(2, 136, 209, 0.3));
-    line-height: 1.15 !important;
+    animation: drishtiFlow 6s ease-in-out infinite alternate;
+    filter: drop-shadow(0 2px 8px rgba(1, 87, 155, 0.22));
 }
 
-@keyframes titleShine {
-    0%   { background-position: 0% center; }
-    100% { background-position: 300% center; }
+@keyframes drishtiFlow {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
 }
 
-.title-acronym {
-    display: block;
+.drishti-expand {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 4px;
+    max-width: 780px;
+    margin: 0 auto 0.65rem auto;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 500;
-    letter-spacing: 1.4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
     color: #546e7a;
-    text-align: center;
-    margin: 0.2rem auto 0.45rem auto;
-    line-height: 1.7;
-    max-width: 680px;
+    line-height: 1.9;
 }
 
-.title-acronym b {
+.drishti-expand .word {
+    white-space: nowrap;
+}
+
+.drishti-expand .key {
+    display: inline-block;
     color: #01579b;
     font-weight: 800;
-    font-size: 1.12em;
-    background: linear-gradient(180deg, #e1f5fe, #b3e5fc);
-    padding: 1px 4px;
-    border-radius: 4px;
-    border-bottom: 2px solid #0288d1;
+    font-size: 0.95em;
+    border-bottom: 2.5px solid #0288d1;
+    padding: 0 1px 1px 1px;
+    margin-right: 1px;
 }
 
-.title-divider {
-    width: 160px;
-    height: 4px;
-    margin: 6px auto 0 auto;
-    background: linear-gradient(90deg, transparent, #0288d1, #00acc1, #0288d1, transparent);
-    border-radius: 4px;
-    box-shadow: 0 0 14px rgba(2, 136, 209, 0.55);
+.drishti-track {
+    position: relative;
+    width: 220px;
+    height: 6px;
+    margin: 0.15rem auto 0.1rem auto;
+}
+
+.drishti-track::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 2px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #81d4fa 15%, #0288d1 50%, #81d4fa 85%, transparent 100%);
+    border-radius: 2px;
+}
+
+.drishti-track::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #4fc3f7, #0277bd);
+    box-shadow: 0 0 10px rgba(2, 136, 209, 0.55);
+    animation: signalPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes signalPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.18); opacity: 0.85; }
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.08rem;
+    font-size: 1.02rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 2.5px;
-    margin-top: 0.5rem;
-    margin-bottom: 0.15rem;
-    padding: 6px 18px;
-    display: inline-block;
-    width: 100%;
+    letter-spacing: 2.8px;
+    margin: 0.55rem 0 0.1rem 0;
+    opacity: 0.95;
 }
+
+.dashboard-title { display: none; }
+.title-acronym { display: none; }
+.title-divider { display: none; }
+.title-hero { display: none; }
+.title-badge { display: none; }
 
 .train-emoji-container {
     text-align: center;
@@ -767,18 +782,31 @@ else:
         st.image(IR_LOGO_URL, width=220)
 
     st.markdown("""
-    <div class="title-hero">
-        <div class="title-badge">✦ Safety Branch Intelligence</div>
-        <h1 class="dashboard-title">DRISHTI RAIL</h1>
-        <span class="title-acronym">
-            <b>D</b>ata <b>L</b>ogger <b>R</b>eview, <b>I</b>dentification &amp; <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings<br>
-            <b>R</b>ailway <b>A</b>nalysis &amp; <b>I</b>nterpretation of <b>L</b>ogger <b>E</b>xceptions
-        </span>
-        <div class="title-divider"></div>
+    <div class="drishti-header">
+        <h1 class="drishti-name">DRISHTI RAIL</h1>
+        <div class="drishti-expand">
+            <span class="word"><span class="key">D</span>ata</span>
+            <span class="word"><span class="key">L</span>ogger</span>
+            <span class="word"><span class="key">R</span>eview,</span>
+            <span class="word"><span class="key">I</span>dentification</span>
+            <span class="word">&amp;</span>
+            <span class="word"><span class="key">S</span>ignificant</span>
+            <span class="word"><span class="key">T</span>echnical</span>
+            <span class="word"><span class="key">H</span>appenings</span>
+            <span class="word">—</span>
+            <span class="word"><span class="key">R</span>ailway</span>
+            <span class="word"><span class="key">A</span>nalysis</span>
+            <span class="word">&amp;</span>
+            <span class="word"><span class="key">I</span>nterpretation</span>
+            <span class="word">of</span>
+            <span class="word"><span class="key">L</span>ogger</span>
+            <span class="word"><span class="key">E</span>xceptions</span>
+        </div>
+        <div class="drishti-track"></div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 4 Moving Trains
+    # Moving trains
     st.markdown("""
     <div class="train-emoji-container">
         <div class="train-track">
