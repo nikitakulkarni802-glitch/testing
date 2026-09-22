@@ -832,7 +832,11 @@ else:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION').size().reset_index(name='Cases').sort_values('Cases', ascending=False)
-                st.dataframe(summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'), use_container_width=True)
+                st.dataframe(
+                    summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'),
+                    use_container_width=True,
+                    hide_index=True
+                )
 
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
@@ -869,7 +873,7 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-        # ====================== ANIMATED TIME SERIES ======================
+        # ====================== ANIMATED TIME SERIES (Highest → Lowest) ======================
         st.markdown("---")
         st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest)</p>', unsafe_allow_html=True)
 
@@ -889,11 +893,10 @@ else:
             transition_duration = int(frame_duration * 0.55)
 
             monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
-            y_label = "Cases"
-
             monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
             monthly = monthly.sort_values('DATE')
 
+            # Force Highest → Lowest order
             station_order = (
                 monthly.groupby('STATION')['Value']
                 .sum()
@@ -902,6 +905,7 @@ else:
                 .index
                 .tolist()
             )
+
             monthly = monthly[monthly['STATION'].isin(station_order)]
             monthly['STATION'] = pd.Categorical(monthly['STATION'], categories=station_order, ordered=True)
             monthly = monthly.sort_values(['DATE', 'STATION'])
@@ -918,23 +922,27 @@ else:
                     animation_group='STATION',
                     range_y=[0, monthly['Value'].max() * 1.18],
                     color_continuous_scale='RdYlGn_r',
-                    labels={'Value': y_label, 'STATION': 'Station'},
-                    title=f"Monthly {y_label} by Station — Highest → Lowest",
-                    text='Value'
+                    labels={'Value': 'Cases', 'STATION': 'Station'},
+                    title="Monthly Cases by Station — Highest → Lowest",
+                    text='Value',
+                    category_orders={"STATION": station_order}
                 )
 
                 fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
+                
                 fig_anim.update_layout(
                     height=600,
                     xaxis_tickangle=-45,
                     coloraxis_showscale=False,
                     margin=dict(t=70, b=120),
                     title_x=0.5,
-                    xaxis={'categoryorder': 'array', 'categoryarray': station_order},
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     font_color='#0d1b2a'
                 )
+
+                # Force x-axis order
+                fig_anim.update_xaxes(categoryorder='array', categoryarray=station_order)
 
                 # Safe animation speed setting
                 try:
@@ -950,7 +958,7 @@ else:
                     pass
 
                 st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-                st.caption(f"Current speed: **{anim_speed}** • Bars fixed Highest → Lowest")
+                st.caption(f"Current speed: **{anim_speed}** • Bars always ordered Highest → Lowest")
 
         # ====================== SUMMARY TABLES ======================
         st.markdown("---")
@@ -1174,7 +1182,11 @@ else:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION').size().reset_index(name='Cases').sort_values('Cases', ascending=False)
-                st.dataframe(summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'), use_container_width=True)
+                st.dataframe(
+                    summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'),
+                    use_container_width=True,
+                    hide_index=True
+                )
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
             if not jur_sum.empty:
