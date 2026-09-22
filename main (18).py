@@ -24,7 +24,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS - LIGHT SKY BLUE THEME + WATERMARK + MOVING TRAIN EMOJI ======================
+# ====================== CUSTOM CSS - LIGHT SKY BLUE + WATERMARK + 4 MOVING TRAINS ======================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
@@ -59,23 +59,27 @@ st.markdown("""
     margin-top: -0.3rem;
 }
 
-/* ========== MOVING TRAIN EMOJI BELOW TITLE ========== */
+/* ========== 4 MOVING TRAINS BELOW TITLE ========== */
 .train-emoji-container {
     text-align: center;
-    margin: 8px 0 18px 0;
+    margin: 6px 0 16px 0;
     overflow: hidden;
-    height: 42px;
+    height: 48px;
+    position: relative;
+    width: 100%;
 }
 
-.train-emoji {
+.train-track {
     display: inline-block;
-    font-size: 2.2rem;
-    animation: moveTrain 8s linear infinite;
+    white-space: nowrap;
+    animation: moveTrainLine 12s linear infinite;
+    font-size: 2.1rem;
+    letter-spacing: 18px;
 }
 
-@keyframes moveTrain {
-    0%   { transform: translateX(-60vw); }
-    100% { transform: translateX(60vw); }
+@keyframes moveTrainLine {
+    0%   { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
 }
 
 /* ========== SECTION HEADERS ========== */
@@ -177,7 +181,7 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     border: 1px solid #81d4fa;
 }
 
-/* ========== WATERMARK (Central Railway / Madhya Rail Logo) ========== */
+/* ========== WATERMARK ========== */
 .watermark {
     position: fixed;
     top: 50%;
@@ -211,7 +215,6 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     background: #01579b;
 }
 
-/* ========== CAPTION ========== */
 .stCaption, .stMarkdown p {
     color: #37474f !important;
 }
@@ -705,7 +708,7 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # ========== WATERMARK (Central Railway / Madhya Rail Logo) ==========
+    # ========== WATERMARK ==========
     st.markdown(f"""
     <div class="watermark">
         <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
@@ -718,10 +721,12 @@ else:
 
     st.markdown('<h1 class="dashboard-title">DATA LOGGER EXCEPTIONAL REPORT</h1>', unsafe_allow_html=True)
 
-    # ========== MOVING TRAIN EMOJI DIRECTLY BELOW TITLE ==========
+    # ========== 4 MOVING TRAINS ==========
     st.markdown("""
     <div class="train-emoji-container">
-        <span class="train-emoji">🚄</span>
+        <div class="train-track">
+            🚄 🚄 🚄 🚄
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -849,14 +854,14 @@ else:
             st.markdown('<p class="section-header">Top 15 Stations by FCOUNT</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 top15 = filtered_df.groupby('STATION')['FCOUNT'].sum().nlargest(15).reset_index()
-                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='Blues')
+                fig = px.bar(top15, x='STATION', y='FCOUNT', text='FCOUNT', color='FCOUNT', color_continuous_scale='RdYlGn_r')
                 fig.update_layout(height=480, xaxis_tickangle=45, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig, use_container_width=True)
         with col_g2:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='Blues'), use_container_width=True)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
 
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
@@ -876,7 +881,7 @@ else:
             st.markdown("**Error Main Category**")
             if not error_sum.empty:
                 err_plot = error_sum.head(12).sort_values('Cases', ascending=True)
-                fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h', text='Cases', color='Cases', color_continuous_scale='Teal')
+                fig_err = px.bar(err_plot, x='Cases', y='ERROR MAIN CATEGORY', orientation='h', text='Cases', color='Cases', color_continuous_scale='Oranges')
                 fig_err.update_traces(textposition='outside', cliponaxis=False)
                 fig_err.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig_err, use_container_width=True)
@@ -886,7 +891,7 @@ else:
             st.markdown("**Jurisdiction-wise**")
             if not jur_sum.empty:
                 jur_plot = jur_sum.head(12).sort_values('Cases', ascending=True)
-                fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h', text='Cases', color='Cases', color_continuous_scale='Blues')
+                fig_jur = px.bar(jur_plot, x='Cases', y='JURISDICTION', orientation='h', text='Cases', color='Cases', color_continuous_scale='Teal')
                 fig_jur.update_traces(textposition='outside', cliponaxis=False)
                 fig_jur.update_layout(height=400, showlegend=False, coloraxis_showscale=False, xaxis_title="Cases", yaxis_title="", margin=dict(t=30, b=30, l=20, r=50), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                 st.plotly_chart(fig_jur, use_container_width=True)
@@ -947,7 +952,7 @@ else:
                     animation_frame='Month',
                     animation_group='STATION',
                     range_y=[0, monthly['Value'].max() * 1.18],
-                    color_continuous_scale='Blues',
+                    color_continuous_scale='RdYlGn_r',
                     labels={'Value': y_label, 'STATION': 'Station'},
                     title=f"Monthly {y_label} by Station — Animated (Highest → Lowest)",
                     text='Value'
@@ -1118,9 +1123,9 @@ else:
                     st.info("Not enough history for a group-wise forecast.")
                 else:
                     num_cols = [c for c in group_table.columns if c not in (gcol, "Model")]
-                    st.dataframe(group_table.style.format({c: "{:,}" for c in num_cols}).background_gradient(subset=["Forecast total"], cmap='Blues'), use_container_width=True, hide_index=True)
+                    st.dataframe(group_table.style.format({c: "{:,}" for c in num_cols}).background_gradient(subset=["Forecast total"], cmap='YlOrRd'), use_container_width=True, hide_index=True)
                     plot_df = group_table.sort_values("Forecast total", ascending=True)
-                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='Blues')
+                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='RdYlGn_r')
                     fig_grp.update_traces(textposition='outside', cliponaxis=False)
                     fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted {metric_label} (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
                     st.plotly_chart(fig_grp, use_container_width=True)
@@ -1209,7 +1214,7 @@ else:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION')['FCOUNT'].agg(Total_FCOUNT='sum', Records='count').sort_values('Total_FCOUNT', ascending=False)
-                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='Blues'), use_container_width=True)
+                st.dataframe(summary.style.format({"Total_FCOUNT": "{:,}", "Records": "{:,}"}).background_gradient(subset=['Total_FCOUNT'], cmap='YlOrRd'), use_container_width=True)
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
             if not jur_sum.empty:
