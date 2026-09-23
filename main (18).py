@@ -35,84 +35,168 @@ st.markdown("""
     font-family: 'Rajdhani', sans-serif;
 }
 
-<!-- ==================== AESTHETIC DRISHTI HEADER ==================== -->
-<div style="
+.brand-line {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    color: #01579b;
     text-align: center;
-    margin: 1.2rem auto 1.8rem auto;
-    max-width: 980px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    margin: 0.6rem 0 0.2rem 0;
+}
+
+.train-emoji-container {
+    text-align: center;
+    margin: 8px 0 14px 0;
+    overflow: hidden;
+    height: 42px;
     position: relative;
-">
+    width: 100%;
+}
 
-    <!-- Soft glow background -->
-    <div style="
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 420px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(2, 119, 189, 0.12) 0%, transparent 70%);
-        z-index: 0;
-        pointer-events: none;
-    "></div>
+.train-track {
+    display: inline-block;
+    white-space: nowrap;
+    animation: moveTrainLine 12s linear infinite;
+    font-size: 1.9rem;
+    letter-spacing: 16px;
+}
 
-    <!-- Main Title -->
-    <div style="
-        position: relative;
-        z-index: 2;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 4.1rem;
-        font-weight: 900;
-        letter-spacing: 16px;
-        background: linear-gradient(90deg, #01579b 0%, #0277bd 40%, #0288d1 70%, #039be5 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.35rem;
-        text-shadow: 0 8px 30px rgba(2, 119, 189, 0.25);
-    ">
-        DRISHTI
-    </div>
+@keyframes moveTrainLine {
+    0%   { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+}
 
-    <!-- Elegant underline -->
-    <div style="
-        width: 160px;
-        height: 3px;
-        margin: 0 auto 1.1rem auto;
-        background: linear-gradient(90deg, transparent, #0288d1, #ffc107, #0288d1, transparent);
-        border-radius: 10px;
-    "></div>
+.section-header {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #0277bd !important;
+    margin: 1.4rem 0 0.6rem 0;
+    border-left: 5px solid #0288d1;
+    padding-left: 12px;
+}
 
-    <!-- Full Form -->
-    <div style="
-        position: relative;
-        z-index: 2;
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 1.12rem;
-        font-weight: 600;
-        color: #37474f;
-        letter-spacing: 0.6px;
-        line-height: 1.7;
-        max-width: 820px;
-        margin: 0 auto;
-    ">
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">D</span>ata 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">L</span>ogger 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">R</span>eport of 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>dentified 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">S</span>ignificant 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">T</span>echnical 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">H</span>appenings &amp; 
-        <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>nsights
-    </div>
+div[data-testid="stMetric"] {
+    background: linear-gradient(145deg, #ffffff, #e1f5fe);
+    border: 1px solid #81d4fa;
+    border-radius: 16px;
+    padding: 18px 12px;
+    box-shadow: 0 6px 18px rgba(2, 119, 189, 0.12);
+    transition: all 0.3s ease;
+}
 
-    <!-- Soft bottom line -->
-    <div style="
-        width: 280px;
-        height: 1.5px;
-        margin: 1.3rem auto 0 auto;
-        background: linear-gradient(90deg, transparent, #81d4fa, transparent);
-    "></div>
-</div>
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-4px);
+    border-color: #0288d1;
+    box-shadow: 0 10px 25px rgba(2, 119, 189, 0.22);
+}
+
+div[data-testid="stMetric"] label {
+    color: #0277bd !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+}
+
+div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    color: #01579b !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.8rem !important;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background: transparent;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: #e1f5fe;
+    border-radius: 12px 12px 0 0;
+    color: #01579b;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: 1px solid #81d4fa;
+    padding: 10px 22px;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(90deg, #0288d1, #0277bd) !important;
+    color: #ffffff !important;
+    border-color: #0277bd !important;
+    box-shadow: 0 0 15px rgba(2, 136, 209, 0.35);
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, #0288d1, #0277bd) !important;
+    color: #ffffff !important;
+    font-family: 'Orbitron', sans-serif !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1.4rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(2, 136, 209, 0.3);
+}
+
+.stButton > button:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 20px rgba(2, 136, 209, 0.45) !important;
+}
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #e0f7fa 0%, #b3e5fc 100%);
+    border-right: 1px solid #81d4fa;
+}
+
+section[data-testid="stSidebar"] .stMarkdown h2 {
+    color: #01579b !important;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.stDataFrame {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #81d4fa;
+}
+
+.watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.07;
+    z-index: 0;
+    pointer-events: none;
+    width: 520px;
+    max-width: 70vw;
+}
+
+.watermark img {
+    width: 100%;
+    height: auto;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #e0f7fa;
+}
+::-webkit-scrollbar-thumb {
+    background: #0288d1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #01579b;
+}
+
+.stCaption, .stMarkdown p {
+    color: #37474f !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ====================== CONFIG ======================
 IR_LOGO_URL = "https://raw.githubusercontent.com/srdsoproject/testing/main/Central%20Railway%20Logo.png"
@@ -598,16 +682,84 @@ else:
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
-    # ===== NEW UNIQUE HEADER =====
+    # ===== AESTHETIC DRISHTI HEADER =====
     st.markdown("""
-    <div class="drishti-header">
-        <div class="drishti-title">DRISHTI</div>
-        <div class="drishti-fullform">
-            <span>D</span>ata <span>L</span>ogger <span>R</span>eport of 
-            <span>I</span>dentified <span>S</span>ignificant 
-            <span>T</span>echnical <span>H</span>appenings
+    <div style="
+        text-align: center;
+        margin: 1.2rem auto 1.8rem auto;
+        max-width: 980px;
+        position: relative;
+    ">
+
+        <!-- Soft glow background -->
+        <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(2, 119, 189, 0.12) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        "></div>
+
+        <!-- Main Title -->
+        <div style="
+            position: relative;
+            z-index: 2;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4.1rem;
+            font-weight: 900;
+            letter-spacing: 16px;
+            background: linear-gradient(90deg, #01579b 0%, #0277bd 40%, #0288d1 70%, #039be5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.35rem;
+            text-shadow: 0 8px 30px rgba(2, 119, 189, 0.25);
+        ">
+            DRISHTI
         </div>
-        <div class="drishti-badge">S&T • SAFETY BRANCH • SOLAPUR DIVISION</div>
+
+        <!-- Elegant underline -->
+        <div style="
+            width: 160px;
+            height: 3px;
+            margin: 0 auto 1.1rem auto;
+            background: linear-gradient(90deg, transparent, #0288d1, #ffc107, #0288d1, transparent);
+            border-radius: 10px;
+        "></div>
+
+        <!-- Full Form -->
+        <div style="
+            position: relative;
+            z-index: 2;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.12rem;
+            font-weight: 600;
+            color: #37474f;
+            letter-spacing: 0.6px;
+            line-height: 1.7;
+            max-width: 820px;
+            margin: 0 auto;
+        ">
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">D</span>ata 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">L</span>ogger 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">R</span>eport of 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>dentified 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">S</span>ignificant 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">T</span>echnical 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">H</span>appenings &amp; 
+            <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>nsights
+        </div>
+
+        <!-- Soft bottom line -->
+        <div style="
+            width: 280px;
+            height: 1.5px;
+            margin: 1.3rem auto 0 auto;
+            background: linear-gradient(90deg, transparent, #81d4fa, transparent);
+        "></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -883,7 +1035,7 @@ else:
                     st.download_button(
                         label="⬇️ Download Animation (Interactive HTML)",
                         data=html_bytes,
-                        file_name=f"Station_Animation_Cases_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
+                        file_name=f"DRISHTI_Animation_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
                         mime="text/html",
                         type="primary",
                         use_container_width=True
