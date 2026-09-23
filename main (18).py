@@ -37,7 +37,7 @@ st.markdown("""
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
