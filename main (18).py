@@ -18,7 +18,7 @@ except Exception:
 
 # ====================== PAGE CONFIG ======================
 st.set_page_config(
-    page_title="DRISHTI RAIL | SUR Division",
+    page_title="DRISHTI | SUR Division",
     page_icon="🚄",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -35,152 +35,88 @@ st.markdown("""
     font-family: 'Rajdhani', sans-serif;
 }
 
-/* ===== DRISHTI RAIL — Magazine-style header ===== */
-.drishti-banner {
+/* ===== UNIQUE DRISHTI HEADER ===== */
+.drishti-header {
     position: relative;
     text-align: center;
-    margin: 0.15rem auto 0.7rem auto;
-    max-width: 920px;
-    padding: 1.35rem 1.6rem 1.45rem 1.6rem;
-    border-radius: 18px;
-    background:
-        linear-gradient(165deg,
-            #0a2744 0%,
-            #0d3b66 28%,
-            #0e4d7a 55%,
-            #0a3558 100%);
-    box-shadow:
-        0 14px 40px rgba(8, 40, 80, 0.35),
-        inset 0 1px 0 rgba(255,255,255,0.12);
+    margin: 0.4rem auto 1rem auto;
+    max-width: 980px;
+    padding: 1.6rem 2rem 1.7rem 2rem;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #0b1c2c 0%, #0e2f4a 40%, #123a5c 100%);
+    box-shadow: 0 12px 35px rgba(8, 35, 70, 0.35);
     overflow: hidden;
+    border: 1px solid rgba(255, 193, 7, 0.25);
 }
 
-/* soft light streak like magazine sky */
-.drishti-banner::before {
+.drishti-header::before {
     content: "";
     position: absolute;
-    top: -40%;
-    left: -20%;
-    width: 70%;
-    height: 90%;
-    background: radial-gradient(ellipse at center, rgba(79, 195, 247, 0.18) 0%, transparent 65%);
-    pointer-events: none;
-}
-
-.drishti-banner::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #f9a825 20%, #ffca28 50%, #f9a825 80%, transparent);
-    opacity: 0.9;
+    height: 4px;
+    background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107);
 }
 
-.drishti-name {
+.drishti-title {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     font-family: 'Orbitron', sans-serif !important;
-    font-size: 3.45rem !important;
+    font-size: 3.6rem !important;
     font-weight: 900 !important;
-    letter-spacing: 11px !important;
-    line-height: 1.08 !important;
-    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: 12px !important;
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    background: none !important;
-    text-shadow:
-        0 2px 0 rgba(0,0,0,0.25),
-        0 8px 24px rgba(0, 40, 80, 0.45);
+    margin: 0 0 0.45rem 0 !important;
+    text-shadow: 0 4px 18px rgba(0,0,0,0.4);
 }
 
-.drishti-expand {
+.drishti-fullform {
     position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px 3px;
-    max-width: 820px;
-    margin: 0 auto 0.55rem auto;
+    z-index: 2;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.86rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    letter-spacing: 0.6px;
-    color: rgba(227, 242, 253, 0.92);
-    line-height: 1.85;
+    color: #bbdefb;
+    letter-spacing: 1.2px;
+    margin-bottom: 0.7rem;
+    line-height: 1.5;
 }
 
-.drishti-expand .word {
-    white-space: nowrap;
+.drishti-fullform span {
+    color: #ffc107;
+    font-weight: 700;
 }
 
-.drishti-expand .key {
+.drishti-badge {
     display: inline-block;
-    color: #ffca28;
-    font-weight: 800;
-    font-size: 1.05em;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-    border-bottom: 2px solid rgba(255, 202, 40, 0.75);
-    padding: 0 1px 1px 1px;
-    margin-right: 1px;
-}
-
-.drishti-track {
-    position: relative;
-    z-index: 1;
-    width: 180px;
-    height: 8px;
-    margin: 0.35rem auto 0 auto;
-}
-
-.drishti-track::before {
-    content: "";
-    position: absolute;
-    left: 0; right: 0; top: 3px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255,202,40,0.35), #ffca28, rgba(255,202,40,0.35), transparent);
-    border-radius: 2px;
-}
-
-.drishti-track::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: -2px;
-    width: 10px;
-    height: 10px;
-    margin-left: -5px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff59d, #f9a825 55%, #ef6c00);
-    box-shadow: 0 0 12px rgba(249, 168, 37, 0.7);
-    animation: signalPulse 2.4s ease-in-out infinite;
-}
-
-@keyframes signalPulse {
-    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px rgba(249,168,37,0.55); }
-    50%      { transform: scale(1.2); opacity: 0.9; box-shadow: 0 0 18px rgba(249,168,37,0.85); }
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.45);
+    color: #ffc107;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 16px;
+    border-radius: 30px;
+    margin-top: 0.3rem;
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 2.6px;
-    margin: 0.5rem 0 0.1rem 0;
+    letter-spacing: 2.5px;
+    margin: 0.6rem 0 0.2rem 0;
 }
-
-/* hide old classes if any leftover */
-.dashboard-title, .title-acronym, .title-divider, .title-hero, .title-badge { display: none !important; }
 
 .train-emoji-container {
     text-align: center;
-    margin: 6px 0 16px 0;
+    margin: 8px 0 14px 0;
     overflow: hidden;
-    height: 48px;
+    height: 42px;
     position: relative;
     width: 100%;
 }
@@ -189,8 +125,8 @@ st.markdown("""
     display: inline-block;
     white-space: nowrap;
     animation: moveTrainLine 12s linear infinite;
-    font-size: 2.1rem;
-    letter-spacing: 18px;
+    font-size: 1.9rem;
+    letter-spacing: 16px;
 }
 
 @keyframes moveTrainLine {
@@ -813,28 +749,16 @@ else:
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
+    # ===== NEW UNIQUE HEADER =====
     st.markdown("""
-    <div class="drishti-banner">
-        <h1 class="drishti-name">DRISHTI RAIL</h1>
-        <div class="drishti-expand">
-            <span class="word"><span class="key">D</span>ata</span>
-            <span class="word"><span class="key">L</span>ogger</span>
-            <span class="word"><span class="key">R</span>eview,</span>
-            <span class="word"><span class="key">I</span>dentification</span>
-            <span class="word">&amp;</span>
-            <span class="word"><span class="key">S</span>ignificant</span>
-            <span class="word"><span class="key">T</span>echnical</span>
-            <span class="word"><span class="key">H</span>appenings</span>
-            <span class="word">—</span>
-            <span class="word"><span class="key">R</span>ailway</span>
-            <span class="word"><span class="key">A</span>nalysis</span>
-            <span class="word">&amp;</span>
-            <span class="word"><span class="key">I</span>nterpretation</span>
-            <span class="word">of</span>
-            <span class="word"><span class="key">L</span>ogger</span>
-            <span class="word"><span class="key">E</span>xceptions</span>
+    <div class="drishti-header">
+        <div class="drishti-title">DRISHTI</div>
+        <div class="drishti-fullform">
+            <span>D</span>ata <span>L</span>ogger <span>R</span>eport of 
+            <span>I</span>dentified <span>S</span>ignificant 
+            <span>T</span>echnical <span>H</span>appenings
         </div>
-        <div class="drishti-track"></div>
+        <div class="drishti-badge">S&T • SAFETY BRANCH • SOLAPUR DIVISION</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1165,7 +1089,7 @@ else:
                 st.download_button(
                     label="⬇️ Download Professional Excel Report",
                     data=output.getvalue(),
-                    file_name=f"Datalogger_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    file_name=f"DRISHTI_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     type="primary",
                     use_container_width=True
@@ -1268,7 +1192,7 @@ else:
                 st.download_button(
                     label="⬇️ Download Forecast Report",
                     data=fout.getvalue(),
-                    file_name=f"Datalogger_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    file_name=f"DRISHTI_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     type="primary",
                     use_container_width=True
@@ -1372,10 +1296,10 @@ else:
                 st.download_button(
                     label="⬇️ Download Map Filtered Report",
                     data=output.getvalue(),
-                    file_name=f"Map_Filtered_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    file_name=f"DRISHTI_Map_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     type="primary",
                     use_container_width=True
                 )
 
-    st.caption("🚄 Safety Branch | Central Railway, Solapur Division")
+    st.caption("🚄 DRISHTI | Safety Branch | Central Railway, Solapur Division")
