@@ -683,108 +683,75 @@ else:
         st.image(IR_LOGO_URL, width=220)
 
     # ===== AESTHETIC DRISHTI HEADER =====
-    st.markdown("""
+st.markdown("""
+<div style="text-align: center; margin: 1.2rem auto 1.8rem auto; max-width: 980px; position: relative;">
+
     <div style="
-        text-align: center;
-        margin: 1.2rem auto 1.8rem auto;
-        max-width: 980px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 420px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(2, 119, 189, 0.12) 0%, transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    "></div>
+
+    <div style="
         position: relative;
+        z-index: 2;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 4.1rem;
+        font-weight: 900;
+        letter-spacing: 16px;
+        background: linear-gradient(90deg, #01579b 0%, #0277bd 40%, #0288d1 70%, #039be5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.35rem;
     ">
-
-        <!-- Soft glow background -->
-        <div style="
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 420px;
-            height: 180px;
-            background: radial-gradient(circle, rgba(2, 119, 189, 0.12) 0%, transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-        "></div>
-
-        <!-- Main Title -->
-        <div style="
-            position: relative;
-            z-index: 2;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 4.1rem;
-            font-weight: 900;
-            letter-spacing: 16px;
-            background: linear-gradient(90deg, #01579b 0%, #0277bd 40%, #0288d1 70%, #039be5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.35rem;
-            text-shadow: 0 8px 30px rgba(2, 119, 189, 0.25);
-        ">
-            DRISHTI
-        </div>
-
-        <!-- Elegant underline -->
-        <div style="
-            width: 160px;
-            height: 3px;
-            margin: 0 auto 1.1rem auto;
-            background: linear-gradient(90deg, transparent, #0288d1, #ffc107, #0288d1, transparent);
-            border-radius: 10px;
-        "></div>
-
-        <!-- Full Form -->
-        <div style="
-            position: relative;
-            z-index: 2;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1.12rem;
-            font-weight: 600;
-            color: #37474f;
-            letter-spacing: 0.6px;
-            line-height: 1.7;
-            max-width: 820px;
-            margin: 0 auto;
-        ">
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">D</span>ata 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">L</span>ogger 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">R</span>eport of 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>dentified 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">S</span>ignificant 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">T</span>echnical 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">H</span>appenings &amp; 
-            <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>nsights
-        </div>
-
-        <!-- Soft bottom line -->
-        <div style="
-            width: 280px;
-            height: 1.5px;
-            margin: 1.3rem auto 0 auto;
-            background: linear-gradient(90deg, transparent, #81d4fa, transparent);
-        "></div>
+        DRISHTI
     </div>
-    """, unsafe_allow_html=True)
 
-    # Moving trains
-    st.markdown("""
-    <div class="train-emoji-container">
-        <div class="train-track">
-            🚄 🚄 🚄 🚄
-        </div>
+    <div style="
+        width: 160px;
+        height: 3px;
+        margin: 0 auto 1.1rem auto;
+        background: linear-gradient(90deg, transparent, #0288d1, #ffc107, #0288d1, transparent);
+        border-radius: 10px;
+    "></div>
+
+    <div style="
+        position: relative;
+        z-index: 2;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1.12rem;
+        font-weight: 600;
+        color: #37474f;
+        letter-spacing: 0.6px;
+        line-height: 1.7;
+        max-width: 820px;
+        margin: 0 auto;
+    ">
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">D</span>ata 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">L</span>ogger 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">R</span>eport of 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>dentified 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">S</span>ignificant 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">T</span>echnical 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">H</span>appenings &amp; 
+        <span style="color:#01579b; font-weight:800; font-size:1.15em;">I</span>nsights
     </div>
-    """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
-        unsafe_allow_html=True
-    )
-    st.caption(f"**Logged in as:** {st.session_state.user_name}")
-    st.divider()
+    <div style="
+        width: 280px;
+        height: 1.5px;
+        margin: 1.3rem auto 0 auto;
+        background: linear-gradient(90deg, transparent, #81d4fa, transparent);
+    "></div>
 
-    df_original = load_data_from_gsheet()
-
-    with st.sidebar:
-        st.header("🔧 Controls")
-        if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
-            refresh_data()
+</div>
+""", unsafe_allow_html=True)
 
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
