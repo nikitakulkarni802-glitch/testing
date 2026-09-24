@@ -31,7 +31,7 @@ st.markdown("""
 
 .stApp {
     background-image: 
-        linear-gradient(rgba(240, 248, 255, 0.62), rgba(224, 242, 254, 0.68)),
+        linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.40)),
         url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") !important;
     background-size: cover !important;
     background-position: center center !important;
@@ -700,10 +700,10 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # ===== Logo + DRISHTI Header =====
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.image(IR_LOGO_URL, width=180)
+    # ===== Centered Logo + DRISHTI Header =====
+    _, col, _ = st.columns([1, 1.2, 1])
+    with col:
+        st.image(IR_LOGO_URL, use_container_width=True)
 
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
