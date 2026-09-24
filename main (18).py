@@ -30,14 +30,17 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 .stApp {
-    background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 40%, #e1f5fe 100%);
+    background: 
+        linear-gradient(rgba(224, 247, 250, 0.82), rgba(179, 229, 252, 0.86)),
+        url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") 
+        center center / cover no-repeat fixed !important;
     color: #0d1b2a;
     font-family: 'Rajdhani', sans-serif;
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
@@ -211,7 +214,7 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
 
 .drishti-fullform {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #37474f;
     text-align: center;
