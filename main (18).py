@@ -700,10 +700,9 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # ===== Centered Logo + DRISHTI Header =====
-    _, col, _ = st.columns([1, 1.2, 1])
-    with col:
-        st.image(IR_LOGO_URL, width=180)
+    _, _, col = st.columns([1.5, 0.8, 1.2])
+with col:
+    st.image(IR_LOGO_URL, width=150)
 
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
