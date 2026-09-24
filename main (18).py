@@ -30,10 +30,13 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 .stApp {
-    background: 
-        linear-gradient(rgba(224, 247, 250, 0.82), rgba(179, 229, 252, 0.86)),
-        url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") 
-        center center / cover no-repeat fixed !important;
+    background-image: 
+        linear-gradient(rgba(224, 247, 250, 0.75), rgba(179, 229, 252, 0.78)),
+        url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
     color: #0d1b2a;
     font-family: 'Rajdhani', sans-serif;
 }
