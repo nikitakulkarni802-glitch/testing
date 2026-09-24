@@ -16,6 +16,15 @@ try:
 except Exception:
     STATSMODELS_AVAILABLE = False
 
+# ====================== PAGE CONFIG ======================
+st.set_page_config(
+    page_title="DRISHTI | SUR Division",
+    page_icon="🚄",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ====================== CUSTOM CSS ======================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
@@ -190,7 +199,7 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    margin: 0.8rem 0 0.3rem 0;
+    margin: 0.4rem 0 0.3rem 0;
 }
 
 .drishti-fullform {
@@ -691,18 +700,11 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # Watermark
-    st.markdown(f"""
-    <div class="watermark">
-        <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([3, 3, 1])
+    # ===== Logo + DRISHTI Header =====
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image(IR_LOGO_URL, width=220)
+        st.image(IR_LOGO_URL, width=180)
 
-    # ===== CLEAN AESTHETIC DRISHTI HEADER =====
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
     st.markdown("""
