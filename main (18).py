@@ -16,21 +16,13 @@ try:
 except Exception:
     STATSMODELS_AVAILABLE = False
 
-# ====================== PAGE CONFIG ======================
-st.set_page_config(
-    page_title="DRISHTI | SUR Division",
-    page_icon="🚄",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 .stApp {
     background-image: 
-        linear-gradient(rgba(240, 248, 255, 0.65), rgba(224, 242, 254, 0.70)),
+        linear-gradient(rgba(240, 248, 255, 0.62), rgba(224, 242, 254, 0.68)),
         url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") !important;
     background-size: cover !important;
     background-position: center center !important;
@@ -83,7 +75,7 @@ st.markdown("""
 }
 
 div[data-testid="stMetric"] {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     border: 1px solid #81d4fa;
     border-radius: 16px;
     padding: 18px 12px;
@@ -116,7 +108,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
     border-radius: 12px 12px 0 0;
     color: #01579b;
     font-family: 'Rajdhani', sans-serif;
