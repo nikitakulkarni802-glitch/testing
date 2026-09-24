@@ -30,20 +30,14 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 .stApp {
-    background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.40)),
-        url("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/data%20logger%20bg.jpeg") !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
+    background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 40%, #e1f5fe 100%);
     color: #0d1b2a;
     font-family: 'Rajdhani', sans-serif;
 }
 
 .brand-line {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     color: #01579b;
     text-align: center;
     font-weight: 700;
@@ -77,26 +71,25 @@ st.markdown("""
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.45rem !important;
     font-weight: 700 !important;
-    color: #01579b !important;
+    color: #0277bd !important;
     margin: 1.4rem 0 0.6rem 0;
     border-left: 5px solid #0288d1;
     padding-left: 12px;
 }
 
 div[data-testid="stMetric"] {
-    background: rgba(255, 255, 255, 0.88);
+    background: linear-gradient(145deg, #ffffff, #e1f5fe);
     border: 1px solid #81d4fa;
     border-radius: 16px;
     padding: 18px 12px;
-    box-shadow: 0 6px 18px rgba(2, 119, 189, 0.15);
-    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(2, 119, 189, 0.12);
     transition: all 0.3s ease;
 }
 
 div[data-testid="stMetric"]:hover {
     transform: translateY(-4px);
     border-color: #0288d1;
-    box-shadow: 0 10px 25px rgba(2, 119, 189, 0.25);
+    box-shadow: 0 10px 25px rgba(2, 119, 189, 0.22);
 }
 
 div[data-testid="stMetric"] label {
@@ -117,7 +110,7 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
 }
 
 .stTabs [data-baseweb="tab"] {
-    background: rgba(255, 255, 255, 0.85);
+    background: #e1f5fe;
     border-radius: 12px 12px 0 0;
     color: #01579b;
     font-family: 'Rajdhani', sans-serif;
@@ -125,7 +118,6 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
     font-size: 1.1rem;
     border: 1px solid #81d4fa;
     padding: 10px 22px;
-    backdrop-filter: blur(4px);
 }
 
 .stTabs [aria-selected="true"] {
@@ -153,9 +145,8 @@ div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
 }
 
 section[data-testid="stSidebar"] {
-    background: rgba(224, 247, 250, 0.92) !important;
+    background: linear-gradient(180deg, #e0f7fa 0%, #b3e5fc 100%);
     border-right: 1px solid #81d4fa;
-    backdrop-filter: blur(8px);
 }
 
 section[data-testid="stSidebar"] .stMarkdown h2 {
@@ -167,7 +158,23 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #81d4fa;
-    background: rgba(255, 255, 255, 0.9);
+}
+
+.watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.07;
+    z-index: 0;
+    pointer-events: none;
+    width: 520px;
+    max-width: 70vw;
+}
+
+.watermark img {
+    width: 100%;
+    height: auto;
 }
 
 ::-webkit-scrollbar {
@@ -199,14 +206,14 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
-    margin: 0.4rem 0 0.3rem 0;
+    margin: 0.8rem 0 0.3rem 0;
 }
 
 .drishti-fullform {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    color: #1a237e;
+    color: #37474f;
     text-align: center;
     letter-spacing: 0.5px;
     margin-bottom: 0.8rem;
@@ -700,11 +707,18 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # ===== Logo on Right + Centered DRISHTI =====
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col3:
-        st.image(IR_LOGO_URL, width=150)
+    # Watermark
+    st.markdown(f"""
+    <div class="watermark">
+        <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
+    </div>
+    """, unsafe_allow_html=True)
 
+    col1, col2, col3 = st.columns([3, 3, 1])
+    with col2:
+        st.image(IR_LOGO_URL, width=220)
+
+    # ===== CLEAN AESTHETIC DRISHTI HEADER =====
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
     st.markdown("""
