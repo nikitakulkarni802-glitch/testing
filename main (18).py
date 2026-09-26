@@ -772,61 +772,13 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         fig2.add_artist(plt.Line2D([0.05, 0.95], [0.885, 0.885], color=ACCENT,
                                    linewidth=1.2, transform=fig2.transFigure))
 
-        # Full Jurisdiction table
-        fig2.text(0.05, 0.860, "ALL JURISDICTIONS", fontsize=9, fontweight='bold',
+        # Full Error Categories table (FIRST)
+        fig2.text(0.05, 0.860, "ALL ERROR CATEGORIES", fontsize=9, fontweight='bold',
                   color=NAVY, transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.05, 0.30], [0.853, 0.853], color=ACCENT,
+        fig2.add_artist(plt.Line2D([0.05, 0.32], [0.853, 0.853], color=ACCENT,
                                    linewidth=1.5, transform=fig2.transFigure))
 
         y_pos = 0.830
-        if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
-            jur_sum = df['JURISDICTION'].value_counts().reset_index()
-            jur_sum.columns = ['Jurisdiction', 'Cases']
-            jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
-
-            header_bg = mpatches.FancyBboxPatch(
-                (0.05, y_pos), 0.90, 0.022,
-                boxstyle="square,pad=0", facecolor=NAVY,
-                transform=fig2.transFigure, clip_on=False
-            )
-            fig2.add_artist(header_bg)
-            fig2.text(0.07, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
-            y_pos -= 0.022
-
-            for idx, row in jur_sum.iterrows():
-                if y_pos < 0.48:
-                    break
-                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
-                row_bg = mpatches.FancyBboxPatch(
-                    (0.05, y_pos - 0.008), 0.90, 0.020,
-                    boxstyle="square,pad=0", facecolor=bg_color,
-                    transform=fig2.transFigure, clip_on=False
-                )
-                fig2.add_artist(row_bg)
-                fig2.text(0.07, y_pos + 0.002, str(row['Jurisdiction'])[:55],
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
-                y_pos -= 0.020
-        else:
-            fig2.text(0.05, 0.820, "No jurisdiction data available.",
-                      fontsize=8, color=GRAY, transform=fig2.transFigure)
-            y_pos = 0.800
-
-        # Full Error Categories table
-        fig2.text(0.05, 0.450, "ALL ERROR CATEGORIES", fontsize=9, fontweight='bold',
-                  color=NAVY, transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.05, 0.32], [0.443, 0.443], color=ACCENT,
-                                   linewidth=1.5, transform=fig2.transFigure))
-
-        y_pos = 0.420
         if not df.empty and 'ERROR MAIN CATEGORY' in df.columns and total_cases > 0:
             err_sum = df['ERROR MAIN CATEGORY'].value_counts().reset_index()
             err_sum.columns = ['Error Category', 'Cases']
@@ -847,7 +799,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
             y_pos -= 0.022
 
             for idx, row in err_sum.iterrows():
-                if y_pos < 0.08:
+                if y_pos < 0.48:
                     break
                 bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
                 row_bg = mpatches.FancyBboxPatch(
@@ -864,7 +816,55 @@ def generate_one_page_report(df, from_date, to_date, user_name):
                           fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
                 y_pos -= 0.020
         else:
-            fig2.text(0.05, 0.400, "No error category data available.",
+            fig2.text(0.05, 0.820, "No error category data available.",
+                      fontsize=8, color=GRAY, transform=fig2.transFigure)
+            y_pos = 0.800
+
+        # Full Jurisdiction table (BELOW Error Categories)
+        fig2.text(0.05, 0.450, "ALL JURISDICTIONS", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.05, 0.30], [0.443, 0.443], color=ACCENT,
+                                   linewidth=1.5, transform=fig2.transFigure))
+
+        y_pos = 0.420
+        if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
+            jur_sum = df['JURISDICTION'].value_counts().reset_index()
+            jur_sum.columns = ['Jurisdiction', 'Cases']
+            jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.05, y_pos), 0.90, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig2.transFigure, clip_on=False
+            )
+            fig2.add_artist(header_bg)
+            fig2.text(0.07, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            y_pos -= 0.022
+
+            for idx, row in jur_sum.iterrows():
+                if y_pos < 0.08:
+                    break
+                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.05, y_pos - 0.008), 0.90, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig2.transFigure, clip_on=False
+                )
+                fig2.add_artist(row_bg)
+                fig2.text(0.07, y_pos + 0.002, str(row['Jurisdiction'])[:55],
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                y_pos -= 0.020
+        else:
+            fig2.text(0.05, 0.400, "No jurisdiction data available.",
                       fontsize=8, color=GRAY, transform=fig2.transFigure)
 
         pdf.savefig(fig2, bbox_inches='tight')
