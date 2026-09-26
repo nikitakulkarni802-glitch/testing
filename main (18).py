@@ -5,10 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
 import gspread
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 import folium
 from streamlit_folium import st_folium
@@ -514,163 +510,7 @@ def get_jurisdiction(station, department):
     if any(x in dept for x in ["ELECT", "ELECTRICAL", "SSE/ELECT"]):
         return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
-def generate_one_page_report(df, from_date, to_date, user_name):
-    """Generate a professional one-page PDF analysis report"""
-    buffer = BytesIO()
-    
-    fig = plt.figure(figsize=(8.27, 11.69))  # A4 size
-    fig.patch.set_facecolor('white')
-    
-    # ========== HEADER ==========
-    fig.text(0.5, 0.97, "DRISHTI", fontsize=22, fontweight='bold', ha='center', color='#01579b')
-    fig.text(0.5, 0.945, "Data Logger Report of Identified Significant Technical Happenings & Insights", 
-             fontsize=8, ha='center', color='#37474f')
-    fig.text(0.5, 0.925, "Central Railway  •  Solapur Division  •  Safety Branch", 
-             fontsize=9, ha='center', color='#0277bd', fontweight='bold')
-    
-    fig.add_artist(plt.Line2D([0.08, 0.92], [0.91, 0.91], color='#0288d1', linewidth=1.5, transform=fig.transFigure))
-    
-    period_text = f"Period: {from_date.strftime('%d %b %Y')} to {to_date.strftime('%d %b %Y')}"
-    gen_text = f"Generated on: {datetime.now().strftime('%d %b %Y, %H:%M')}  |  By: {user_name}"
-    fig.text(0.5, 0.89, period_text, fontsize=8, ha='center', color='#555')
-    fig.text(0.5, 0.875, gen_text, fontsize=7.5, ha='center', color='#777')
-    
-    # ========== KEY METRICS ==========
-    total_cases = len(df)
-    top_station = "N/A"
-    top_station_cases = 0
-    top_error = "N/A"
-    
-    if not df.empty and 'STATION' in df.columns:
-        stn_counts = df['STATION'].value_counts()
-        if not stn_counts.empty:
-            top_station = stn_counts.index[0]
-            top_station_cases = int(stn_counts.iloc[0])
-    
-    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
-        err_counts = df['ERROR MAIN CATEGORY'].value_counts()
-        if not err_counts.empty:
-            top_error = err_counts.index[0]
-    
-    metrics = [
-        (f"{total_cases:,}", "Total Cases"),
-        (str(top_station), "Top Station"),
-        (f"{top_station_cases:,}", "Top Station Cases"),
-        (str(top_error)[:18], "Top Error Category")
-    ]
-    
-    for i, (value, label) in enumerate(metrics):
-        x = 0.12 + i * 0.22
-        rect = mpatches.FancyBboxPatch((x-0.08, 0.80), 0.18, 0.055, 
-                                       boxstyle="round,pad=0.01", 
-                                       facecolor='#e3f2fd', edgecolor='#0288d1', linewidth=1,
-                                       transform=fig.transFigure)
-        fig.add_artist(rect)
-        fig.text(x, 0.835, value, fontsize=11, fontweight='bold', ha='center', color='#01579b', transform=fig.transFigure)
-        fig.text(x, 0.81, label, fontsize=7, ha='center', color='#555', transform=fig.transFigure)
-    
-    # ========== TOP STATIONS CHART ==========
-    ax1 = fig.add_axes([0.08, 0.52, 0.55, 0.25])
-    if not df.empty and 'STATION' in df.columns:
-        top10 = df['STATION'].value_counts().nlargest(10)
-        colors = plt.cm.Blues(np.linspace(0.4, 0.9, len(top10)))[::-1]
-        bars = ax1.barh(top10.index[::-1], top10.values[::-1], color=colors)
-        ax1.set_xlabel('Number of Cases', fontsize=8)
-        ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold', color='#01579b', pad=8)
-        ax1.tick_params(axis='both', labelsize=7)
-        for bar in bars:
-            width = bar.get_width()
-            ax1.text(width + max(top10.values)*0.01, bar.get_y() + bar.get_height()/2, 
-                     f'{int(width)}', va='center', fontsize=6.5)
-        ax1.spines['top'].set_visible(False)
-        ax1.spines['right'].set_visible(False)
-    else:
-        ax1.text(0.5, 0.5, 'No Station Data', ha='center', va='center')
-        ax1.axis('off')
-    
-    # ========== DEPARTMENT DISTRIBUTION ==========
-    ax2 = fig.add_axes([0.68, 0.52, 0.28, 0.25])
-    if not df.empty and 'DEPARTMENT' in df.columns:
-        dept_counts = df['DEPARTMENT'].value_counts().head(6)
-        colors = ['#0277bd', '#0288d1', '#03a9f4', '#4fc3f7', '#81d4fa', '#b3e5fc']
-        wedges, texts, autotexts = ax2.pie(dept_counts.values, labels=None, autopct='%1.0f%%',
-                                          colors=colors[:len(dept_counts)], pctdistance=0.75,
-                                          wedgeprops=dict(width=0.5, edgecolor='white'))
-        for t in autotexts:
-            t.set_fontsize(6)
-        ax2.set_title('Department Distribution', fontsize=9, fontweight='bold', color='#01579b', pad=8)
-        ax2.legend(dept_counts.index, loc='upper center', bbox_to_anchor=(0.5, -0.05), 
-                   fontsize=5.5, frameon=False, ncol=2)
-    else:
-        ax2.text(0.5, 0.5, 'No Dept Data', ha='center', va='center')
-        ax2.axis('off')
-    
-    # ========== SMART INSIGHTS ==========
-    fig.text(0.08, 0.48, "Key Insights", fontsize=10, fontweight='bold', color='#01579b')
-    fig.add_artist(plt.Line2D([0.08, 0.40], [0.475, 0.475], color='#0288d1', linewidth=1, transform=fig.transFigure))
-    
-    insights = []
-    if total_cases > 0:
-        insights.append(f"• Total of {total_cases:,} exceptional cases recorded in the selected period.")
-        if top_station != "N/A":
-            pct = (top_station_cases / total_cases) * 100
-            insights.append(f"• {top_station} is the highest contributing station with {top_station_cases:,} cases ({pct:.1f}%).")
-        if top_error != "N/A" and 'ERROR MAIN CATEGORY' in df.columns:
-            err_count = df['ERROR MAIN CATEGORY'].value_counts().iloc[0]
-            pct = (err_count / total_cases) * 100
-            insights.append(f"• Most frequent error category: {top_error} ({pct:.1f}% of total cases).")
-        if 'STATION' in df.columns:
-            unique_stn = df['STATION'].nunique()
-            insights.append(f"• Cases reported across {unique_stn} unique stations in Solapur Division.")
-            top3 = df['STATION'].value_counts().nlargest(3)
-            top3_pct = (top3.sum() / total_cases) * 100
-            insights.append(f"• Top 3 stations together contribute {top3_pct:.1f}% of total cases.")
-    
-    if not insights:
-        insights = ["• No sufficient data available for generating insights."]
-    
-    y_pos = 0.45
-    for insight in insights[:6]:
-        fig.text(0.08, y_pos, insight, fontsize=7.5, color='#333', va='top')
-        y_pos -= 0.025
-    
-    # ========== ERROR CATEGORY TABLE ==========
-    fig.text(0.08, 0.28, "Top Error Categories", fontsize=9, fontweight='bold', color='#01579b')
-    fig.add_artist(plt.Line2D([0.08, 0.35], [0.275, 0.275], color='#0288d1', linewidth=1, transform=fig.transFigure))
-    
-    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
-        err_sum = df['ERROR MAIN CATEGORY'].value_counts().head(6).reset_index()
-        err_sum.columns = ['Error Category', 'Cases']
-        err_sum['%'] = (err_sum['Cases'] / total_cases * 100).round(1)
-        
-        y_pos = 0.25
-        fig.text(0.08, y_pos, "Error Category", fontsize=7, fontweight='bold', color='#555')
-        fig.text(0.45, y_pos, "Cases", fontsize=7, fontweight='bold', color='#555')
-        fig.text(0.55, y_pos, "%", fontsize=7, fontweight='bold', color='#555')
-        y_pos -= 0.02
-        
-        for _, row in err_sum.iterrows():
-            fig.text(0.08, y_pos, str(row['Error Category'])[:40], fontsize=6.5, color='#333')
-            fig.text(0.45, y_pos, f"{int(row['Cases']):,}", fontsize=6.5, color='#333')
-            fig.text(0.55, y_pos, f"{row['%']}%", fontsize=6.5, color='#333')
-            y_pos -= 0.018
-    else:
-        fig.text(0.08, 0.23, "No error category data available", fontsize=7, color='#777')
-    
-    # ========== FOOTER ==========
-    fig.add_artist(plt.Line2D([0.08, 0.92], [0.08, 0.08], color='#0288d1', linewidth=1, transform=fig.transFigure))
-    fig.text(0.5, 0.055, "Prepared by Safety Branch  |  Central Railway, Solapur Division", 
-             fontsize=7.5, ha='center', color='#01579b', fontweight='bold')
-    fig.text(0.5, 0.035, "CONFIDENTIAL – For Official Use Only  |  DRISHTI Safety Analytics Platform", 
-             fontsize=6.5, ha='center', color='#777')
-    fig.text(0.5, 0.02, "Page 1 of 1", fontsize=6, ha='center', color='#999')
-    
-    with PdfPages(buffer) as pdf:
-        pdf.savefig(fig, bbox_inches='tight')
-    plt.close(fig)
-    
-    buffer.seek(0)
-    return buffer
+
 # ====================== FORECASTING ENGINE ======================
 def get_global_month_index(df):
     if df is None or df.empty or 'DATE' not in df.columns:
@@ -1410,28 +1250,8 @@ else:
             st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-
-with col_btn1:
-    try:
-        pdf_buffer = generate_one_page_report(
-            filtered_df, 
-            from_date, 
-            to_date, 
-            st.session_state.user_name
-        )
-        st.download_button(
-            label="📄 One-Page Analysis Report (PDF)",
-            data=pdf_buffer,
-            file_name=f"DRISHTI_Analysis_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.pdf",
-            mime="application/pdf",
-            type="primary",
-            use_container_width=True
-        )
-    except Exception as e:
-        st.error(f"PDF generation error: {e}")
-
-with col_btn2:
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
+            with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     write_styled_sheet(writer, display_df[cols], 'Filtered_Records')
