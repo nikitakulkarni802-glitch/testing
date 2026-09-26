@@ -516,10 +516,8 @@ def get_jurisdiction(station, department):
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
 def generate_one_page_report(df, from_date, to_date, user_name):
-    """Generate a clean, professional one-page A4 PDF analysis report"""
+    """Generate a professional multi-page A4 PDF Data Logger Report"""
     buffer = BytesIO()
-    fig = plt.figure(figsize=(8.27, 11.69))  # A4
-    fig.patch.set_facecolor('#FFFFFF')
 
     NAVY   = '#0D2137'
     BLUE   = '#1A5276'
@@ -529,48 +527,6 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     DARK   = '#1C2833'
     GREEN  = '#1E8449'
 
-    # ========== HEADER BAR ==========
-    header_bar = mpatches.FancyBboxPatch(
-        (0.0, 0.93), 1.0, 0.07,
-        boxstyle="square,pad=0", facecolor=NAVY,
-        transform=fig.transFigure, clip_on=False
-    )
-    fig.add_artist(header_bar)
-
-    fig.text(0.05, 0.965, "DRISHTI", fontsize=18, fontweight='bold',
-             color='white', ha='left', va='center', transform=fig.transFigure)
-    fig.text(0.05, 0.942, "Data Logger Report of Identified Significant Technical Happenings & Insights",
-             fontsize=7, color='#AED6F1', ha='left', va='center', transform=fig.transFigure)
-    fig.text(0.95, 0.965, "Central Railway", fontsize=9, fontweight='bold',
-             color='white', ha='right', va='center', transform=fig.transFigure)
-    fig.text(0.95, 0.942, "Solapur Division  |  Safety Branch",
-             fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
-
-    # ========== SUB-HEADER ==========
-    period_text = f"Period: {from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
-    gen_text = f"Generated: {datetime.now().strftime('%d %b %Y, %H:%M')}   |   By: {user_name}"
-
-    dept_title = "All Departments"
-    if not df.empty and 'DEPARTMENT' in df.columns:
-        unique_depts = df['DEPARTMENT'].dropna().unique()
-        if len(unique_depts) == 1:
-            dept_title = str(unique_depts[0]).strip()
-        elif len(unique_depts) <= 3:
-            dept_title = "  |  ".join([str(d).strip() for d in unique_depts])
-        else:
-            dept_title = f"{len(unique_depts)} Departments (Filtered)"
-
-    fig.text(0.05, 0.905, f"Department: {dept_title}", fontsize=10, fontweight='bold',
-             color=BLUE, ha='left', va='center', transform=fig.transFigure)
-    fig.text(0.05, 0.885, period_text, fontsize=8, color=GRAY,
-             ha='left', va='center', transform=fig.transFigure)
-    fig.text(0.95, 0.885, gen_text, fontsize=7.5, color=GRAY,
-             ha='right', va='center', transform=fig.transFigure)
-
-    fig.add_artist(plt.Line2D([0.05, 0.95], [0.870, 0.870], color=ACCENT,
-                              linewidth=1.2, transform=fig.transFigure))
-
-    # ========== KEY METRICS ==========
     total_cases = len(df)
     top_station = "N/A"
     top_station_cases = 0
@@ -589,173 +545,330 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         if not err_counts.empty:
             top_error = str(err_counts.index[0])
 
-    metrics = [
-        (f"{total_cases:,}", "Total Cases", NAVY),
-        (str(top_station)[:14], "Top Station", BLUE),
-        (f"{top_station_cases:,}", "Top Station Cases", ACCENT),
-        (f"{unique_stn}", "Unique Stations", GREEN),
-    ]
-
-    for i, (value, label, color) in enumerate(metrics):
-        x = 0.05 + i * 0.235
-        card = mpatches.FancyBboxPatch(
-            (x, 0.800), 0.215, 0.055,
-            boxstyle="round,pad=0.008",
-            facecolor=LIGHT, edgecolor=color, linewidth=1.3,
-            transform=fig.transFigure
-        )
-        fig.add_artist(card)
-        fig.text(x + 0.1075, 0.835, value, fontsize=12, fontweight='bold',
-                 color=color, ha='center', va='center', transform=fig.transFigure)
-        fig.text(x + 0.1075, 0.812, label, fontsize=7, color=GRAY,
-                 ha='center', va='center', transform=fig.transFigure)
-
-    # ========== LEFT CHART – Top 10 Stations ==========
-    ax1 = fig.add_axes([0.08, 0.48, 0.52, 0.28])
-    if not df.empty and 'STATION' in df.columns:
-        top10 = df['STATION'].value_counts().nlargest(10)
-        y_pos = np.arange(len(top10))
-        colors = plt.cm.Blues(np.linspace(0.45, 0.85, len(top10)))[::-1]
-        bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.65, edgecolor='none')
-        ax1.set_yticks(y_pos)
-        ax1.set_yticklabels(top10.index[::-1], fontsize=7.5)
-        ax1.set_xlabel('Number of Cases', fontsize=8, color=GRAY)
-        ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold',
-                      color=NAVY, pad=6, loc='left')
-        ax1.tick_params(axis='x', labelsize=7, colors=GRAY)
-        ax1.spines['top'].set_visible(False)
-        ax1.spines['right'].set_visible(False)
-        ax1.spines['left'].set_color('#D5D8DC')
-        ax1.spines['bottom'].set_color('#D5D8DC')
-        ax1.set_axisbelow(True)
-        ax1.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
-        for bar, val in zip(bars, top10.values[::-1]):
-            ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2,
-                     f'{int(val)}', va='center', fontsize=6.5, color=DARK)
-    else:
-        ax1.text(0.5, 0.5, 'No Station Data', ha='center', va='center', fontsize=9, color=GRAY)
-        ax1.axis('off')
-
-    # ========== RIGHT CHART – Department (horizontal bar) ==========
-    ax2 = fig.add_axes([0.66, 0.48, 0.30, 0.28])
+    # Dynamic department title
+    dept_title = "All Departments"
     if not df.empty and 'DEPARTMENT' in df.columns:
-        dept_counts = df['DEPARTMENT'].value_counts().head(8)
-        y_pos2 = np.arange(len(dept_counts))
-        colors2 = plt.cm.GnBu(np.linspace(0.4, 0.8, len(dept_counts)))[::-1]
-        bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.65, edgecolor='none')
-        ax2.set_yticks(y_pos2)
-        ax2.set_yticklabels(dept_counts.index[::-1], fontsize=7)
-        ax2.set_xlabel('Cases', fontsize=8, color=GRAY)
-        ax2.set_title('Department-wise Cases', fontsize=10, fontweight='bold',
-                      color=NAVY, pad=6, loc='left')
-        ax2.tick_params(axis='x', labelsize=7, colors=GRAY)
-        ax2.spines['top'].set_visible(False)
-        ax2.spines['right'].set_visible(False)
-        ax2.spines['left'].set_color('#D5D8DC')
-        ax2.spines['bottom'].set_color('#D5D8DC')
-        ax2.set_axisbelow(True)
-        ax2.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
-        for bar, val in zip(bars2, dept_counts.values[::-1]):
-            ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2,
-                     f'{int(val)}', va='center', fontsize=6.5, color=DARK)
-    else:
-        ax2.text(0.5, 0.5, 'No Department Data', ha='center', va='center', fontsize=9, color=GRAY)
-        ax2.axis('off')
+        unique_depts = df['DEPARTMENT'].dropna().unique()
+        if len(unique_depts) == 1:
+            dept_title = str(unique_depts[0]).strip()
+        elif len(unique_depts) <= 4:
+            dept_title = "  |  ".join([str(d).strip() for d in unique_depts])
+        else:
+            dept_title = f"{len(unique_depts)} Departments (Filtered)"
 
-    # ========== KEY INSIGHTS ==========
-    fig.text(0.05, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold',
-             color=NAVY, transform=fig.transFigure)
-    fig.add_artist(plt.Line2D([0.05, 0.30], [0.438, 0.438], color=ACCENT,
-                              linewidth=1.5, transform=fig.transFigure))
+    period_text = f"Period: {from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
+    gen_text = f"Generated: {datetime.now().strftime('%d %b %Y, %H:%M')}   |   By: {user_name}"
 
-    insights = []
-    if total_cases > 0:
-        insights.append(f"•  Total of {total_cases:,} cases recorded during the selected period.")
-        if top_station != "N/A":
-            pct = (top_station_cases / total_cases) * 100
-            insights.append(f"•  {top_station} is the highest contributor with {top_station_cases:,} cases ({pct:.1f}%).")
-        if top_error != "N/A":
-            err_count = df['ERROR MAIN CATEGORY'].value_counts().iloc[0]
-            pct = (err_count / total_cases) * 100
-            insights.append(f"•  Most frequent error: {top_error} ({pct:.1f}% of total).")
-        if unique_stn > 0:
-            insights.append(f"•  Cases reported across {unique_stn} unique stations.")
-            top3 = df['STATION'].value_counts().nlargest(3)
-            top3_pct = (top3.sum() / total_cases) * 100
-            insights.append(f"•  Top 3 stations together account for {top3_pct:.1f}% of all cases.")
-        if dept_title != "All Departments":
-            insights.append(f"•  Report filtered for: {dept_title}.")
-
-    if not insights:
-        insights = ["•  Insufficient data to generate insights."]
-
-    y_pos = 0.420
-    for insight in insights[:6]:
-        fig.text(0.05, y_pos, insight, fontsize=7.5, color=DARK,
-                 va='top', transform=fig.transFigure)
-        y_pos -= 0.022
-
-    # ========== TOP ERROR CATEGORIES TABLE ==========
-    fig.text(0.05, 0.275, "TOP ERROR CATEGORIES", fontsize=9, fontweight='bold',
-             color=NAVY, transform=fig.transFigure)
-    fig.add_artist(plt.Line2D([0.05, 0.32], [0.268, 0.268], color=ACCENT,
-                              linewidth=1.5, transform=fig.transFigure))
-
-    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns and total_cases > 0:
-        err_sum = df['ERROR MAIN CATEGORY'].value_counts().head(7).reset_index()
-        err_sum.columns = ['Error Category', 'Cases']
-        err_sum['%'] = (err_sum['Cases'] / total_cases * 100).round(1)
-
-        header_bg = mpatches.FancyBboxPatch(
-            (0.05, 0.240), 0.90, 0.022,
+    def draw_header_footer(fig, page_num, total_pages):
+        # Header bar
+        header_bar = mpatches.FancyBboxPatch(
+            (0.0, 0.93), 1.0, 0.07,
             boxstyle="square,pad=0", facecolor=NAVY,
             transform=fig.transFigure, clip_on=False
         )
-        fig.add_artist(header_bg)
+        fig.add_artist(header_bar)
+        fig.text(0.05, 0.965, "DRISHTI", fontsize=16, fontweight='bold',
+                 color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.05, 0.942, "Data Logger Report",
+                 fontsize=8, color='#AED6F1', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.95, 0.965, "Central Railway", fontsize=9, fontweight='bold',
+                 color='white', ha='right', va='center', transform=fig.transFigure)
+        fig.text(0.95, 0.942, "Solapur Division  |  Safety Branch",
+                 fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
 
-        fig.text(0.07, 0.251, "Error Category", fontsize=7.5, fontweight='bold',
-                 color='white', va='center', transform=fig.transFigure)
-        fig.text(0.72, 0.251, "Cases", fontsize=7.5, fontweight='bold',
-                 color='white', va='center', transform=fig.transFigure)
-        fig.text(0.85, 0.251, "% of Total", fontsize=7.5, fontweight='bold',
-                 color='white', va='center', transform=fig.transFigure)
-
-        y_pos = 0.225
-        for idx, row in err_sum.iterrows():
-            bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
-            row_bg = mpatches.FancyBboxPatch(
-                (0.05, y_pos - 0.008), 0.90, 0.020,
-                boxstyle="square,pad=0", facecolor=bg_color,
-                transform=fig.transFigure, clip_on=False
-            )
-            fig.add_artist(row_bg)
-            fig.text(0.07, y_pos + 0.002, str(row['Error Category'])[:55],
-                     fontsize=7, color=DARK, va='center', transform=fig.transFigure)
-            fig.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
-                     fontsize=7, color=DARK, va='center', transform=fig.transFigure)
-            fig.text(0.85, y_pos + 0.002, f"{row['%']}%",
-                     fontsize=7, color=DARK, va='center', transform=fig.transFigure)
-            y_pos -= 0.020
-    else:
-        fig.text(0.05, 0.230, "No error category data available.",
-                 fontsize=8, color=GRAY, transform=fig.transFigure)
-
-    # ========== FOOTER ==========
-    footer_bar = mpatches.FancyBboxPatch(
-        (0.0, 0.0), 1.0, 0.045,
-        boxstyle="square,pad=0", facecolor=NAVY,
-        transform=fig.transFigure, clip_on=False
-    )
-    fig.add_artist(footer_bar)
-
-    fig.text(0.05, 0.025, "Prepared by Safety Branch  |  Central Railway, Solapur Division",
-             fontsize=7.5, color='white', ha='left', va='center', transform=fig.transFigure)
-    fig.text(0.95, 0.025, "CONFIDENTIAL – For Official Use Only  |  Page 1 of 1",
-             fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
+        # Footer bar
+        footer_bar = mpatches.FancyBboxPatch(
+            (0.0, 0.0), 1.0, 0.045,
+            boxstyle="square,pad=0", facecolor=NAVY,
+            transform=fig.transFigure, clip_on=False
+        )
+        fig.add_artist(footer_bar)
+        fig.text(0.05, 0.025, "Prepared by Safety Branch  |  Central Railway, Solapur Division",
+                 fontsize=7.5, color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.95, 0.025, f"CONFIDENTIAL – For Official Use Only  |  Page {page_num} of {total_pages}",
+                 fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
 
     with PdfPages(buffer) as pdf:
-        pdf.savefig(fig, bbox_inches='tight')
-    plt.close(fig)
+        # ===================== PAGE 1 =====================
+        fig1 = plt.figure(figsize=(8.27, 11.69))
+        fig1.patch.set_facecolor('#FFFFFF')
+        draw_header_footer(fig1, 1, 2)
+
+        # Sub-header
+        fig1.text(0.05, 0.905, f"Department: {dept_title}", fontsize=10, fontweight='bold',
+                  color=BLUE, ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.05, 0.885, period_text, fontsize=8, color=GRAY,
+                  ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.95, 0.885, gen_text, fontsize=7.5, color=GRAY,
+                  ha='right', va='center', transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.05, 0.95], [0.870, 0.870], color=ACCENT,
+                                   linewidth=1.2, transform=fig1.transFigure))
+
+        # Metrics cards
+        metrics = [
+            (f"{total_cases:,}", "Total Cases", NAVY),
+            (str(top_station)[:14], "Top Station", BLUE),
+            (f"{top_station_cases:,}", "Top Station Cases", ACCENT),
+            (f"{unique_stn}", "Unique Stations", GREEN),
+        ]
+        for i, (value, label, color) in enumerate(metrics):
+            x = 0.05 + i * 0.235
+            card = mpatches.FancyBboxPatch(
+                (x, 0.800), 0.215, 0.055,
+                boxstyle="round,pad=0.008",
+                facecolor=LIGHT, edgecolor=color, linewidth=1.3,
+                transform=fig1.transFigure
+            )
+            fig1.add_artist(card)
+            fig1.text(x + 0.1075, 0.835, value, fontsize=12, fontweight='bold',
+                      color=color, ha='center', va='center', transform=fig1.transFigure)
+            fig1.text(x + 0.1075, 0.812, label, fontsize=7, color=GRAY,
+                      ha='center', va='center', transform=fig1.transFigure)
+
+        # Top 10 Stations chart
+        ax1 = fig1.add_axes([0.08, 0.48, 0.52, 0.28])
+        if not df.empty and 'STATION' in df.columns:
+            top10 = df['STATION'].value_counts().nlargest(10)
+            y_pos = np.arange(len(top10))
+            colors = plt.cm.Blues(np.linspace(0.45, 0.85, len(top10)))[::-1]
+            bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.65, edgecolor='none')
+            ax1.set_yticks(y_pos)
+            ax1.set_yticklabels(top10.index[::-1], fontsize=7.5)
+            ax1.set_xlabel('Number of Cases', fontsize=8, color=GRAY)
+            ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold',
+                          color=NAVY, pad=6, loc='left')
+            ax1.tick_params(axis='x', labelsize=7, colors=GRAY)
+            ax1.spines['top'].set_visible(False)
+            ax1.spines['right'].set_visible(False)
+            ax1.spines['left'].set_color('#D5D8DC')
+            ax1.spines['bottom'].set_color('#D5D8DC')
+            ax1.set_axisbelow(True)
+            ax1.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
+            for bar, val in zip(bars, top10.values[::-1]):
+                ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2,
+                         f'{int(val)}', va='center', fontsize=6.5, color=DARK)
+        else:
+            ax1.text(0.5, 0.5, 'No Station Data', ha='center', va='center', fontsize=9, color=GRAY)
+            ax1.axis('off')
+
+        # All Departments chart (no limit)
+        ax2 = fig1.add_axes([0.66, 0.48, 0.30, 0.28])
+        if not df.empty and 'DEPARTMENT' in df.columns:
+            dept_counts = df['DEPARTMENT'].value_counts()  # ALL departments
+            y_pos2 = np.arange(len(dept_counts))
+            colors2 = plt.cm.GnBu(np.linspace(0.4, 0.85, len(dept_counts)))[::-1]
+            bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.65, edgecolor='none')
+            ax2.set_yticks(y_pos2)
+            ax2.set_yticklabels(dept_counts.index[::-1], fontsize=6.5)
+            ax2.set_xlabel('Cases', fontsize=8, color=GRAY)
+            ax2.set_title('All Departments', fontsize=10, fontweight='bold',
+                          color=NAVY, pad=6, loc='left')
+            ax2.tick_params(axis='x', labelsize=7, colors=GRAY)
+            ax2.spines['top'].set_visible(False)
+            ax2.spines['right'].set_visible(False)
+            ax2.spines['left'].set_color('#D5D8DC')
+            ax2.spines['bottom'].set_color('#D5D8DC')
+            ax2.set_axisbelow(True)
+            ax2.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
+            for bar, val in zip(bars2, dept_counts.values[::-1]):
+                ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2,
+                         f'{int(val)}', va='center', fontsize=6, color=DARK)
+        else:
+            ax2.text(0.5, 0.5, 'No Department Data', ha='center', va='center', fontsize=9, color=GRAY)
+            ax2.axis('off')
+
+        # Key Insights
+        fig1.text(0.05, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.05, 0.30], [0.438, 0.438], color=ACCENT,
+                                   linewidth=1.5, transform=fig1.transFigure))
+
+        insights = []
+        if total_cases > 0:
+            insights.append(f"•  Total of {total_cases:,} cases recorded during the selected period.")
+            if top_station != "N/A":
+                pct = (top_station_cases / total_cases) * 100
+                insights.append(f"•  {top_station} is the highest contributor with {top_station_cases:,} cases ({pct:.1f}%).")
+            if top_error != "N/A":
+                err_count = df['ERROR MAIN CATEGORY'].value_counts().iloc[0]
+                pct = (err_count / total_cases) * 100
+                insights.append(f"•  Most frequent error: {top_error} ({pct:.1f}% of total).")
+            if unique_stn > 0:
+                insights.append(f"•  Cases reported across {unique_stn} unique stations.")
+                top3 = df['STATION'].value_counts().nlargest(3)
+                top3_pct = (top3.sum() / total_cases) * 100
+                insights.append(f"•  Top 3 stations together account for {top3_pct:.1f}% of all cases.")
+            if dept_title != "All Departments":
+                insights.append(f"•  Report filtered for: {dept_title}.")
+
+        if not insights:
+            insights = ["•  Insufficient data to generate insights."]
+
+        y_pos = 0.420
+        for insight in insights[:6]:
+            fig1.text(0.05, y_pos, insight, fontsize=7.5, color=DARK,
+                      va='top', transform=fig1.transFigure)
+            y_pos -= 0.022
+
+        # Jurisdiction summary table on page 1 (bottom)
+        fig1.text(0.05, 0.275, "JURISDICTION SUMMARY", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.05, 0.32], [0.268, 0.268], color=ACCENT,
+                                   linewidth=1.5, transform=fig1.transFigure))
+
+        if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
+            jur_sum = df['JURISDICTION'].value_counts().reset_index()
+            jur_sum.columns = ['Jurisdiction', 'Cases']
+            jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.05, 0.240), 0.90, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig1.transFigure, clip_on=False
+            )
+            fig1.add_artist(header_bg)
+            fig1.text(0.07, 0.251, "Jurisdiction", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.72, 0.251, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.85, 0.251, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+
+            y_pos = 0.225
+            max_rows = min(len(jur_sum), 8)
+            for idx in range(max_rows):
+                row = jur_sum.iloc[idx]
+                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.05, y_pos - 0.008), 0.90, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig1.transFigure, clip_on=False
+                )
+                fig1.add_artist(row_bg)
+                fig1.text(0.07, y_pos + 0.002, str(row['Jurisdiction'])[:50],
+                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
+                y_pos -= 0.020
+            if len(jur_sum) > 8:
+                fig1.text(0.05, y_pos, f"... and {len(jur_sum) - 8} more jurisdictions (see Page 2)",
+                          fontsize=6.5, color=GRAY, transform=fig1.transFigure)
+        else:
+            fig1.text(0.05, 0.230, "No jurisdiction data available.",
+                      fontsize=8, color=GRAY, transform=fig1.transFigure)
+
+        pdf.savefig(fig1, bbox_inches='tight')
+        plt.close(fig1)
+
+        # ===================== PAGE 2 =====================
+        fig2 = plt.figure(figsize=(8.27, 11.69))
+        fig2.patch.set_facecolor('#FFFFFF')
+        draw_header_footer(fig2, 2, 2)
+
+        fig2.text(0.05, 0.900, "DETAILED BREAKDOWN", fontsize=11, fontweight='bold',
+                  color=NAVY, ha='left', va='center', transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.05, 0.95], [0.885, 0.885], color=ACCENT,
+                                   linewidth=1.2, transform=fig2.transFigure))
+
+        # Full Jurisdiction table
+        fig2.text(0.05, 0.860, "ALL JURISDICTIONS", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.05, 0.30], [0.853, 0.853], color=ACCENT,
+                                   linewidth=1.5, transform=fig2.transFigure))
+
+        y_pos = 0.830
+        if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
+            jur_sum = df['JURISDICTION'].value_counts().reset_index()
+            jur_sum.columns = ['Jurisdiction', 'Cases']
+            jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.05, y_pos), 0.90, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig2.transFigure, clip_on=False
+            )
+            fig2.add_artist(header_bg)
+            fig2.text(0.07, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            y_pos -= 0.022
+
+            for idx, row in jur_sum.iterrows():
+                if y_pos < 0.48:
+                    break
+                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.05, y_pos - 0.008), 0.90, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig2.transFigure, clip_on=False
+                )
+                fig2.add_artist(row_bg)
+                fig2.text(0.07, y_pos + 0.002, str(row['Jurisdiction'])[:55],
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                y_pos -= 0.020
+        else:
+            fig2.text(0.05, 0.820, "No jurisdiction data available.",
+                      fontsize=8, color=GRAY, transform=fig2.transFigure)
+            y_pos = 0.800
+
+        # Full Error Categories table
+        fig2.text(0.05, 0.450, "ALL ERROR CATEGORIES", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.05, 0.32], [0.443, 0.443], color=ACCENT,
+                                   linewidth=1.5, transform=fig2.transFigure))
+
+        y_pos = 0.420
+        if not df.empty and 'ERROR MAIN CATEGORY' in df.columns and total_cases > 0:
+            err_sum = df['ERROR MAIN CATEGORY'].value_counts().reset_index()
+            err_sum.columns = ['Error Category', 'Cases']
+            err_sum['%'] = (err_sum['Cases'] / total_cases * 100).round(1)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.05, y_pos), 0.90, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig2.transFigure, clip_on=False
+            )
+            fig2.add_artist(header_bg)
+            fig2.text(0.07, y_pos + 0.011, "Error Category", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            y_pos -= 0.022
+
+            for idx, row in err_sum.iterrows():
+                if y_pos < 0.08:
+                    break
+                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.05, y_pos - 0.008), 0.90, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig2.transFigure, clip_on=False
+                )
+                fig2.add_artist(row_bg)
+                fig2.text(0.07, y_pos + 0.002, str(row['Error Category'])[:55],
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                y_pos -= 0.020
+        else:
+            fig2.text(0.05, 0.400, "No error category data available.",
+                      fontsize=8, color=GRAY, transform=fig2.transFigure)
+
+        pdf.savefig(fig2, bbox_inches='tight')
+        plt.close(fig2)
 
     buffer.seek(0)
     return buffer
