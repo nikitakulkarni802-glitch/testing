@@ -5,14 +5,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import folium
-from streamlit_folium import st_folium
-from folium.plugins import Fullscreen
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
+import folium
+from streamlit_folium import st_folium
+from folium.plugins import Fullscreen
 
 try:
     from statsmodels.tsa.holtwinters import ExponentialSmoothing
@@ -248,13 +248,6 @@ try:
 except Exception:
     st.error("⚠️ Secrets not configured properly. Please check .streamlit/secrets.toml")
     st.stop()
-
-# ====================== WATERMARK ======================
-st.markdown(f'''
-<div class="watermark">
-    <img src="{IR_LOGO_URL}" alt="Central Railway Logo">
-</div>
-''', unsafe_allow_html=True)
 
 # ====================== STATION COORDINATES ======================
 station_coords = {
@@ -521,8 +514,6 @@ def get_jurisdiction(station, department):
     if any(x in dept for x in ["ELECT", "ELECTRICAL", "SSE/ELECT"]):
         return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
-
-# ====================== ONE-PAGE PDF REPORT FUNCTION ======================
 def generate_one_page_report(df, from_date, to_date, user_name):
     """Generate a professional one-page PDF analysis report"""
     buffer = BytesIO()
@@ -680,7 +671,6 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     
     buffer.seek(0)
     return buffer
-
 # ====================== FORECASTING ENGINE ======================
 def get_global_month_index(df):
     if df is None or df.empty or 'DATE' not in df.columns:
@@ -877,11 +867,18 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # ===== Logo on Right + Centered DRISHTI =====
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col3:
-        st.image(IR_LOGO_URL, width=150)
+    # Watermark
+    st.markdown(f"""
+    <div class="watermark">
+        <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
+    </div>
+    """, unsafe_allow_html=True)
 
+    col1, col2, col3 = st.columns([3, 3, 1])
+    with col2:
+        st.image(IR_LOGO_URL, width=220)
+
+    # ===== CLEAN AESTHETIC DRISHTI HEADER =====
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
     st.markdown("""
@@ -1199,28 +1196,7 @@ else:
             st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-            
-            with col_btn1:
-                # ===== ONE-PAGE PDF REPORT BUTTON =====
-                try:
-                    pdf_buffer = generate_one_page_report(
-                        filtered_df, 
-                        from_date, 
-                        to_date, 
-                        st.session_state.user_name
-                    )
-                    st.download_button(
-                        label="📄 One-Page Analysis Report (PDF)",
-                        data=pdf_buffer,
-                        file_name=f"DRISHTI_Analysis_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.pdf",
-                        mime="application/pdf",
-                        type="primary",
-                        use_container_width=True
-                    )
-                except Exception as e:
-                    st.error(f"PDF generation error: {e}")
-            
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
             with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -1434,8 +1410,28 @@ else:
             st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
-            with col_btn2:
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+
+with col_btn1:
+    try:
+        pdf_buffer = generate_one_page_report(
+            filtered_df, 
+            from_date, 
+            to_date, 
+            st.session_state.user_name
+        )
+        st.download_button(
+            label="📄 One-Page Analysis Report (PDF)",
+            data=pdf_buffer,
+            file_name=f"DRISHTI_Analysis_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.pdf",
+            mime="application/pdf",
+            type="primary",
+            use_container_width=True
+        )
+    except Exception as e:
+        st.error(f"PDF generation error: {e}")
+
+with col_btn2:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     write_styled_sheet(writer, display_df[cols], 'Filtered_Records')
