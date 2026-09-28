@@ -12,7 +12,12 @@ from folium.plugins import Fullscreen
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+try:
+    from zoneinfo import ZoneInfo
+    IST = ZoneInfo("Asia/Kolkata")
+except Exception:
+    IST = timezone(timedelta(hours=5, minutes=30))  # fallback IST
 
 try:
     from statsmodels.tsa.holtwinters import ExponentialSmoothing
@@ -574,7 +579,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
             dept_title = f"{len(unique_depts)} Departments (Filtered)"
 
     period_text = f"Period: {from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
-    gen_text = f"Generated: {datetime.now().strftime('%d %b %Y, %H:%M')}   |   By: {user_name}"
+    gen_text = f"Generated: {datetime.now(IST).strftime('%d %b %Y, %H:%M')} IST   |   By: {user_name}"
 
     def draw_header_footer(fig, page_num, total_pages):
         # Header bar
