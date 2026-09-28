@@ -532,6 +532,8 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     top_station_cases = 0
     top_error = "N/A"
     unique_stn = 0
+    pct_change = None
+    monthly_trend = None
 
     if not df.empty and 'STATION' in df.columns:
         stn_counts = df['STATION'].value_counts()
@@ -544,6 +546,21 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         err_counts = df['ERROR MAIN CATEGORY'].value_counts()
         if not err_counts.empty:
             top_error = str(err_counts.index[0])
+
+    # Monthly trend + previous period comparison
+    if not df.empty and 'DATE' in df.columns:
+        try:
+            monthly = df.dropna(subset=['DATE']).set_index('DATE').resample('MS').size().astype(float)
+            monthly = monthly[monthly.index <= pd.Timestamp(to_date)]
+            if len(monthly) >= 2:
+                last_val = float(monthly.iloc[-1])
+                prev_val = float(monthly.iloc[-2])
+                if prev_val > 0:
+                    pct_change = ((last_val - prev_val) / prev_val) * 100
+            if len(monthly) >= 3:
+                monthly_trend = monthly.tail(6)
+        except Exception:
+            pass
 
     # Dynamic department title
     dept_title = "All Departments"
@@ -604,9 +621,14 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         fig1.add_artist(plt.Line2D([0.05, 0.95], [0.870, 0.870], color=ACCENT,
                                    linewidth=1.2, transform=fig1.transFigure))
 
-        # Metrics cards
+        # Metrics cards (with % change on Total Cases)
+        change_label = "Total Cases"
+        if pct_change is not None:
+            arrow = "▲" if pct_change > 0 else ("▼" if pct_change < 0 else "●")
+            change_label = f"Total Cases  {arrow} {pct_change:+.1f}% vs prev month"
+
         metrics = [
-            (f"{total_cases:,}", "Total Cases", NAVY),
+            (f"{total_cases:,}", change_label, NAVY),
             (str(top_station)[:14], "Top Station", BLUE),
             (f"{top_station_cases:,}", "Top Station Cases", ACCENT),
             (f"{unique_stn}", "Unique Stations", GREEN),
@@ -622,7 +644,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
             fig1.add_artist(card)
             fig1.text(x + 0.1075, 0.835, value, fontsize=12, fontweight='bold',
                       color=color, ha='center', va='center', transform=fig1.transFigure)
-            fig1.text(x + 0.1075, 0.812, label, fontsize=7, color=GRAY,
+            fig1.text(x + 0.1075, 0.812, label, fontsize=6.5 if i == 0 else 7, color=GRAY,
                       ha='center', va='center', transform=fig1.transFigure)
 
         # Top 10 Stations chart
@@ -686,6 +708,17 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         insights = []
         if total_cases > 0:
             insights.append(f"•  Total of {total_cases:,} cases recorded during the selected period.")
+            if pct_change is not None:
+                if pct_change > 10:
+                    insights.append(f"•  Cases rose sharply by {pct_change:+.1f}% compared to the previous month.")
+                elif pct_change > 0:
+                    insights.append(f"•  Cases increased by {pct_change:+.1f}% vs previous month.")
+                elif pct_change < -10:
+                    insights.append(f"•  Cases dropped significantly by {pct_change:.1f}% vs previous month.")
+                elif pct_change < 0:
+                    insights.append(f"•  Cases decreased by {pct_change:.1f}% vs previous month.")
+                else:
+                    insights.append("•  Case volume is stable compared to the previous month.")
             if top_station != "N/A":
                 pct = (top_station_cases / total_cases) * 100
                 insights.append(f"•  {top_station} is the highest contributor with {top_station_cases:,} cases ({pct:.1f}%).")
@@ -694,10 +727,12 @@ def generate_one_page_report(df, from_date, to_date, user_name):
                 pct = (err_count / total_cases) * 100
                 insights.append(f"•  Most frequent error: {top_error} ({pct:.1f}% of total).")
             if unique_stn > 0:
-                insights.append(f"•  Cases reported across {unique_stn} unique stations.")
                 top3 = df['STATION'].value_counts().nlargest(3)
                 top3_pct = (top3.sum() / total_cases) * 100
-                insights.append(f"•  Top 3 stations together account for {top3_pct:.1f}% of all cases.")
+                if top3_pct >= 40:
+                    insights.append(f"•  Concentration alert: Top 3 stations account for {top3_pct:.1f}% of all cases.")
+                else:
+                    insights.append(f"•  Cases spread across {unique_stn} stations; Top 3 contribute {top3_pct:.1f}%.")
             if dept_title != "All Departments":
                 insights.append(f"•  Report filtered for: {dept_title}.")
 
@@ -1359,10 +1394,17 @@ else:
                         to_date,
                         st.session_state.user_name
                     )
+                    # Smart file name based on department filter
+                    dept_tag = "ALL"
+                    if selected_categories and len(selected_categories) == 1:
+                        dept_tag = str(selected_categories[0]).replace(" ", "_").replace("/", "-")[:20]
+                    elif selected_categories and len(selected_categories) > 1:
+                        dept_tag = f"{len(selected_categories)}DEPTS"
+                    pdf_name = f"DRISHTI_DataLogger_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf"
                     st.download_button(
-                        label="📄 One-Page Analysis Report (PDF)",
+                        label="📄 Data Logger Report (PDF)",
                         data=pdf_buffer,
-                        file_name=f"DRISHTI_Analysis_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.pdf",
+                        file_name=pdf_name,
                         mime="application/pdf",
                         type="primary",
                         use_container_width=True
