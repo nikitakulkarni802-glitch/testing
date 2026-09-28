@@ -516,7 +516,7 @@ def get_jurisdiction(station, department):
     return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
 
 def generate_one_page_report(df, from_date, to_date, user_name):
-    """Generate a professional multi-page A4 PDF Data Logger Report"""
+    """Generate a professional multi-page A4 PDF Health Report"""
     buffer = BytesIO()
 
     NAVY   = '#0D2137'
@@ -586,7 +586,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         fig.add_artist(header_bar)
         fig.text(0.05, 0.965, "DRISHTI", fontsize=16, fontweight='bold',
                  color='white', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.05, 0.942, "Data Logger Report",
+        fig.text(0.05, 0.942, "Health Report",
                  fontsize=8, color='#AED6F1', ha='left', va='center', transform=fig.transFigure)
         fig.text(0.95, 0.965, "Central Railway", fontsize=9, fontweight='bold',
                  color='white', ha='right', va='center', transform=fig.transFigure)
@@ -1400,9 +1400,9 @@ else:
                         dept_tag = str(selected_categories[0]).replace(" ", "_").replace("/", "-")[:20]
                     elif selected_categories and len(selected_categories) > 1:
                         dept_tag = f"{len(selected_categories)}DEPTS"
-                    pdf_name = f"DRISHTI_DataLogger_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf"
+                    pdf_name = f"DRISHTI_HealthReport_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf"
                     st.download_button(
-                        label="📄 Data Logger Report (PDF)",
+                        label="📄 Health Report (PDF)",
                         data=pdf_buffer,
                         file_name=pdf_name,
                         mime="application/pdf",
