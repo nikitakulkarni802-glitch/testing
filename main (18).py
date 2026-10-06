@@ -374,11 +374,18 @@ ENGG_ADEN = {
     "NEI": "ADEN/LUR", "KRMD": "ADEN/LUR", "BANL": "ADEN/LUR", "GANI": "ADEN/LUR",
 
     # ===== LC Gates (Engineering) — mapped by associated station =====
+    # Primary keys
     "LC-6": "ADEN/LUR",          # KWV-LTRR / LTRR   (Interlocked)
     "LC-47": "ADEN/LUR",         # KWV-LTRR / OSA    (Non-Interlocked)
     "LC-34": "ADEN/LUR",         # KWV-LTRR / DKY    (Interlocked)
     "LC-70": "ADEN/PVR",         # KWV-MRJ  / MRJ    (Interlocked)
     "LC-40": "Sr.ADEN KWV BG",   # DD-SUR   / MA (Madha) (Interlocked)
+    # Common sheet variants (no hyphen / zero-padded / spaced)
+    "LC6": "ADEN/LUR", "LC06": "ADEN/LUR", "LC 6": "ADEN/LUR",
+    "LC47": "ADEN/LUR", "LC 47": "ADEN/LUR",
+    "LC34": "ADEN/LUR", "LC 34": "ADEN/LUR",
+    "LC70": "ADEN/PVR", "LC 70": "ADEN/PVR",
+    "LC40": "Sr.ADEN KWV BG", "LC 40": "Sr.ADEN KWV BG",
 }
 
 ELECT_G_SSE = {
@@ -408,6 +415,12 @@ ELECT_G_SSE = {
     "LTRR": "SSE/ELECT/LUR", "UMD": "SSE/ELECT/LUR", "UPI": "SSE/ELECT/LUR", "KCB": "SSE/ELECT/LUR",
     "TER": "SSE/ELECT/LUR", "PCP": "SSE/ELECT/LUR", "NEI": "SSE/ELECT/LUR", "KRMD": "SSE/ELECT/LUR",
     "BANL": "SSE/ELECT/LUR", "GANI": "SSE/ELECT/LUR",
+    # LC Gates
+    "LC-6": "SSE/ELECT/LUR", "LC6": "SSE/ELECT/LUR", "LC06": "SSE/ELECT/LUR",
+    "LC-47": "SSE/ELECT/LUR", "LC47": "SSE/ELECT/LUR",
+    "LC-34": "SSE/ELECT/LUR", "LC34": "SSE/ELECT/LUR",
+    "LC-70": "SSE/ELECT/KWV", "LC70": "SSE/ELECT/KWV",
+    "LC-40": "SSE/ELECT/KWV", "LC40": "SSE/ELECT/KWV",
 }
 
 ELECT_TRD_SSE = {
@@ -437,6 +450,12 @@ ELECT_TRD_SSE = {
     "KVK": "SSE/TRD/SGRE", "SGRE": "SSE/TRD/SGRE", "ARAG": "SSE/TRD/SGRE",
     "LNP": "SSE/TRD/SGRE", "AGDl": "SSE/TRD/SGRE", "BLNK": "SSE/TRD/SGRE",
     "BLWD": "SSE/TRD/KWV", "BDK": "SSE/TRD/KWV", "MRJ": "SSE/TRD/KWV",
+    # LC Gates
+    "LC-6": "SSE/TRD/LUR", "LC6": "SSE/TRD/LUR", "LC06": "SSE/TRD/LUR",
+    "LC-47": "SSE/TRD/LUR", "LC47": "SSE/TRD/LUR",
+    "LC-34": "SSE/TRD/DRSV", "LC34": "SSE/TRD/DRSV",   # DKY → DRSV
+    "LC-70": "SSE/TRD/KWV", "LC70": "SSE/TRD/KWV",
+    "LC-40": "SSE/TRD/KWV", "LC40": "SSE/TRD/KWV",      # MA/Madha
 }
 
 OPERATING_TI = {
@@ -462,6 +481,12 @@ OPERATING_TI = {
     "MSDG": "TI/PVR", "JVA": "TI/PVR", "GLV": "TI/PVR", "LNP": "TI/PVR", "AGDl": "TI/PVR",
     "BLWD": "TI/PVR", "BDK": "TI/PVR", "BLNK": "TI/PVR", "BBV": "TI/PVR",
     "AHI": "TI/PVR", "BMNI": "TI/PVR", "BHLI": "TI/PVR",
+    # LC Gates
+    "LC-6": "TI/LUR", "LC6": "TI/LUR", "LC06": "TI/LUR",
+    "LC-47": "TI/LUR", "LC47": "TI/LUR",
+    "LC-34": "TI/LUR", "LC34": "TI/LUR",
+    "LC-70": "TI/PVR", "LC70": "TI/PVR",
+    "LC-40": "TI/KWV", "LC40": "TI/KWV",   # MA / Madha
 }
 
 SNT_ADSTE = {
@@ -506,29 +531,64 @@ SNT_ADSTE = {
     "TER": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "PCP": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "NEI": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "KRMD": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "BANL": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "GANI": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    # LC Gates
+    "LC-6": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC6": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC06": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "LC-47": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC47": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "LC-34": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC34": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
+    "LC-70": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "LC70": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
+    "LC-40": "ADSTE/KWV-I (KWV-BRB)", "LC40": "ADSTE/KWV-I (KWV-BRB)",   # Madha
 }
 
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
-    stn = str(station).strip().upper().replace(" ", "")
+
+    raw = str(station).strip()
+    stn = raw.upper().replace(" ", "")
+
+    # Special station normalizations
     if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
-    # Normalize LC gate names (e.g. "LC6" / "LC 6" → "LC-6")
-    if stn.startswith("LC") and not stn.startswith("LC-"):
-        stn = "LC-" + stn[2:].lstrip("-")
+
+    # ===== LC Gate handling (works for ALL departments) =====
+    # Accepts: LC-6, LC6, LC 6, lc-06, L.C.6, etc.
+    is_lc = stn.startswith("LC") or stn.startswith("L.C") or stn.startswith("L C")
+    if is_lc:
+        digits = "".join(ch for ch in stn if ch.isdigit())
+        if digits:
+            lc_key  = f"LC-{int(digits)}"   # LC-6, LC-47 ...
+            lc_key2 = f"LC{int(digits)}"    # LC6, LC47 ...
+            candidates = (lc_key, lc_key2, stn, raw, raw.upper())
+        else:
+            candidates = (stn, raw, raw.upper())
+    else:
+        candidates = (stn, raw, raw.upper())
+
     dept = str(department).strip().upper() if pd.notna(department) else ""
+
+    def _lookup(d):
+        for k in candidates:
+            if k in d:
+                return d[k]
+        return None
+
     if "OPTG" in dept or "OPERATING" in dept:
-        return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
+        return _lookup(OPERATING_TI) or "Unclassified"
     if "ENGG" in dept or "ENGINEERING" in dept or "ADEN" in dept:
-        return ENGG_ADEN.get(stn, ENGG_ADEN.get(station, "Unclassified"))
+        return _lookup(ENGG_ADEN) or "Unclassified"
     if any(x in dept for x in ["TRD", "TRACTION", "OHE"]):
-        return ELECT_TRD_SSE.get(stn, ELECT_TRD_SSE.get(station, "Unclassified"))
+        return _lookup(ELECT_TRD_SSE) or "Unclassified"
     if any(x in dept for x in ["ELECT", "ELECTRICAL", "SSE/ELECT"]):
-        return ELECT_G_SSE.get(stn, ELECT_G_SSE.get(station, "Unclassified"))
-    return SNT_ADSTE.get(stn, SNT_ADSTE.get(station, "Unclassified"))
+        return _lookup(ELECT_G_SSE) or "Unclassified"
+    # S&T or unknown department – try SNT first, then ENGG as fallback for LCs
+    result = _lookup(SNT_ADSTE)
+    if result:
+        return result
+    if is_lc:
+        return _lookup(ENGG_ADEN) or "Unclassified"
+    return "Unclassified"
 
 def generate_one_page_report(df, from_date, to_date, user_name):
     """Generate a professional multi-page A4 PDF Health Report"""
