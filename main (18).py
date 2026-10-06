@@ -372,6 +372,13 @@ ENGG_ADEN = {
     "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR", "LTRR": "ADEN/LUR", "UMD": "ADEN/LUR",
     "UPI": "ADEN/LUR", "KCB": "ADEN/LUR", "TER": "ADEN/LUR", "PCP": "ADEN/LUR",
     "NEI": "ADEN/LUR", "KRMD": "ADEN/LUR", "BANL": "ADEN/LUR", "GANI": "ADEN/LUR",
+
+    # ===== LC Gates (Engineering) — mapped by associated station =====
+    "LC-6": "ADEN/LUR",          # KWV-LTRR / LTRR   (Interlocked)
+    "LC-47": "ADEN/LUR",         # KWV-LTRR / OSA    (Non-Interlocked)
+    "LC-34": "ADEN/LUR",         # KWV-LTRR / DKY    (Interlocked)
+    "LC-70": "ADEN/PVR",         # KWV-MRJ  / MRJ    (Interlocked)
+    "LC-40": "Sr.ADEN KWV BG",   # DD-SUR   / MA (Madha) (Interlocked)
 }
 
 ELECT_G_SSE = {
@@ -509,6 +516,9 @@ def get_jurisdiction(station, department):
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
+    # Normalize LC gate names (e.g. "LC6" / "LC 6" → "LC-6")
+    if stn.startswith("LC") and not stn.startswith("LC-"):
+        stn = "LC-" + stn[2:].lstrip("-")
     dept = str(department).strip().upper() if pd.notna(department) else ""
     if "OPTG" in dept or "OPERATING" in dept:
         return OPERATING_TI.get(stn, OPERATING_TI.get(station, "Unclassified"))
