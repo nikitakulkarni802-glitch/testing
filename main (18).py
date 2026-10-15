@@ -748,7 +748,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
             y_pos2 = np.arange(len(dept_counts))
 
             # Modern teal gradient
-            colors2 = plt.cm.Teal(np.linspace(0.35, 0.85, len(dept_counts)))[::-1]
+            colors2 = plt.cm.GnBu(np.linspace(0.40, 0.90, len(dept_counts)))[::-1]
 
             bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.68,
                              edgecolor='white', linewidth=0.5)
