@@ -1218,6 +1218,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     blank_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_layout)
 
+    # Correct colour class name
     NAVY   = RGBColor(0x0D, 0x21, 0x37)
     BLUE   = RGBColor(0x1A, 0x52, 0x76)
     ACCENT = RGBColor(0x02, 0x88, 0xD1)
@@ -1226,6 +1227,8 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     DARK   = RGBColor(0x1C, 0x28, 0x33)
     GRAY   = RGBColor(0x5D, 0x6D, 0x7E)
     GREEN  = RGBColor(0x1E, 0x84, 0x49)
+    LIGHT_BLUE = RGBColor(0xAE, 0xD6, 0xF1)
+
     def add_shape(left, top, width, height, fill_color):
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
         shape.fill.solid()
@@ -1252,15 +1255,14 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     add_text_box(Inches(0.4), Inches(0.15), Inches(6), Inches(0.4),
                  "DRISHTI  |  Executive Summary", 22, True, WHITE)
     add_text_box(Inches(0.4), Inches(0.50), Inches(8), Inches(0.3),
-                 "Central Railway  •  Solapur Division  •  Safety Branch", 12, False,
-                 RgbColor(0xAE, 0xD6, 0xF1))
+                 "Central Railway  •  Solapur Division  •  Safety Branch", 12, False, LIGHT_BLUE)
 
     period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
     add_text_box(Inches(9.2), Inches(0.18), Inches(3.8), Inches(0.3),
                  period, 11, False, WHITE, PP_ALIGN.RIGHT)
     add_text_box(Inches(9.2), Inches(0.48), Inches(3.8), Inches(0.3),
                  f"Generated: {datetime.now(IST).strftime('%d %b %Y %H:%M')} IST", 10, False,
-                 RgbColor(0xAE, 0xD6, 0xF1), PP_ALIGN.RIGHT)
+                 LIGHT_BLUE, PP_ALIGN.RIGHT)
 
     # KPIs
     total_cases = len(df)
@@ -1333,8 +1335,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     add_text_box(Inches(0.4), Inches(7.2), Inches(8), Inches(0.25),
                  f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
     add_text_box(Inches(9.5), Inches(7.2), Inches(3.5), Inches(0.25),
-                 "CONFIDENTIAL – For Official Use Only", 10, False,
-                 RgbColor(0xAE, 0xD6, 0xF1), PP_ALIGN.RIGHT)
+                 "CONFIDENTIAL – For Official Use Only", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
 
     buffer = BytesIO()
     prs.save(buffer)
