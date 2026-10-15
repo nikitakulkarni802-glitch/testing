@@ -1824,7 +1824,6 @@ else:
                             st.error(f"Failed for {dept}: {e}")
         with col_r2:
             st.markdown("**Executive Summary (PPTX)**")
-            st.caption("1-slide summary ready for DRM / ADRM meetings")
             try:
                 pptx_buf = generate_executive_summary_pptx(filtered_df, from_date, to_date, st.session_state.user_name)
                 st.download_button(label="📊 Download Executive Summary (PPTX)", data=pptx_buf,
