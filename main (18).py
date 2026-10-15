@@ -1213,29 +1213,48 @@ def generate_summary_image(df, from_date, to_date, user_name):
     return buf
 
 def generate_executive_summary_pptx(df, from_date, to_date, user_name):
+    """
+    5-page Professional Executive Summary PPTX
+    Page 1: Cover (DRISHTI + full form)
+    Page 2: Executive Summary (KPIs + lists)
+    Page 3: Top Stations (multi-colour vertical bars)
+    Page 4: Top Errors (multi-colour vertical bars)
+    Page 5: Department-wise (multi-colour vertical bars)
+    """
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import PP_ALIGN
+    from pptx.enum.shapes import MSO_SHAPE
+    import matplotlib.pyplot as plt
+    import matplotlib
+    matplotlib.use('Agg')
+
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
-    blank_layout = prs.slide_layouts[6]
-    slide = prs.slides.add_slide(blank_layout)
-    NAVY = RGBColor(0x0D, 0x21, 0x37)
-    BLUE = RGBColor(0x1A, 0x52, 0x76)
-    ACCENT = RGBColor(0x02, 0x88, 0xD1)
-    WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-    LIGHT = RGBColor(0xEB, 0xF5, 0xFB)
-    DARK = RGBColor(0x1C, 0x28, 0x33)
-    GRAY = RGBColor(0x5D, 0x6D, 0x7E)
-    GREEN = RGBColor(0x1E, 0x84, 0x49)
-    LIGHT_BLUE = RGBColor(0xAE, 0xD6, 0xF1)
 
-    def add_shape(left, top, width, height, fill_color):
+    # Navy Blue palette
+    NAVY       = RGBColor(0x0D, 0x21, 0x37)
+    PRIMARY    = RGBColor(0x01, 0x57, 0x9B)
+    ACCENT     = RGBColor(0x02, 0x88, 0xD1)
+    WHITE      = RGBColor(0xFF, 0xFF, 0xFF)
+    OFF_WHITE  = RGBColor(0xF5, 0xF9, 0xFC)
+    DARK       = RGBColor(0x0D, 0x1B, 0x2A)
+    GRAY       = RGBColor(0x54, 0x6E, 0x7A)
+    GOLD       = RGBColor(0xFF, 0xC1, 0x07)
+    TEAL       = RGBColor(0x00, 0x79, 0x6B)
+
+    blank_layout = prs.slide_layouts[6]
+
+    def add_shape(slide, left, top, width, height, fill_color):
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
         shape.fill.solid()
         shape.fill.fore_color.rgb = fill_color
         shape.line.fill.background()
         return shape
 
-    def add_text_box(left, top, width, height, text, font_size=14, bold=False, color=DARK, align=PP_ALIGN.LEFT):
+    def add_text_box(slide, left, top, width, height, text, font_size=14, bold=False, color=DARK, align=PP_ALIGN.LEFT):
         txBox = slide.shapes.add_textbox(left, top, width, height)
         tf = txBox.text_frame
         tf.word_wrap = True
@@ -1248,13 +1267,21 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         p.alignment = align
         return txBox
 
-    add_shape(Inches(0), Inches(0), Inches(13.333), Inches(0.85), NAVY)
-    add_text_box(Inches(0.4), Inches(0.15), Inches(6), Inches(0.4), "DRISHTI  |  Executive Summary", 22, True, WHITE)
-    add_text_box(Inches(0.4), Inches(0.50), Inches(8), Inches(0.3), "Central Railway  •  Solapur Division  •  Safety Branch", 12, False, LIGHT_BLUE)
-    period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
-    add_text_box(Inches(9.2), Inches(0.18), Inches(3.8), Inches(0.3), period, 11, False, WHITE, PP_ALIGN.RIGHT)
-    add_text_box(Inches(9.2), Inches(0.48), Inches(3.8), Inches(0.3), f"Generated: {datetime.now(IST).strftime('%d %b %Y %H:%M')} IST", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
+    def add_content_header_footer(slide, page_num, total_pages=5):
+        add_shape(slide, Inches(0), Inches(0), Inches(13.333), Inches(0.80), NAVY)
+        add_text_box(slide, Inches(0.4), Inches(0.18), Inches(6), Inches(0.40), "DRISHTI", 20, True, WHITE)
+        add_text_box(slide, Inches(0.4), Inches(0.50), Inches(7), Inches(0.25), "Safety Branch  •  Solapur Division", 11, False, RGBColor(0x90, 0xCA, 0xF9))
+        add_text_box(slide, Inches(9.0), Inches(0.22), Inches(4.0), Inches(0.30), "Central Railway", 13, True, WHITE, PP_ALIGN.RIGHT)
+        add_text_box(slide, Inches(9.0), Inches(0.50), Inches(4.0), Inches(0.25), "Solapur Division", 11, False, RGBColor(0x90, 0xCA, 0xF9), PP_ALIGN.RIGHT)
+        add_shape(slide, Inches(0), Inches(0.80), Inches(13.333), Inches(0.03), GOLD)
 
+        add_shape(slide, Inches(0), Inches(7.10), Inches(13.333), Inches(0.40), NAVY)
+        add_text_box(slide, Inches(0.4), Inches(7.18), Inches(8), Inches(0.25),
+                     f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
+        add_text_box(slide, Inches(9.5), Inches(7.18), Inches(3.5), Inches(0.25),
+                     f"CONFIDENTIAL  •  Page {page_num} of {total_pages}", 10, False, RGBColor(0x90, 0xCA, 0xF9), PP_ALIGN.RIGHT)
+
+    # Data preparation
     total_cases = len(df)
     top_stn, top_stn_cases, unique_stn = "N/A", 0, 0
     if not df.empty and 'STATION' in df.columns:
@@ -1264,43 +1291,154 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             top_stn_cases = int(vc.iloc[0])
         unique_stn = df['STATION'].nunique()
 
-    kpis = [(f"{total_cases:,}", "Total Cases", NAVY), (top_stn[:12], "Top Station", BLUE), (f"{top_stn_cases:,}", "Top Station Cases", ACCENT), (str(unique_stn), "Unique Stations", GREEN)]
+    # ===================== SLIDE 1: COVER =====================
+    s1 = prs.slides.add_slide(blank_layout)
+    add_shape(s1, Inches(0), Inches(0), Inches(13.333), Inches(7.5), NAVY)
+    add_shape(s1, Inches(4.5), Inches(2.15), Inches(4.3), Inches(0.04), GOLD)
+    add_shape(s1, Inches(4.5), Inches(4.55), Inches(4.3), Inches(0.04), GOLD)
+
+    add_text_box(s1, Inches(0.5), Inches(2.40), Inches(12.3), Inches(0.90), "DRISHTI", 54, True, WHITE, PP_ALIGN.CENTER)
+    add_text_box(s1, Inches(1.0), Inches(3.40), Inches(11.3), Inches(0.70),
+                 "Data Logger Report of Identified Significant\nTechnical Happenings & Insights", 16, False, RGBColor(0xB3, 0xE5, 0xFC), PP_ALIGN.CENTER)
+    add_text_box(s1, Inches(1.0), Inches(4.80), Inches(11.3), Inches(0.40), "Safety Branch", 18, True, GOLD, PP_ALIGN.CENTER)
+    add_text_box(s1, Inches(1.0), Inches(5.30), Inches(11.3), Inches(0.35), "Central Railway  •  Solapur Division", 14, False, RGBColor(0x90, 0xCA, 0xF9), PP_ALIGN.CENTER)
+    add_text_box(s1, Inches(1.0), Inches(6.70), Inches(11.3), Inches(0.30), "CONFIDENTIAL – For Official Use Only", 11, False, RGBColor(0x64, 0xB5, 0xF6), PP_ALIGN.CENTER)
+
+    # ===================== SLIDE 2: EXECUTIVE SUMMARY =====================
+    s2 = prs.slides.add_slide(blank_layout)
+    add_shape(s2, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s2, 2)
+
+    period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
+    add_text_box(s2, Inches(0.4), Inches(1.05), Inches(8), Inches(0.28), "Department: All Departments", 12, True, NAVY)
+    add_text_box(s2, Inches(0.4), Inches(1.30), Inches(8), Inches(0.25), f"Period: {period}", 10, False, GRAY)
+    add_shape(s2, Inches(0.4), Inches(1.60), Inches(12.5), Inches(0.02), GOLD)
+
+    kpis = [
+        (f"{total_cases:,}", "Total Cases", NAVY),
+        (top_stn[:12], "Top Station", PRIMARY),
+        (f"{top_stn_cases:,}", "Top Station Cases", ACCENT),
+        (str(unique_stn), "Unique Stations", TEAL),
+    ]
     card_w = Inches(2.9)
     for i, (val, label, color) in enumerate(kpis):
         left = Inches(0.4 + i * 3.2)
-        add_shape(left, Inches(1.1), card_w, Inches(1.05), LIGHT)
-        add_shape(left, Inches(1.1), Inches(0.08), Inches(1.05), color)
-        add_text_box(left + Inches(0.2), Inches(1.2), card_w - Inches(0.3), Inches(0.5), val, 26, True, color, PP_ALIGN.CENTER)
-        add_text_box(left + Inches(0.2), Inches(1.7), card_w - Inches(0.3), Inches(0.3), label, 12, False, GRAY, PP_ALIGN.CENTER)
+        add_shape(s2, left, Inches(1.85), card_w, Inches(1.10), WHITE)
+        add_shape(s2, left, Inches(1.85), Inches(0.09), Inches(1.10), color)
+        add_shape(s2, left, Inches(1.85), card_w, Inches(0.025), GOLD)
+        add_text_box(s2, left + Inches(0.2), Inches(2.00), card_w - Inches(0.3), Inches(0.50), val, 24, True, NAVY, PP_ALIGN.CENTER)
+        add_text_box(s2, left + Inches(0.2), Inches(2.50), card_w - Inches(0.3), Inches(0.30), label, 12, False, GRAY, PP_ALIGN.CENTER)
 
-    add_shape(Inches(0.4), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
-    add_text_box(Inches(0.6), Inches(2.5), Inches(5.7), Inches(0.35), "TOP 8 STATIONS", 14, True, NAVY)
+    # Top Stations list
+    add_shape(s2, Inches(0.4), Inches(3.20), Inches(6.1), Inches(3.55), WHITE)
+    add_shape(s2, Inches(0.4), Inches(3.20), Inches(6.1), Inches(0.025), GOLD)
+    add_text_box(s2, Inches(0.6), Inches(3.35), Inches(5.7), Inches(0.32), "TOP 8 STATIONS", 13, True, PRIMARY)
+
     if not df.empty and 'STATION' in df.columns:
         top8 = df['STATION'].value_counts().head(8)
-        y = 2.95
+        y = 3.80
         for stn, cnt in top8.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(Inches(0.7), Inches(y), Inches(3.5), Inches(0.28), str(stn)[:22], 12, False, DARK)
-            add_text_box(Inches(4.3), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
-            add_text_box(Inches(5.4), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
-            y += 0.38
+            add_text_box(s2, Inches(0.7), Inches(y), Inches(3.0), Inches(0.28), str(stn)[:20], 12, False, DARK)
+            add_text_box(s2, Inches(3.9), Inches(y), Inches(1.2), Inches(0.28), f"{cnt:,}", 12, True, PRIMARY, PP_ALIGN.RIGHT)
+            add_text_box(s2, Inches(5.2), Inches(y), Inches(1.0), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            y += 0.33
 
-    add_shape(Inches(6.8), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
-    add_text_box(Inches(7.0), Inches(2.5), Inches(5.7), Inches(0.35), "TOP ERROR CATEGORIES", 14, True, NAVY)
+    # Top Errors list
+    add_shape(s2, Inches(6.8), Inches(3.20), Inches(6.1), Inches(3.55), WHITE)
+    add_shape(s2, Inches(6.8), Inches(3.20), Inches(6.1), Inches(0.025), GOLD)
+    add_text_box(s2, Inches(7.0), Inches(3.35), Inches(5.7), Inches(0.32), "TOP ERROR CATEGORIES", 13, True, PRIMARY)
+
     if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
         top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
-        y = 2.95
+        y = 3.80
         for err, cnt in top_err.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err)[:26], 12, False, DARK)
-            add_text_box(Inches(10.7), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
-            add_text_box(Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
-            y += 0.38
+            add_text_box(s2, Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err)[:26], 12, False, DARK)
+            add_text_box(s2, Inches(10.7), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, PRIMARY, PP_ALIGN.RIGHT)
+            add_text_box(s2, Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            y += 0.33
 
-    add_shape(Inches(0), Inches(7.15), Inches(13.333), Inches(0.35), NAVY)
-    add_text_box(Inches(0.4), Inches(7.2), Inches(8), Inches(0.25), f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
-    add_text_box(Inches(9.5), Inches(7.2), Inches(3.5), Inches(0.25), "CONFIDENTIAL – For Official Use Only", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
+    # ===================== Multi-colour bar chart helper =====================
+    def create_multicolor_vbar(categories, values, palette="mixed"):
+        fig, ax = plt.subplots(figsize=(11, 5.0), facecolor='#F5F9FC')
+        ax.set_facecolor('#F5F9FC')
+        x = np.arange(len(categories))
 
+        if palette == "stations":
+            colors = ['#01579B', '#0277BD', '#0288D1', '#039BE5', '#00ACC1',
+                      '#00897B', '#43A047', '#7CB342', '#C0CA33', '#F9A825']
+        elif palette == "errors":
+            colors = ['#C62828', '#D84315', '#EF6C00', '#F9A825', '#FDD835',
+                      '#7CB342', '#00897B', '#0277BD']
+        else:
+            colors = ['#01579B', '#00695C', '#4527A0', '#C62828', '#EF6C00', '#546E7A']
+
+        colors = colors[:len(categories)]
+        bars = ax.bar(x, values, color=colors, width=0.65, edgecolor='white', linewidth=0.7)
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(categories, fontsize=10, rotation=25, ha='right', color='#0D1B2A')
+        ax.set_ylabel("Number of Cases", fontsize=11, color='#546E7A')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#CFD8DC')
+        ax.spines['bottom'].set_color('#CFD8DC')
+        ax.tick_params(colors='#546E7A')
+        ax.yaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
+        ax.set_axisbelow(True)
+
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(values)*0.02,
+                    f'{int(val)}', ha='center', va='bottom', fontsize=9, color='#0D2137', fontweight='medium')
+
+        plt.tight_layout()
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+
+    # ===================== SLIDE 3: Top Stations Bars =====================
+    s3 = prs.slides.add_slide(blank_layout)
+    add_shape(s3, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s3, 3)
+    add_text_box(s3, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Top 10 Stations by Cases", 16, True, NAVY)
+    add_shape(s3, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
+
+    if not df.empty and 'STATION' in df.columns:
+        top10 = df['STATION'].value_counts().head(10)
+        img = create_multicolor_vbar(list(top10.index), list(top10.values), "stations")
+        s3.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
+
+    # ===================== SLIDE 4: Top Errors Bars =====================
+    s4 = prs.slides.add_slide(blank_layout)
+    add_shape(s4, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s4, 4)
+    add_text_box(s4, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Top Error Categories", 16, True, NAVY)
+    add_shape(s4, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
+
+    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
+        top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
+        # Shorten long names for chart
+        labels = [str(x)[:18] for x in top_err.index]
+        img = create_multicolor_vbar(labels, list(top_err.values), "errors")
+        s4.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
+
+    # ===================== SLIDE 5: Departments Bars =====================
+    s5 = prs.slides.add_slide(blank_layout)
+    add_shape(s5, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s5, 5)
+    add_text_box(s5, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Department-wise Cases", 16, True, NAVY)
+    add_shape(s5, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
+
+    if not df.empty and 'DEPARTMENT' in df.columns:
+        dept = df['DEPARTMENT'].value_counts().head(8)
+        labels = [str(x)[:18] for x in dept.index]
+        img = create_multicolor_vbar(labels, list(dept.values), "depts")
+        s5.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
+
+    # Save
     buffer = BytesIO()
     prs.save(buffer)
     buffer.seek(0)
