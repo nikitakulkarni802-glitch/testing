@@ -15,7 +15,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime, timezone, timedelta
 from pptx import Presentation
 from pptx.util import Inches, Pt
-from pptx.dml.color import RgbColor
+from pptx.dml.color import RGBColor          # ← corrected
 from pptx.enum.text import PP_ALIGN
 from pptx.enum.shapes import MSO_SHAPE
 
@@ -1218,15 +1218,14 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     blank_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_layout)
 
-    NAVY   = RgbColor(0x0D, 0x21, 0x37)
-    BLUE   = RgbColor(0x1A, 0x52, 0x76)
-    ACCENT = RgbColor(0x02, 0x88, 0xD1)
-    WHITE  = RgbColor(0xFF, 0xFF, 0xFF)
-    LIGHT  = RgbColor(0xEB, 0xF5, 0xFB)
-    DARK   = RgbColor(0x1C, 0x28, 0x33)
-    GRAY   = RgbColor(0x5D, 0x6D, 0x7E)
-    GREEN  = RgbColor(0x1E, 0x84, 0x49)
-
+    NAVY   = RGBColor(0x0D, 0x21, 0x37)
+    BLUE   = RGBColor(0x1A, 0x52, 0x76)
+    ACCENT = RGBColor(0x02, 0x88, 0xD1)
+    WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
+    LIGHT  = RGBColor(0xEB, 0xF5, 0xFB)
+    DARK   = RGBColor(0x1C, 0x28, 0x33)
+    GRAY   = RGBColor(0x5D, 0x6D, 0x7E)
+    GREEN  = RGBColor(0x1E, 0x84, 0x49)
     def add_shape(left, top, width, height, fill_color):
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
         shape.fill.solid()
