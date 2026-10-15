@@ -575,15 +575,20 @@ def get_jurisdiction(station, department):
 
 # ====================== REPORT FUNCTIONS ======================
 def generate_one_page_report(df, from_date, to_date, user_name):
+    """Professional multi-page A4 Health Report – modern colour scheme"""
     buffer = BytesIO()
-    NAVY     = '#0A1628'
-    BLUE     = '#0D47A1'
-    ACCENT   = '#1565C0'
-    GREEN    = '#2E7D32'
-    LIGHT_BG = '#F5F9FC'
-    CARD_BG  = '#FFFFFF'
-    GRAY     = '#546E7A'
-    DARK     = '#1A237E'
+
+    # ========== NEW PROFESSIONAL COLOUR PALETTE ==========
+    NAVY      = '#0B1C2C'      # Deep navy
+    PRIMARY   = '#0D47A1'     # Strong blue
+    ACCENT    = '#0277BD'     # Bright blue
+    TEAL      = '#00695C'     # Deep teal
+    GREEN     = '#1B5E20'     # Forest green
+    LIGHT_BG  = '#F4F7FB'     # Soft cool background
+    CARD_BG   = '#FFFFFF'
+    GRAY      = '#546E7A'
+    DARK      = '#1A237E'
+    TABLE_ALT = '#E8F0FE'     # Soft blue for alternating rows
 
     total_cases = len(df)
     top_station = "N/A"
@@ -630,27 +635,47 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     gen_text = f"Generated: {datetime.now(IST).strftime('%d %b %Y, %H:%M')} IST   |   By: {user_name}"
 
     def draw_header_footer(fig, page_num, total_pages):
-        header = mpatches.FancyBboxPatch((0, 0.935), 1, 0.065, boxstyle="square,pad=0", facecolor=NAVY, transform=fig.transFigure, clip_on=False)
+        # Header
+        header = mpatches.FancyBboxPatch((0, 0.935), 1, 0.065,
+                                         boxstyle="square,pad=0", facecolor=NAVY,
+                                         transform=fig.transFigure, clip_on=False)
         fig.add_artist(header)
-        fig.text(0.04, 0.968, "DRISHTI", fontsize=15, fontweight='bold', color='white', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.04, 0.948, "Health Report  •  Safety Branch", fontsize=7.5, color='#90CAF9', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.96, 0.968, "Central Railway", fontsize=9, fontweight='bold', color='white', ha='right', va='center', transform=fig.transFigure)
-        fig.text(0.96, 0.948, "Solapur Division", fontsize=7.5, color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
-        footer = mpatches.FancyBboxPatch((0, 0), 1, 0.038, boxstyle="square,pad=0", facecolor=NAVY, transform=fig.transFigure, clip_on=False)
+        fig.text(0.04, 0.968, "DRISHTI", fontsize=15, fontweight='bold',
+                 color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.04, 0.948, "Health Report  •  Safety Branch", fontsize=7.5,
+                 color='#90CAF9', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.968, "Central Railway", fontsize=9, fontweight='bold',
+                 color='white', ha='right', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.948, "Solapur Division", fontsize=7.5,
+                 color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
+
+        # Footer
+        footer = mpatches.FancyBboxPatch((0, 0), 1, 0.038,
+                                         boxstyle="square,pad=0", facecolor=NAVY,
+                                         transform=fig.transFigure, clip_on=False)
         fig.add_artist(footer)
-        fig.text(0.04, 0.019, "Prepared by Safety Branch  |  Central Railway, Solapur Division", fontsize=7, color='white', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.96, 0.019, f"CONFIDENTIAL  •  Page {page_num} of {total_pages}", fontsize=7, color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
+        fig.text(0.04, 0.019, "Prepared by Safety Branch  |  Central Railway, Solapur Division",
+                 fontsize=7, color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.019, f"CONFIDENTIAL  •  Page {page_num} of {total_pages}",
+                 fontsize=7, color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
 
     with PdfPages(buffer) as pdf:
+        # ===================== PAGE 1 =====================
         fig1 = plt.figure(figsize=(8.27, 11.69))
         fig1.patch.set_facecolor(LIGHT_BG)
         draw_header_footer(fig1, 1, 2)
 
-        fig1.text(0.04, 0.915, f"Department: {dept_title}", fontsize=9.5, fontweight='bold', color=BLUE, ha='left', va='center', transform=fig1.transFigure)
-        fig1.text(0.04, 0.898, period_text, fontsize=8, color=GRAY, ha='left', va='center', transform=fig1.transFigure)
-        fig1.text(0.96, 0.898, gen_text, fontsize=7.5, color=GRAY, ha='right', va='center', transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.04, 0.96], [0.888, 0.888], color=ACCENT, linewidth=1.5, transform=fig1.transFigure))
+        # Sub-header
+        fig1.text(0.04, 0.915, f"Department: {dept_title}", fontsize=9.5, fontweight='bold',
+                  color=PRIMARY, ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.04, 0.898, period_text, fontsize=8, color=GRAY,
+                  ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.96, 0.898, gen_text, fontsize=7.5, color=GRAY,
+                  ha='right', va='center', transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.96], [0.888, 0.888], color=ACCENT,
+                                   linewidth=1.8, transform=fig1.transFigure))
 
+        # KPI Cards
         change_label = "Total Cases"
         if pct_change is not None:
             arrow = "▲" if pct_change > 0 else ("▼" if pct_change < 0 else "●")
@@ -658,67 +683,99 @@ def generate_one_page_report(df, from_date, to_date, user_name):
 
         metrics = [
             (f"{total_cases:,}", change_label, NAVY),
-            (str(top_station)[:13], "Top Station", BLUE),
+            (str(top_station)[:13], "Top Station", PRIMARY),
             (f"{top_station_cases:,}", "Top Station Cases", ACCENT),
-            (f"{unique_stn}", "Unique Stations", GREEN),
+            (f"{unique_stn}", "Unique Stations", TEAL),
         ]
+
         for i, (value, label, color) in enumerate(metrics):
             x = 0.04 + i * 0.24
-            card = mpatches.FancyBboxPatch((x, 0.805), 0.22, 0.065, boxstyle="round,pad=0.008", facecolor=CARD_BG, edgecolor=color, linewidth=1.5, transform=fig1.transFigure, zorder=2)
+            # Card background
+            card = mpatches.FancyBboxPatch(
+                (x, 0.805), 0.22, 0.065,
+                boxstyle="round,pad=0.008",
+                facecolor=CARD_BG, edgecolor=color, linewidth=1.6,
+                transform=fig1.transFigure, zorder=2
+            )
             fig1.add_artist(card)
-            strip = mpatches.FancyBboxPatch((x, 0.805), 0.008, 0.065, boxstyle="square,pad=0", facecolor=color, transform=fig1.transFigure, zorder=3)
+            # Left accent bar
+            strip = mpatches.FancyBboxPatch(
+                (x, 0.805), 0.009, 0.065,
+                boxstyle="square,pad=0",
+                facecolor=color, transform=fig1.transFigure, zorder=3
+            )
             fig1.add_artist(strip)
-            fig1.text(x + 0.115, 0.845, value, fontsize=13, fontweight='bold', color=color, ha='center', va='center', transform=fig1.transFigure)
-            fig1.text(x + 0.115, 0.820, label, fontsize=7, color=GRAY, ha='center', va='center', transform=fig1.transFigure)
 
+            fig1.text(x + 0.115, 0.845, value, fontsize=13, fontweight='bold',
+                      color=color, ha='center', va='center', transform=fig1.transFigure)
+            fig1.text(x + 0.115, 0.820, label, fontsize=7, color=GRAY,
+                      ha='center', va='center', transform=fig1.transFigure)
+
+        # ---------- Top 10 Stations (better colour bars) ----------
         ax1 = fig1.add_axes([0.07, 0.48, 0.52, 0.28])
         if not df.empty and 'STATION' in df.columns:
             top10 = df['STATION'].value_counts().nlargest(10)
             y_pos = np.arange(len(top10))
-            colors = plt.cm.Blues(np.linspace(0.35, 0.85, len(top10)))[::-1]
-            bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.68, edgecolor='none')
+
+            # Modern deep-blue gradient
+            colors = plt.cm.Blues(np.linspace(0.45, 0.90, len(top10)))[::-1]
+
+            bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.68,
+                            edgecolor='white', linewidth=0.5)
             ax1.set_yticks(y_pos)
             ax1.set_yticklabels(top10.index[::-1], fontsize=8)
             ax1.set_xlabel('Number of Cases', fontsize=8, color=GRAY)
-            ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold', color=NAVY, pad=6, loc='left')
+            ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold',
+                          color=NAVY, pad=6, loc='left')
             ax1.tick_params(axis='x', labelsize=7, colors=GRAY)
             ax1.spines['top'].set_visible(False)
             ax1.spines['right'].set_visible(False)
             ax1.spines['left'].set_color('#CFD8DC')
             ax1.spines['bottom'].set_color('#CFD8DC')
             ax1.set_axisbelow(True)
-            ax1.xaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
+            ax1.xaxis.grid(True, linestyle='--', alpha=0.4, color='#B0BEC5')
             for bar, val in zip(bars, top10.values[::-1]):
-                ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2, f'{int(val)}', va='center', fontsize=7, color=DARK)
+                ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2,
+                         f'{int(val)}', va='center', fontsize=7, color=DARK, fontweight='medium')
         else:
             ax1.text(0.5, 0.5, 'No Station Data', ha='center', va='center', fontsize=9, color=GRAY)
             ax1.axis('off')
 
+        # ---------- Departments (teal/green gradient) ----------
         ax2 = fig1.add_axes([0.66, 0.48, 0.30, 0.28])
         if not df.empty and 'DEPARTMENT' in df.columns:
             dept_counts = df['DEPARTMENT'].value_counts()
             y_pos2 = np.arange(len(dept_counts))
-            colors2 = plt.cm.GnBu(np.linspace(0.35, 0.85, len(dept_counts)))[::-1]
-            bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.68, edgecolor='none')
+
+            # Modern teal gradient
+            colors2 = plt.cm.Teal(np.linspace(0.35, 0.85, len(dept_counts)))[::-1]
+
+            bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.68,
+                             edgecolor='white', linewidth=0.5)
             ax2.set_yticks(y_pos2)
             ax2.set_yticklabels(dept_counts.index[::-1], fontsize=7)
             ax2.set_xlabel('Cases', fontsize=8, color=GRAY)
-            ax2.set_title('Departments', fontsize=10, fontweight='bold', color=NAVY, pad=6, loc='left')
+            ax2.set_title('Departments', fontsize=10, fontweight='bold',
+                          color=NAVY, pad=6, loc='left')
             ax2.tick_params(axis='x', labelsize=7, colors=GRAY)
             ax2.spines['top'].set_visible(False)
             ax2.spines['right'].set_visible(False)
             ax2.spines['left'].set_color('#CFD8DC')
             ax2.spines['bottom'].set_color('#CFD8DC')
             ax2.set_axisbelow(True)
-            ax2.xaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
+            ax2.xaxis.grid(True, linestyle='--', alpha=0.4, color='#B0BEC5')
             for bar, val in zip(bars2, dept_counts.values[::-1]):
-                ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2, f'{int(val)}', va='center', fontsize=6.5, color=DARK)
+                ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2,
+                         f'{int(val)}', va='center', fontsize=6.5, color=DARK)
         else:
             ax2.text(0.5, 0.5, 'No Department Data', ha='center', va='center', fontsize=9, color=GRAY)
             ax2.axis('off')
 
-        fig1.text(0.04, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold', color=NAVY, transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.04, 0.22], [0.438, 0.438], color=ACCENT, linewidth=2, transform=fig1.transFigure))
+        # Key Insights
+        fig1.text(0.04, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.22], [0.438, 0.438], color=ACCENT,
+                                   linewidth=2.2, transform=fig1.transFigure))
 
         insights = []
         if total_cases > 0:
@@ -754,71 +811,117 @@ def generate_one_page_report(df, from_date, to_date, user_name):
 
         y_pos = 0.420
         for insight in insights[:6]:
-            fig1.text(0.04, y_pos, insight, fontsize=7.5, color=DARK, va='top', transform=fig1.transFigure)
+            fig1.text(0.04, y_pos, insight, fontsize=7.5, color=DARK,
+                      va='top', transform=fig1.transFigure)
             y_pos -= 0.020
 
-        fig1.text(0.04, 0.285, "ERROR MAIN CATEGORY", fontsize=9, fontweight='bold', color=NAVY, transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.04, 0.28], [0.278, 0.278], color=ACCENT, linewidth=2, transform=fig1.transFigure))
+        # Error Category Table
+        fig1.text(0.04, 0.285, "ERROR MAIN CATEGORY", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.28], [0.278, 0.278], color=ACCENT,
+                                   linewidth=2.2, transform=fig1.transFigure))
 
         if not df.empty and 'ERROR MAIN CATEGORY' in df.columns and total_cases > 0:
             err_sum = df['ERROR MAIN CATEGORY'].value_counts().reset_index()
             err_sum.columns = ['Error Category', 'Cases']
             err_sum['%'] = (err_sum['Cases'] / total_cases * 100).round(1)
-            header_bg = mpatches.FancyBboxPatch((0.04, 0.250), 0.92, 0.022, boxstyle="square,pad=0", facecolor=NAVY, transform=fig1.transFigure, clip_on=False)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.04, 0.250), 0.92, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig1.transFigure, clip_on=False
+            )
             fig1.add_artist(header_bg)
-            fig1.text(0.06, 0.261, "Error Category", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
-            fig1.text(0.72, 0.261, "Cases", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
-            fig1.text(0.85, 0.261, "% of Total", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.06, 0.261, "Error Category", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.72, 0.261, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.85, 0.261, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig1.transFigure)
+
             y_pos = 0.235
             max_rows = min(len(err_sum), 8)
             for idx in range(max_rows):
                 row = err_sum.iloc[idx]
-                bg_color = '#E3F2FD' if idx % 2 == 0 else '#FFFFFF'
-                row_bg = mpatches.FancyBboxPatch((0.04, y_pos - 0.008), 0.92, 0.020, boxstyle="square,pad=0", facecolor=bg_color, transform=fig1.transFigure, clip_on=False)
+                bg_color = TABLE_ALT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.04, y_pos - 0.008), 0.92, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig1.transFigure, clip_on=False
+                )
                 fig1.add_artist(row_bg)
-                fig1.text(0.06, y_pos + 0.002, str(row['Error Category'])[:48], fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
-                fig1.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}", fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
-                fig1.text(0.85, y_pos + 0.002, f"{row['%']}%", fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.06, y_pos + 0.002, str(row['Error Category'])[:48],
+                          fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
                 y_pos -= 0.020
             if len(err_sum) > 8:
-                fig1.text(0.04, y_pos, f"... and {len(err_sum) - 8} more categories", fontsize=6.5, color=GRAY, transform=fig1.transFigure)
+                fig1.text(0.04, y_pos, f"... and {len(err_sum) - 8} more categories",
+                          fontsize=6.5, color=GRAY, transform=fig1.transFigure)
         else:
-            fig1.text(0.04, 0.240, "No error category data available.", fontsize=8, color=GRAY, transform=fig1.transFigure)
+            fig1.text(0.04, 0.240, "No error category data available.",
+                      fontsize=8, color=GRAY, transform=fig1.transFigure)
 
         pdf.savefig(fig1, bbox_inches='tight')
         plt.close(fig1)
 
+        # ===================== PAGE 2 =====================
         fig2 = plt.figure(figsize=(8.27, 11.69))
         fig2.patch.set_facecolor(LIGHT_BG)
         draw_header_footer(fig2, 2, 2)
-        fig2.text(0.04, 0.905, "JURISDICTION BREAKDOWN", fontsize=11, fontweight='bold', color=NAVY, ha='left', va='center', transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.04, 0.96], [0.892, 0.892], color=ACCENT, linewidth=1.5, transform=fig2.transFigure))
-        fig2.text(0.04, 0.870, "ALL JURISDICTIONS", fontsize=9, fontweight='bold', color=NAVY, transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.04, 0.26], [0.863, 0.863], color=ACCENT, linewidth=2, transform=fig2.transFigure))
+
+        fig2.text(0.04, 0.905, "JURISDICTION BREAKDOWN", fontsize=11, fontweight='bold',
+                  color=NAVY, ha='left', va='center', transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.04, 0.96], [0.892, 0.892], color=ACCENT,
+                                   linewidth=1.8, transform=fig2.transFigure))
+
+        fig2.text(0.04, 0.870, "ALL JURISDICTIONS", fontsize=9, fontweight='bold',
+                  color=NAVY, transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.04, 0.26], [0.863, 0.863], color=ACCENT,
+                                   linewidth=2.2, transform=fig2.transFigure))
 
         y_pos = 0.840
         if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
             jur_sum = df['JURISDICTION'].value_counts().reset_index()
             jur_sum.columns = ['Jurisdiction', 'Cases']
             jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
-            header_bg = mpatches.FancyBboxPatch((0.04, y_pos), 0.92, 0.022, boxstyle="square,pad=0", facecolor=NAVY, transform=fig2.transFigure, clip_on=False)
+
+            header_bg = mpatches.FancyBboxPatch(
+                (0.04, y_pos), 0.92, 0.022,
+                boxstyle="square,pad=0", facecolor=NAVY,
+                transform=fig2.transFigure, clip_on=False
+            )
             fig2.add_artist(header_bg)
-            fig2.text(0.06, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.06, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
+                      color='white', va='center', transform=fig2.transFigure)
             y_pos -= 0.022
+
             for idx, row in jur_sum.iterrows():
                 if y_pos < 0.08:
                     break
-                bg_color = '#E3F2FD' if idx % 2 == 0 else '#FFFFFF'
-                row_bg = mpatches.FancyBboxPatch((0.04, y_pos - 0.008), 0.92, 0.020, boxstyle="square,pad=0", facecolor=bg_color, transform=fig2.transFigure, clip_on=False)
+                bg_color = TABLE_ALT if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch(
+                    (0.04, y_pos - 0.008), 0.92, 0.020,
+                    boxstyle="square,pad=0", facecolor=bg_color,
+                    transform=fig2.transFigure, clip_on=False
+                )
                 fig2.add_artist(row_bg)
-                fig2.text(0.06, y_pos + 0.002, str(row['Jurisdiction'])[:52], fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}", fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%", fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.06, y_pos + 0.002, str(row['Jurisdiction'])[:52],
+                          fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
+                          fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
+                          fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
                 y_pos -= 0.020
         else:
-            fig2.text(0.04, 0.820, "No jurisdiction data available.", fontsize=8, color=GRAY, transform=fig2.transFigure)
+            fig2.text(0.04, 0.820, "No jurisdiction data available.",
+                      fontsize=8, color=GRAY, transform=fig2.transFigure)
 
         pdf.savefig(fig2, bbox_inches='tight')
         plt.close(fig2)
