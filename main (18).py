@@ -13,6 +13,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime, timezone, timedelta
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RgbColor
+from pptx.enum.text import PP_ALIGN
+from pptx.enum.shapes import MSO_SHAPE
+
 try:
     from zoneinfo import ZoneInfo
     IST = ZoneInfo("Asia/Kolkata")
@@ -374,7 +380,6 @@ ENGG_ADEN = {
     "NEI": "ADEN/LUR", "KRMD": "ADEN/LUR", "BANL": "ADEN/LUR", "GANI": "ADEN/LUR",
 
     # ===== LC Gates (Engineering) — mapped by associated station =====
-    # Primary keys
     "LC-6": "ADEN/LUR",          # KWV-LTRR / LTRR   (Interlocked)
     "LC-47": "ADEN/LUR",         # KWV-LTRR / OSA    (Non-Interlocked)
     "LC-34": "ADEN/LUR",         # KWV-LTRR / DKY    (Interlocked)
@@ -553,13 +558,12 @@ def get_jurisdiction(station, department):
         stn = "AGDl"
 
     # ===== LC Gate handling (works for ALL departments) =====
-    # Accepts: LC-6, LC6, LC 6, lc-06, L.C.6, etc.
     is_lc = stn.startswith("LC") or stn.startswith("L.C") or stn.startswith("L C")
     if is_lc:
         digits = "".join(ch for ch in stn if ch.isdigit())
         if digits:
-            lc_key  = f"LC-{int(digits)}"   # LC-6, LC-47 ...
-            lc_key2 = f"LC{int(digits)}"    # LC6, LC47 ...
+            lc_key  = f"LC-{int(digits)}"
+            lc_key2 = f"LC{int(digits)}"
             candidates = (lc_key, lc_key2, stn, raw, raw.upper())
         else:
             candidates = (stn, raw, raw.upper())
@@ -751,7 +755,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         # All Departments chart (no limit)
         ax2 = fig1.add_axes([0.66, 0.48, 0.30, 0.28])
         if not df.empty and 'DEPARTMENT' in df.columns:
-            dept_counts = df['DEPARTMENT'].value_counts()  # ALL departments
+            dept_counts = df['DEPARTMENT'].value_counts()
             y_pos2 = np.arange(len(dept_counts))
             colors2 = plt.cm.GnBu(np.linspace(0.4, 0.85, len(dept_counts)))[::-1]
             bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.65, edgecolor='none')
@@ -1071,6 +1075,272 @@ def forecast_by_group(df, group_col, how, horizon, top_n=10, full_index=None):
         row["Model"] = method
         rows.append(row)
     return pd.DataFrame(rows)
+
+# ====================== NEW FEATURES: RISK SCORE + WHAT-IF + SEASONALITY ======================
+
+def define_error_severity():
+    """
+    Map Error Main Categories to severity ranks (1=Low, 2=Medium, 3=High, 4=Critical).
+    Expand this dictionary with your real categories for better accuracy.
+    """
+    return {
+        "SIGNAL FAILURE": 4,
+        "POINT FAILURE": 4,
+        "TRACK CIRCUIT FAILURE": 3,
+        "AXLE COUNTER FAILURE": 3,
+        "LC GATE FAILURE": 4,
+        "POWER SUPPLY FAILURE": 3,
+        "COMMUNICATION FAILURE": 2,
+        "OTHER": 1,
+    }
+
+def calculate_station_risk_scores(df, lookback_days=90, severity_map=None):
+    """
+    Composite Risk Score per station (0–100).
+    Volume (40%) + Rising Trend (30%) + Error Severity (30%).
+    """
+    if df.empty or 'STATION' not in df.columns or 'DATE' not in df.columns:
+        return pd.DataFrame()
+
+    if severity_map is None:
+        severity_map = define_error_severity()
+
+    cutoff = pd.Timestamp.now(tz=None) - pd.Timedelta(days=lookback_days)
+    recent = df[df['DATE'] >= cutoff].copy()
+
+    if recent.empty:
+        return pd.DataFrame()
+
+    # 1. Volume
+    vol = recent.groupby('STATION').size().rename('cases_recent')
+
+    # 2. Trend (monthly slope)
+    monthly = (recent.dropna(subset=['DATE'])
+                     .assign(ym=lambda x: x['DATE'].dt.to_period('M'))
+                     .groupby(['STATION', 'ym']).size()
+                     .reset_index(name='cnt'))
+    
+    trend_scores = {}
+    for stn, grp in monthly.groupby('STATION'):
+        if len(grp) >= 2:
+            x = np.arange(len(grp))
+            slope = np.polyfit(x, grp['cnt'].values, 1)[0]
+            trend_scores[stn] = slope
+        else:
+            trend_scores[stn] = 0.0
+    trend = pd.Series(trend_scores, name='trend_slope')
+
+    # 3. Severity
+    if 'ERROR MAIN CATEGORY' in recent.columns:
+        recent['sev'] = recent['ERROR MAIN CATEGORY'].map(
+            lambda x: severity_map.get(str(x).strip().upper(), 1)
+        )
+        sev = recent.groupby('STATION')['sev'].mean().rename('avg_severity')
+    else:
+        sev = pd.Series(1.0, index=vol.index, name='avg_severity')
+
+    # Combine
+    risk_df = pd.concat([vol, trend, sev], axis=1).fillna(0)
+    
+    def norm(s):
+        if s.max() == s.min():
+            return pd.Series(50.0, index=s.index)
+        return 100 * (s - s.min()) / (s.max() - s.min())
+
+    risk_df['vol_score']   = norm(risk_df['cases_recent'])
+    risk_df['trend_score'] = norm(risk_df['trend_slope'].clip(lower=0))
+    risk_df['sev_score']   = norm(risk_df['avg_severity'])
+
+    risk_df['Risk Score'] = (
+        0.40 * risk_df['vol_score'] +
+        0.30 * risk_df['trend_score'] +
+        0.30 * risk_df['sev_score']
+    ).round(1)
+
+    risk_df = risk_df.sort_values('Risk Score', ascending=False)
+    risk_df = risk_df.reset_index().rename(columns={'index': 'STATION'})
+    
+    risk_df['Risk Band'] = pd.cut(
+        risk_df['Risk Score'],
+        bins=[-1, 40, 65, 85, 101],
+        labels=['Low', 'Medium', 'High', 'Critical']
+    )
+    return risk_df[['STATION', 'cases_recent', 'trend_slope', 'avg_severity',
+                    'Risk Score', 'Risk Band']]
+
+def what_if_scenario(hist_series, top_stations_df, reduction_pct, horizon=3):
+    """Assume selected top stations reduce contribution by reduction_pct %."""
+    if hist_series.empty:
+        return None, None, None
+
+    fc_orig, method, resid = forecast_series(hist_series, horizon)
+
+    if top_stations_df.empty or 'share' not in top_stations_df.columns:
+        return fc_orig, fc_orig, method
+
+    total_share = top_stations_df['share'].sum()
+    reduction_factor = 1.0 - (total_share * (reduction_pct / 100.0))
+
+    fc_scenario = fc_orig * reduction_factor
+    fc_scenario = fc_scenario.clip(lower=0).round()
+
+    return fc_orig, fc_scenario, method
+
+def build_seasonality_data(df, group_col=None):
+    """Pivot table for seasonality heatmap."""
+    if df.empty or 'DATE' not in df.columns:
+        return pd.DataFrame()
+
+    d = df.dropna(subset=['DATE']).copy()
+    d['MonthNum'] = d['DATE'].dt.month
+    d['Month'] = d['DATE'].dt.strftime('%b')
+    d['Year'] = d['DATE'].dt.year
+
+    if group_col and group_col in d.columns:
+        pivot = d.groupby(['MonthNum', 'Month', group_col]).size().reset_index(name='Cases')
+        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns=group_col,
+                                  values='Cases', fill_value=0)
+    else:
+        pivot = d.groupby(['MonthNum', 'Month', 'Year']).size().reset_index(name='Cases')
+        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns='Year',
+                                  values='Cases', fill_value=0)
+
+    pivot = pivot.sort_index(level=0)
+    pivot.index = pivot.index.droplevel(0)
+    return pivot
+
+def generate_executive_summary_pptx(df, from_date, to_date, user_name):
+    """Creates a clean 1-slide Executive Summary (16:9) for DRM / ADRM."""
+    prs = Presentation()
+    prs.slide_width  = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+
+    blank_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_layout)
+
+    NAVY   = RgbColor(0x0D, 0x21, 0x37)
+    BLUE   = RgbColor(0x1A, 0x52, 0x76)
+    ACCENT = RgbColor(0x02, 0x88, 0xD1)
+    WHITE  = RgbColor(0xFF, 0xFF, 0xFF)
+    LIGHT  = RgbColor(0xEB, 0xF5, 0xFB)
+    DARK   = RgbColor(0x1C, 0x28, 0x33)
+    GRAY   = RgbColor(0x5D, 0x6D, 0x7E)
+    GREEN  = RgbColor(0x1E, 0x84, 0x49)
+
+    def add_shape(left, top, width, height, fill_color):
+        shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
+        shape.fill.solid()
+        shape.fill.fore_color.rgb = fill_color
+        shape.line.fill.background()
+        return shape
+
+    def add_text_box(left, top, width, height, text, font_size=14, bold=False,
+                     color=DARK, align=PP_ALIGN.LEFT):
+        txBox = slide.shapes.add_textbox(left, top, width, height)
+        tf = txBox.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = text
+        p.font.size = Pt(font_size)
+        p.font.bold = bold
+        p.font.color.rgb = color
+        p.font.name = "Calibri"
+        p.alignment = align
+        return txBox
+
+    # Header
+    add_shape(Inches(0), Inches(0), Inches(13.333), Inches(0.85), NAVY)
+    add_text_box(Inches(0.4), Inches(0.15), Inches(6), Inches(0.4),
+                 "DRISHTI  |  Executive Summary", 22, True, WHITE)
+    add_text_box(Inches(0.4), Inches(0.50), Inches(8), Inches(0.3),
+                 "Central Railway  •  Solapur Division  •  Safety Branch", 12, False,
+                 RgbColor(0xAE, 0xD6, 0xF1))
+
+    period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
+    add_text_box(Inches(9.2), Inches(0.18), Inches(3.8), Inches(0.3),
+                 period, 11, False, WHITE, PP_ALIGN.RIGHT)
+    add_text_box(Inches(9.2), Inches(0.48), Inches(3.8), Inches(0.3),
+                 f"Generated: {datetime.now(IST).strftime('%d %b %Y %H:%M')} IST", 10, False,
+                 RgbColor(0xAE, 0xD6, 0xF1), PP_ALIGN.RIGHT)
+
+    # KPIs
+    total_cases = len(df)
+    top_stn = "N/A"
+    top_stn_cases = 0
+    unique_stn = 0
+
+    if not df.empty and 'STATION' in df.columns:
+        vc = df['STATION'].value_counts()
+        if not vc.empty:
+            top_stn = str(vc.index[0])
+            top_stn_cases = int(vc.iloc[0])
+        unique_stn = df['STATION'].nunique()
+
+    kpis = [
+        (f"{total_cases:,}", "Total Cases", NAVY),
+        (top_stn[:12], "Top Station", BLUE),
+        (f"{top_stn_cases:,}", "Top Station Cases", ACCENT),
+        (str(unique_stn), "Unique Stations", GREEN),
+    ]
+
+    card_w = Inches(2.9)
+    for i, (val, label, color) in enumerate(kpis):
+        left = Inches(0.4 + i * 3.2)
+        add_shape(left, Inches(1.1), card_w, Inches(1.05), LIGHT)
+        add_shape(left, Inches(1.1), Inches(0.08), Inches(1.05), color)
+        add_text_box(left + Inches(0.2), Inches(1.2), card_w - Inches(0.3), Inches(0.5),
+                     val, 26, True, color, PP_ALIGN.CENTER)
+        add_text_box(left + Inches(0.2), Inches(1.7), card_w - Inches(0.3), Inches(0.3),
+                     label, 12, False, GRAY, PP_ALIGN.CENTER)
+
+    # Left: Top Stations
+    add_shape(Inches(0.4), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
+    add_text_box(Inches(0.6), Inches(2.5), Inches(5.7), Inches(0.35),
+                 "TOP 8 STATIONS", 14, True, NAVY)
+
+    if not df.empty and 'STATION' in df.columns:
+        top8 = df['STATION'].value_counts().head(8)
+        y = 2.95
+        for stn, cnt in top8.items():
+            pct = (cnt / total_cases * 100) if total_cases else 0
+            add_text_box(Inches(0.7), Inches(y), Inches(3.5), Inches(0.28),
+                         str(stn)[:22], 12, False, DARK)
+            add_text_box(Inches(4.3), Inches(y), Inches(1.0), Inches(0.28),
+                         f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
+            add_text_box(Inches(5.4), Inches(y), Inches(0.9), Inches(0.28),
+                         f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            y += 0.38
+
+    # Right: Top Errors
+    add_shape(Inches(6.8), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
+    add_text_box(Inches(7.0), Inches(2.5), Inches(5.7), Inches(0.35),
+                 "TOP ERROR CATEGORIES", 14, True, NAVY)
+
+    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
+        top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
+        y = 2.95
+        for err, cnt in top_err.items():
+            pct = (cnt / total_cases * 100) if total_cases else 0
+            add_text_box(Inches(7.1), Inches(y), Inches(3.5), Inches(0.28),
+                         str(err)[:26], 12, False, DARK)
+            add_text_box(Inches(10.7), Inches(y), Inches(1.0), Inches(0.28),
+                         f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
+            add_text_box(Inches(11.8), Inches(y), Inches(0.9), Inches(0.28),
+                         f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            y += 0.38
+
+    # Footer
+    add_shape(Inches(0), Inches(7.15), Inches(13.333), Inches(0.35), NAVY)
+    add_text_box(Inches(0.4), Inches(7.2), Inches(8), Inches(0.25),
+                 f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
+    add_text_box(Inches(9.5), Inches(7.2), Inches(3.5), Inches(0.25),
+                 "CONFIDENTIAL – For Official Use Only", 10, False,
+                 RgbColor(0xAE, 0xD6, 0xF1), PP_ALIGN.RIGHT)
+
+    buffer = BytesIO()
+    prs.save(buffer)
+    buffer.seek(0)
+    return buffer
 
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
@@ -1469,7 +1739,6 @@ else:
                         to_date,
                         st.session_state.user_name
                     )
-                    # Smart file name based on department filter
                     dept_tag = "ALL"
                     if selected_categories and len(selected_categories) == 1:
                         dept_tag = str(selected_categories[0]).replace(" ", "_").replace("/", "-")[:20]
@@ -1508,6 +1777,67 @@ else:
                     type="primary",
                     use_container_width=True
                 )
+
+        # ====================== ADVANCED REPORTS (NEW) ======================
+        st.markdown("---")
+        st.markdown('<p class="section-header">📑 Advanced Reports</p>', unsafe_allow_html=True)
+
+        col_r1, col_r2, col_r3 = st.columns(3)
+
+        with col_r1:
+            st.markdown("**Department-wise Health Reports**")
+            depts_available = sorted(filtered_df['DEPARTMENT'].dropna().unique().tolist()) if 'DEPARTMENT' in filtered_df.columns else []
+            selected_depts_pdf = st.multiselect(
+                "Select Departments", 
+                depts_available, 
+                default=depts_available[:4] if len(depts_available) >= 4 else depts_available, 
+                key="dept_pdf_sel"
+            )
+            
+            if st.button("📄 Generate Selected Department PDFs", type="primary", use_container_width=True):
+                if not selected_depts_pdf:
+                    st.warning("Select at least one department.")
+                else:
+                    for dept in selected_depts_pdf:
+                        dept_df = filtered_df[filtered_df['DEPARTMENT'] == dept]
+                        if dept_df.empty:
+                            continue
+                        try:
+                            pdf_buf = generate_one_page_report(dept_df, from_date, to_date, st.session_state.user_name)
+                            safe_name = str(dept).replace(" ", "_").replace("/", "-")[:25]
+                            st.download_button(
+                                label=f"⬇️ {dept} Report",
+                                data=pdf_buf,
+                                file_name=f"DRISHTI_{safe_name}_{pd.Timestamp.now().strftime('%d%b%Y')}.pdf",
+                                mime="application/pdf",
+                                key=f"pdf_{safe_name}"
+                            )
+                        except Exception as e:
+                            st.error(f"Failed for {dept}: {e}")
+
+        with col_r2:
+            st.markdown("**Executive Summary (PPTX)**")
+            st.caption("1-slide summary ready for DRM / ADRM meetings")
+            try:
+                pptx_buf = generate_executive_summary_pptx(
+                    filtered_df, from_date, to_date, st.session_state.user_name
+                )
+                st.download_button(
+                    label="📊 Download Executive Summary (PPTX)",
+                    data=pptx_buf,
+                    file_name=f"DRISHTI_Executive_Summary_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    type="primary",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"PPTX generation error: {e}")
+
+        with col_r3:
+            st.markdown("**Quick Tips**")
+            st.info("• Risk Score helps prioritise inspections\n"
+                    "• What-If shows impact of focused action\n"
+                    "• Seasonality guides preventive planning")
 
     # ====================== FORECAST TAB ======================
     with tab_forecast:
@@ -1611,6 +1941,120 @@ else:
                     type="primary",
                     use_container_width=True
                 )
+
+        # ---------- RISK SCORE SECTION (NEW) ----------
+        st.markdown("---")
+        st.markdown('<p class="section-header">🎯 Station Risk Score (Composite)</p>', unsafe_allow_html=True)
+        st.caption("Volume (40%) + Rising Trend (30%) + Error Severity (30%). Score 0–100.")
+
+        lookback = st.slider("Look-back window (days)", 30, 180, 90, 15, key="risk_lookback")
+        risk_df = calculate_station_risk_scores(forecast_base_df, lookback_days=lookback)
+
+        if risk_df.empty:
+            st.info("Not enough data to calculate risk scores.")
+        else:
+            def color_band(val):
+                colors = {
+                    "Low": "background-color:#d4edda",
+                    "Medium": "background-color:#fff3cd",
+                    "High": "background-color:#f8d7da",
+                    "Critical": "background-color:#f5c6cb; font-weight:bold"
+                }
+                return colors.get(val, "")
+
+            styled = (risk_df.style
+                      .format({"cases_recent": "{:,}", "trend_slope": "{:+.2f}",
+                               "avg_severity": "{:.2f}", "Risk Score": "{:.1f}"})
+                      .map(color_band, subset=["Risk Band"])
+                      .background_gradient(subset=["Risk Score"], cmap="RdYlGn_r"))
+
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+
+            top_risk = risk_df.head(15)
+            fig_risk = px.bar(top_risk, x="Risk Score", y="STATION", orientation="h",
+                              color="Risk Score", color_continuous_scale="RdYlGn_r",
+                              text="Risk Score", title="Top 15 Stations by Risk Score")
+            fig_risk.update_layout(height=480, yaxis={'categoryorder': 'total ascending'},
+                                   paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_risk, use_container_width=True)
+
+        # ---------- WHAT-IF SCENARIO (NEW) ----------
+        st.markdown("---")
+        st.markdown('<p class="section-header">🧪 What-If Scenario</p>', unsafe_allow_html=True)
+
+        col_w1, col_w2, col_w3 = st.columns([2, 2, 2])
+        with col_w1:
+            n_top = st.number_input("Reduce cases at Top N stations", 1, 10, 3, key="whatif_n")
+        with col_w2:
+            red_pct = st.slider("Reduction %", 10, 70, 30, 5, key="whatif_pct")
+        with col_w3:
+            st.write("")
+            run_whatif = st.button("Run Scenario", type="primary", key="run_whatif")
+
+        if run_whatif and not hist.empty:
+            last_month_start = hist.index[-1]
+            last_month_data = forecast_base_df[
+                (forecast_base_df['DATE'] >= last_month_start) &
+                (forecast_base_df['DATE'] < last_month_start + pd.DateOffset(months=1))
+            ]
+            if not last_month_data.empty and 'STATION' in last_month_data.columns:
+                stn_share = (last_month_data.groupby('STATION').size()
+                             / len(last_month_data)).sort_values(ascending=False).head(n_top)
+                top_df = stn_share.reset_index()
+                top_df.columns = ['STATION', 'share']
+
+                fc_orig, fc_scen, method = what_if_scenario(hist, top_df, red_pct, horizon)
+
+                if fc_orig is not None:
+                    delta = int(fc_orig.sum() - fc_scen.sum())
+                    pct_drop = (delta / fc_orig.sum() * 100) if fc_orig.sum() else 0
+
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Original Forecast (next months)", f"{int(fc_orig.sum()):,}")
+                    c2.metric("After Reduction", f"{int(fc_scen.sum()):,}", delta=f"-{delta:,}")
+                    c3.metric("Overall Volume Drop", f"{pct_drop:.1f}%")
+
+                    fig_wi = go.Figure()
+                    fig_wi.add_trace(go.Scatter(x=hist.index, y=hist.values, name="Actual",
+                                                line=dict(color="#0277bd", width=3)))
+                    fig_wi.add_trace(go.Scatter(x=fc_orig.index, y=fc_orig.values, name="Original Forecast",
+                                                line=dict(color="#0288d1", dash="dash", width=2)))
+                    fig_wi.add_trace(go.Scatter(x=fc_scen.index, y=fc_scen.values, name="Scenario Forecast",
+                                                line=dict(color="#1E8449", width=3)))
+                    fig_wi.update_layout(height=420, hovermode="x unified",
+                                         title=f"If Top {n_top} stations reduce cases by {red_pct}%",
+                                         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+                    st.plotly_chart(fig_wi, use_container_width=True)
+
+                    st.info(f"Top stations used: {', '.join(top_df['STATION'].tolist())} "
+                            f"(combined share of last month: {top_df['share'].sum()*100:.1f}%)")
+
+        # ---------- SEASONALITY CALENDAR (NEW) ----------
+        st.markdown("---")
+        st.markdown('<p class="section-header">📅 Seasonality Calendar</p>', unsafe_allow_html=True)
+
+        col_s1, col_s2 = st.columns([2, 2])
+        with col_s1:
+            season_group = st.selectbox("Group by", ["Year", "Department", "Error Main Category"], key="season_group")
+        with col_s2:
+            st.write("")
+
+        group_col = None if season_group == "Year" else season_group
+        season_pivot = build_seasonality_data(forecast_base_df, group_col=group_col)
+
+        if season_pivot.empty:
+            st.info("Not enough data for seasonality view.")
+        else:
+            fig_season = px.imshow(
+                season_pivot,
+                labels=dict(x=season_group, y="Month", color="Cases"),
+                color_continuous_scale="YlOrRd",
+                aspect="auto",
+                title=f"Cases by Month × {season_group}"
+            )
+            fig_season.update_layout(height=420, paper_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_season, use_container_width=True)
+            st.caption("Darker cells = higher historical case volume. Useful for planning preventive maintenance.")
 
     # ====================== MAP TAB ======================
     with tab_map:
