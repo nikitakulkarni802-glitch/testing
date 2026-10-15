@@ -15,7 +15,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime, timezone, timedelta
 from pptx import Presentation
 from pptx.util import Inches, Pt
-from pptx.dml.color import RGBColor          # ← corrected
+from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.enum.shapes import MSO_SHAPE
 
@@ -23,7 +23,7 @@ try:
     from zoneinfo import ZoneInfo
     IST = ZoneInfo("Asia/Kolkata")
 except Exception:
-    IST = timezone(timedelta(hours=5, minutes=30))  # fallback IST
+    IST = timezone(timedelta(hours=5, minutes=30))
 
 try:
     from statsmodels.tsa.holtwinters import ExponentialSmoothing
@@ -211,7 +211,6 @@ section[data-testid="stSidebar"] .stMarkdown h2 {
     color: #37474f !important;
 }
 
-/* ===== DRISHTI Header Styles ===== */
 .drishti-title {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 3.8rem !important;
@@ -378,14 +377,7 @@ ENGG_ADEN = {
     "DRSV": "ADEN/LUR", "MRX": "ADEN/LUR", "LTRR": "ADEN/LUR", "UMD": "ADEN/LUR",
     "UPI": "ADEN/LUR", "KCB": "ADEN/LUR", "TER": "ADEN/LUR", "PCP": "ADEN/LUR",
     "NEI": "ADEN/LUR", "KRMD": "ADEN/LUR", "BANL": "ADEN/LUR", "GANI": "ADEN/LUR",
-
-    # ===== LC Gates (Engineering) — mapped by associated station =====
-    "LC-6": "ADEN/LUR",          # KWV-LTRR / LTRR   (Interlocked)
-    "LC-47": "ADEN/LUR",         # KWV-LTRR / OSA    (Non-Interlocked)
-    "LC-34": "ADEN/LUR",         # KWV-LTRR / DKY    (Interlocked)
-    "LC-70": "ADEN/PVR",         # KWV-MRJ  / MRJ    (Interlocked)
-    "LC-40": "Sr.ADEN KWV BG",   # DD-SUR   / MA (Madha) (Interlocked)
-    # Common sheet variants (no hyphen / zero-padded / spaced)
+    "LC-6": "ADEN/LUR", "LC-47": "ADEN/LUR", "LC-34": "ADEN/LUR", "LC-70": "ADEN/PVR", "LC-40": "Sr.ADEN KWV BG",
     "LC6": "ADEN/LUR", "LC06": "ADEN/LUR", "LC 6": "ADEN/LUR",
     "LC47": "ADEN/LUR", "LC 47": "ADEN/LUR",
     "LC34": "ADEN/LUR", "LC 34": "ADEN/LUR",
@@ -420,7 +412,6 @@ ELECT_G_SSE = {
     "LTRR": "SSE/ELECT/LUR", "UMD": "SSE/ELECT/LUR", "UPI": "SSE/ELECT/LUR", "KCB": "SSE/ELECT/LUR",
     "TER": "SSE/ELECT/LUR", "PCP": "SSE/ELECT/LUR", "NEI": "SSE/ELECT/LUR", "KRMD": "SSE/ELECT/LUR",
     "BANL": "SSE/ELECT/LUR", "GANI": "SSE/ELECT/LUR",
-    # LC Gates
     "LC-6": "SSE/ELECT/LUR", "LC6": "SSE/ELECT/LUR", "LC06": "SSE/ELECT/LUR",
     "LC-47": "SSE/ELECT/LUR", "LC47": "SSE/ELECT/LUR",
     "LC-34": "SSE/ELECT/LUR", "LC34": "SSE/ELECT/LUR",
@@ -455,12 +446,11 @@ ELECT_TRD_SSE = {
     "KVK": "SSE/TRD/SGRE", "SGRE": "SSE/TRD/SGRE", "ARAG": "SSE/TRD/SGRE",
     "LNP": "SSE/TRD/SGRE", "AGDl": "SSE/TRD/SGRE", "BLNK": "SSE/TRD/SGRE",
     "BLWD": "SSE/TRD/KWV", "BDK": "SSE/TRD/KWV", "MRJ": "SSE/TRD/KWV",
-    # LC Gates
     "LC-6": "SSE/TRD/LUR", "LC6": "SSE/TRD/LUR", "LC06": "SSE/TRD/LUR",
     "LC-47": "SSE/TRD/LUR", "LC47": "SSE/TRD/LUR",
-    "LC-34": "SSE/TRD/DRSV", "LC34": "SSE/TRD/DRSV",   # DKY → DRSV
+    "LC-34": "SSE/TRD/DRSV", "LC34": "SSE/TRD/DRSV",
     "LC-70": "SSE/TRD/KWV", "LC70": "SSE/TRD/KWV",
-    "LC-40": "SSE/TRD/KWV", "LC40": "SSE/TRD/KWV",      # MA/Madha
+    "LC-40": "SSE/TRD/KWV", "LC40": "SSE/TRD/KWV",
 }
 
 OPERATING_TI = {
@@ -486,12 +476,11 @@ OPERATING_TI = {
     "MSDG": "TI/PVR", "JVA": "TI/PVR", "GLV": "TI/PVR", "LNP": "TI/PVR", "AGDl": "TI/PVR",
     "BLWD": "TI/PVR", "BDK": "TI/PVR", "BLNK": "TI/PVR", "BBV": "TI/PVR",
     "AHI": "TI/PVR", "BMNI": "TI/PVR", "BHLI": "TI/PVR",
-    # LC Gates
     "LC-6": "TI/LUR", "LC6": "TI/LUR", "LC06": "TI/LUR",
     "LC-47": "TI/LUR", "LC47": "TI/LUR",
     "LC-34": "TI/LUR", "LC34": "TI/LUR",
     "LC-70": "TI/PVR", "LC70": "TI/PVR",
-    "LC-40": "TI/KWV", "LC40": "TI/KWV",   # MA / Madha
+    "LC-40": "TI/KWV", "LC40": "TI/KWV",
 }
 
 SNT_ADSTE = {
@@ -536,28 +525,22 @@ SNT_ADSTE = {
     "TER": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "PCP": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "NEI": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "KRMD": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "BANL": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "GANI": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
-    # LC Gates
     "LC-6": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC6": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC06": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "LC-47": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC47": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "LC-34": "ADSTE/KWV-II (LC-34(DKY)-LUR)", "LC34": "ADSTE/KWV-II (LC-34(DKY)-LUR)",
     "LC-70": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)", "LC70": "ADSTE/SUR (TKWD-MKPT & MLB-MRJ)",
-    "LC-40": "ADSTE/KWV-I (KWV-BRB)", "LC40": "ADSTE/KWV-I (KWV-BRB)",   # Madha
+    "LC-40": "ADSTE/KWV-I (KWV-BRB)", "LC40": "ADSTE/KWV-I (KWV-BRB)",
 }
 
 def get_jurisdiction(station, department):
     if pd.isna(station) or str(station).strip() == "":
         return "Unclassified"
-
     raw = str(station).strip()
     stn = raw.upper().replace(" ", "")
-
-    # Special station normalizations
     if stn in ["HGSTN", "HGA", "HG-A"]:
         stn = "HG"
     if stn == "AGDL":
         stn = "AGDl"
-
-    # ===== LC Gate handling (works for ALL departments) =====
     is_lc = stn.startswith("LC") or stn.startswith("L.C") or stn.startswith("L C")
     if is_lc:
         digits = "".join(ch for ch in stn if ch.isdigit())
@@ -569,15 +552,12 @@ def get_jurisdiction(station, department):
             candidates = (stn, raw, raw.upper())
     else:
         candidates = (stn, raw, raw.upper())
-
     dept = str(department).strip().upper() if pd.notna(department) else ""
-
     def _lookup(d):
         for k in candidates:
             if k in d:
                 return d[k]
         return None
-
     if "OPTG" in dept or "OPERATING" in dept:
         return _lookup(OPERATING_TI) or "Unclassified"
     if "ENGG" in dept or "ENGINEERING" in dept or "ADEN" in dept:
@@ -586,7 +566,6 @@ def get_jurisdiction(station, department):
         return _lookup(ELECT_TRD_SSE) or "Unclassified"
     if any(x in dept for x in ["ELECT", "ELECTRICAL", "SSE/ELECT"]):
         return _lookup(ELECT_G_SSE) or "Unclassified"
-    # S&T or unknown department – try SNT first, then ENGG as fallback for LCs
     result = _lookup(SNT_ADSTE)
     if result:
         return result
@@ -594,17 +573,17 @@ def get_jurisdiction(station, department):
         return _lookup(ENGG_ADEN) or "Unclassified"
     return "Unclassified"
 
+# ====================== REPORT FUNCTIONS ======================
 def generate_one_page_report(df, from_date, to_date, user_name):
-    """Generate a professional multi-page A4 PDF Health Report"""
     buffer = BytesIO()
-
-    NAVY   = '#0D2137'
-    BLUE   = '#1A5276'
-    ACCENT = '#2874A6'
-    LIGHT  = '#EBF5FB'
-    GRAY   = '#5D6D7E'
-    DARK   = '#1C2833'
-    GREEN  = '#1E8449'
+    NAVY     = '#0A1628'
+    BLUE     = '#0D47A1'
+    ACCENT   = '#1565C0'
+    GREEN    = '#2E7D32'
+    LIGHT_BG = '#F5F9FC'
+    CARD_BG  = '#FFFFFF'
+    GRAY     = '#546E7A'
+    DARK     = '#1A237E'
 
     total_cases = len(df)
     top_station = "N/A"
@@ -612,7 +591,6 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     top_error = "N/A"
     unique_stn = 0
     pct_change = None
-    monthly_trend = None
 
     if not df.empty and 'STATION' in df.columns:
         stn_counts = df['STATION'].value_counts()
@@ -626,7 +604,6 @@ def generate_one_page_report(df, from_date, to_date, user_name):
         if not err_counts.empty:
             top_error = str(err_counts.index[0])
 
-    # Monthly trend + previous period comparison
     if not df.empty and 'DATE' in df.columns:
         try:
             monthly = df.dropna(subset=['DATE']).set_index('DATE').resample('MS').size().astype(float)
@@ -636,18 +613,15 @@ def generate_one_page_report(df, from_date, to_date, user_name):
                 prev_val = float(monthly.iloc[-2])
                 if prev_val > 0:
                     pct_change = ((last_val - prev_val) / prev_val) * 100
-            if len(monthly) >= 3:
-                monthly_trend = monthly.tail(6)
         except Exception:
             pass
 
-    # Dynamic department title
     dept_title = "All Departments"
     if not df.empty and 'DEPARTMENT' in df.columns:
         unique_depts = df['DEPARTMENT'].dropna().unique()
         if len(unique_depts) == 1:
             dept_title = str(unique_depts[0]).strip()
-        elif len(unique_depts) <= 4:
+        elif len(unique_depts) <= 3:
             dept_title = "  |  ".join([str(d).strip() for d in unique_depts])
         else:
             dept_title = f"{len(unique_depts)} Departments (Filtered)"
@@ -656,140 +630,102 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     gen_text = f"Generated: {datetime.now(IST).strftime('%d %b %Y, %H:%M')} IST   |   By: {user_name}"
 
     def draw_header_footer(fig, page_num, total_pages):
-        # Header bar
-        header_bar = mpatches.FancyBboxPatch(
-            (0.0, 0.93), 1.0, 0.07,
-            boxstyle="square,pad=0", facecolor=NAVY,
-            transform=fig.transFigure, clip_on=False
-        )
-        fig.add_artist(header_bar)
-        fig.text(0.05, 0.965, "DRISHTI", fontsize=16, fontweight='bold',
-                 color='white', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.05, 0.942, "Health Report",
-                 fontsize=8, color='#AED6F1', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.95, 0.965, "Central Railway", fontsize=9, fontweight='bold',
-                 color='white', ha='right', va='center', transform=fig.transFigure)
-        fig.text(0.95, 0.942, "Solapur Division  |  Safety Branch",
-                 fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
-
-        # Footer bar
-        footer_bar = mpatches.FancyBboxPatch(
-            (0.0, 0.0), 1.0, 0.045,
-            boxstyle="square,pad=0", facecolor=NAVY,
-            transform=fig.transFigure, clip_on=False
-        )
-        fig.add_artist(footer_bar)
-        fig.text(0.05, 0.025, "Prepared by Safety Branch  |  Central Railway, Solapur Division",
-                 fontsize=7.5, color='white', ha='left', va='center', transform=fig.transFigure)
-        fig.text(0.95, 0.025, f"CONFIDENTIAL – For Official Use Only  |  Page {page_num} of {total_pages}",
-                 fontsize=7, color='#AED6F1', ha='right', va='center', transform=fig.transFigure)
+        header = mpatches.FancyBboxPatch((0, 0.935), 1, 0.065, boxstyle="square,pad=0", facecolor=NAVY, transform=fig.transFigure, clip_on=False)
+        fig.add_artist(header)
+        fig.text(0.04, 0.968, "DRISHTI", fontsize=15, fontweight='bold', color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.04, 0.948, "Health Report  •  Safety Branch", fontsize=7.5, color='#90CAF9', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.968, "Central Railway", fontsize=9, fontweight='bold', color='white', ha='right', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.948, "Solapur Division", fontsize=7.5, color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
+        footer = mpatches.FancyBboxPatch((0, 0), 1, 0.038, boxstyle="square,pad=0", facecolor=NAVY, transform=fig.transFigure, clip_on=False)
+        fig.add_artist(footer)
+        fig.text(0.04, 0.019, "Prepared by Safety Branch  |  Central Railway, Solapur Division", fontsize=7, color='white', ha='left', va='center', transform=fig.transFigure)
+        fig.text(0.96, 0.019, f"CONFIDENTIAL  •  Page {page_num} of {total_pages}", fontsize=7, color='#90CAF9', ha='right', va='center', transform=fig.transFigure)
 
     with PdfPages(buffer) as pdf:
-        # ===================== PAGE 1 =====================
         fig1 = plt.figure(figsize=(8.27, 11.69))
-        fig1.patch.set_facecolor('#FFFFFF')
+        fig1.patch.set_facecolor(LIGHT_BG)
         draw_header_footer(fig1, 1, 2)
 
-        # Sub-header
-        fig1.text(0.05, 0.905, f"Department: {dept_title}", fontsize=10, fontweight='bold',
-                  color=BLUE, ha='left', va='center', transform=fig1.transFigure)
-        fig1.text(0.05, 0.885, period_text, fontsize=8, color=GRAY,
-                  ha='left', va='center', transform=fig1.transFigure)
-        fig1.text(0.95, 0.885, gen_text, fontsize=7.5, color=GRAY,
-                  ha='right', va='center', transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.05, 0.95], [0.870, 0.870], color=ACCENT,
-                                   linewidth=1.2, transform=fig1.transFigure))
+        fig1.text(0.04, 0.915, f"Department: {dept_title}", fontsize=9.5, fontweight='bold', color=BLUE, ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.04, 0.898, period_text, fontsize=8, color=GRAY, ha='left', va='center', transform=fig1.transFigure)
+        fig1.text(0.96, 0.898, gen_text, fontsize=7.5, color=GRAY, ha='right', va='center', transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.96], [0.888, 0.888], color=ACCENT, linewidth=1.5, transform=fig1.transFigure))
 
-        # Metrics cards (with % change on Total Cases)
         change_label = "Total Cases"
         if pct_change is not None:
             arrow = "▲" if pct_change > 0 else ("▼" if pct_change < 0 else "●")
-            change_label = f"Total Cases  {arrow} {pct_change:+.1f}% vs prev month"
+            change_label = f"Total Cases  {arrow} {pct_change:+.1f}%"
 
         metrics = [
             (f"{total_cases:,}", change_label, NAVY),
-            (str(top_station)[:14], "Top Station", BLUE),
+            (str(top_station)[:13], "Top Station", BLUE),
             (f"{top_station_cases:,}", "Top Station Cases", ACCENT),
             (f"{unique_stn}", "Unique Stations", GREEN),
         ]
         for i, (value, label, color) in enumerate(metrics):
-            x = 0.05 + i * 0.235
-            card = mpatches.FancyBboxPatch(
-                (x, 0.800), 0.215, 0.055,
-                boxstyle="round,pad=0.008",
-                facecolor=LIGHT, edgecolor=color, linewidth=1.3,
-                transform=fig1.transFigure
-            )
+            x = 0.04 + i * 0.24
+            card = mpatches.FancyBboxPatch((x, 0.805), 0.22, 0.065, boxstyle="round,pad=0.008", facecolor=CARD_BG, edgecolor=color, linewidth=1.5, transform=fig1.transFigure, zorder=2)
             fig1.add_artist(card)
-            fig1.text(x + 0.1075, 0.835, value, fontsize=12, fontweight='bold',
-                      color=color, ha='center', va='center', transform=fig1.transFigure)
-            fig1.text(x + 0.1075, 0.812, label, fontsize=6.5 if i == 0 else 7, color=GRAY,
-                      ha='center', va='center', transform=fig1.transFigure)
+            strip = mpatches.FancyBboxPatch((x, 0.805), 0.008, 0.065, boxstyle="square,pad=0", facecolor=color, transform=fig1.transFigure, zorder=3)
+            fig1.add_artist(strip)
+            fig1.text(x + 0.115, 0.845, value, fontsize=13, fontweight='bold', color=color, ha='center', va='center', transform=fig1.transFigure)
+            fig1.text(x + 0.115, 0.820, label, fontsize=7, color=GRAY, ha='center', va='center', transform=fig1.transFigure)
 
-        # Top 10 Stations chart
-        ax1 = fig1.add_axes([0.08, 0.48, 0.52, 0.28])
+        ax1 = fig1.add_axes([0.07, 0.48, 0.52, 0.28])
         if not df.empty and 'STATION' in df.columns:
             top10 = df['STATION'].value_counts().nlargest(10)
             y_pos = np.arange(len(top10))
-            colors = plt.cm.Blues(np.linspace(0.45, 0.85, len(top10)))[::-1]
-            bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.65, edgecolor='none')
+            colors = plt.cm.Blues(np.linspace(0.35, 0.85, len(top10)))[::-1]
+            bars = ax1.barh(y_pos, top10.values[::-1], color=colors, height=0.68, edgecolor='none')
             ax1.set_yticks(y_pos)
-            ax1.set_yticklabels(top10.index[::-1], fontsize=7.5)
+            ax1.set_yticklabels(top10.index[::-1], fontsize=8)
             ax1.set_xlabel('Number of Cases', fontsize=8, color=GRAY)
-            ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold',
-                          color=NAVY, pad=6, loc='left')
+            ax1.set_title('Top 10 Stations by Cases', fontsize=10, fontweight='bold', color=NAVY, pad=6, loc='left')
             ax1.tick_params(axis='x', labelsize=7, colors=GRAY)
             ax1.spines['top'].set_visible(False)
             ax1.spines['right'].set_visible(False)
-            ax1.spines['left'].set_color('#D5D8DC')
-            ax1.spines['bottom'].set_color('#D5D8DC')
+            ax1.spines['left'].set_color('#CFD8DC')
+            ax1.spines['bottom'].set_color('#CFD8DC')
             ax1.set_axisbelow(True)
-            ax1.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
+            ax1.xaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
             for bar, val in zip(bars, top10.values[::-1]):
-                ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2,
-                         f'{int(val)}', va='center', fontsize=6.5, color=DARK)
+                ax1.text(val + max(top10.values) * 0.015, bar.get_y() + bar.get_height()/2, f'{int(val)}', va='center', fontsize=7, color=DARK)
         else:
             ax1.text(0.5, 0.5, 'No Station Data', ha='center', va='center', fontsize=9, color=GRAY)
             ax1.axis('off')
 
-        # All Departments chart (no limit)
         ax2 = fig1.add_axes([0.66, 0.48, 0.30, 0.28])
         if not df.empty and 'DEPARTMENT' in df.columns:
             dept_counts = df['DEPARTMENT'].value_counts()
             y_pos2 = np.arange(len(dept_counts))
-            colors2 = plt.cm.GnBu(np.linspace(0.4, 0.85, len(dept_counts)))[::-1]
-            bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.65, edgecolor='none')
+            colors2 = plt.cm.GnBu(np.linspace(0.35, 0.85, len(dept_counts)))[::-1]
+            bars2 = ax2.barh(y_pos2, dept_counts.values[::-1], color=colors2, height=0.68, edgecolor='none')
             ax2.set_yticks(y_pos2)
-            ax2.set_yticklabels(dept_counts.index[::-1], fontsize=6.5)
+            ax2.set_yticklabels(dept_counts.index[::-1], fontsize=7)
             ax2.set_xlabel('Cases', fontsize=8, color=GRAY)
-            ax2.set_title('All Departments', fontsize=10, fontweight='bold',
-                          color=NAVY, pad=6, loc='left')
+            ax2.set_title('Departments', fontsize=10, fontweight='bold', color=NAVY, pad=6, loc='left')
             ax2.tick_params(axis='x', labelsize=7, colors=GRAY)
             ax2.spines['top'].set_visible(False)
             ax2.spines['right'].set_visible(False)
-            ax2.spines['left'].set_color('#D5D8DC')
-            ax2.spines['bottom'].set_color('#D5D8DC')
+            ax2.spines['left'].set_color('#CFD8DC')
+            ax2.spines['bottom'].set_color('#CFD8DC')
             ax2.set_axisbelow(True)
-            ax2.xaxis.grid(True, linestyle='--', alpha=0.4, color='#AEB6BF')
+            ax2.xaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
             for bar, val in zip(bars2, dept_counts.values[::-1]):
-                ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2,
-                         f'{int(val)}', va='center', fontsize=6, color=DARK)
+                ax2.text(val + max(dept_counts.values) * 0.02, bar.get_y() + bar.get_height()/2, f'{int(val)}', va='center', fontsize=6.5, color=DARK)
         else:
             ax2.text(0.5, 0.5, 'No Department Data', ha='center', va='center', fontsize=9, color=GRAY)
             ax2.axis('off')
 
-        # Key Insights
-        fig1.text(0.05, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold',
-                  color=NAVY, transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.05, 0.30], [0.438, 0.438], color=ACCENT,
-                                   linewidth=1.5, transform=fig1.transFigure))
+        fig1.text(0.04, 0.445, "KEY INSIGHTS", fontsize=9, fontweight='bold', color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.22], [0.438, 0.438], color=ACCENT, linewidth=2, transform=fig1.transFigure))
 
         insights = []
         if total_cases > 0:
             insights.append(f"•  Total of {total_cases:,} cases recorded during the selected period.")
             if pct_change is not None:
                 if pct_change > 10:
-                    insights.append(f"•  Cases rose sharply by {pct_change:+.1f}% compared to the previous month.")
+                    insights.append(f"•  Cases rose sharply by {pct_change:+.1f}% compared to previous month.")
                 elif pct_change > 0:
                     insights.append(f"•  Cases increased by {pct_change:+.1f}% vs previous month.")
                 elif pct_change < -10:
@@ -812,126 +748,77 @@ def generate_one_page_report(df, from_date, to_date, user_name):
                     insights.append(f"•  Concentration alert: Top 3 stations account for {top3_pct:.1f}% of all cases.")
                 else:
                     insights.append(f"•  Cases spread across {unique_stn} stations; Top 3 contribute {top3_pct:.1f}%.")
-            if dept_title != "All Departments":
-                insights.append(f"•  Report filtered for: {dept_title}.")
 
         if not insights:
             insights = ["•  Insufficient data to generate insights."]
 
         y_pos = 0.420
         for insight in insights[:6]:
-            fig1.text(0.05, y_pos, insight, fontsize=7.5, color=DARK,
-                      va='top', transform=fig1.transFigure)
-            y_pos -= 0.022
+            fig1.text(0.04, y_pos, insight, fontsize=7.5, color=DARK, va='top', transform=fig1.transFigure)
+            y_pos -= 0.020
 
-        # Error Main Category table on page 1 (below Key Insights)
-        fig1.text(0.05, 0.275, "ERROR MAIN CATEGORY", fontsize=9, fontweight='bold',
-                  color=NAVY, transform=fig1.transFigure)
-        fig1.add_artist(plt.Line2D([0.05, 0.32], [0.268, 0.268], color=ACCENT,
-                                   linewidth=1.5, transform=fig1.transFigure))
+        fig1.text(0.04, 0.285, "ERROR MAIN CATEGORY", fontsize=9, fontweight='bold', color=NAVY, transform=fig1.transFigure)
+        fig1.add_artist(plt.Line2D([0.04, 0.28], [0.278, 0.278], color=ACCENT, linewidth=2, transform=fig1.transFigure))
 
         if not df.empty and 'ERROR MAIN CATEGORY' in df.columns and total_cases > 0:
             err_sum = df['ERROR MAIN CATEGORY'].value_counts().reset_index()
             err_sum.columns = ['Error Category', 'Cases']
             err_sum['%'] = (err_sum['Cases'] / total_cases * 100).round(1)
-
-            header_bg = mpatches.FancyBboxPatch(
-                (0.05, 0.240), 0.90, 0.022,
-                boxstyle="square,pad=0", facecolor=NAVY,
-                transform=fig1.transFigure, clip_on=False
-            )
+            header_bg = mpatches.FancyBboxPatch((0.04, 0.250), 0.92, 0.022, boxstyle="square,pad=0", facecolor=NAVY, transform=fig1.transFigure, clip_on=False)
             fig1.add_artist(header_bg)
-            fig1.text(0.07, 0.251, "Error Category", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig1.transFigure)
-            fig1.text(0.72, 0.251, "Cases", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig1.transFigure)
-            fig1.text(0.85, 0.251, "% of Total", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig1.transFigure)
-
-            y_pos = 0.225
+            fig1.text(0.06, 0.261, "Error Category", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.72, 0.261, "Cases", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
+            fig1.text(0.85, 0.261, "% of Total", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig1.transFigure)
+            y_pos = 0.235
             max_rows = min(len(err_sum), 8)
             for idx in range(max_rows):
                 row = err_sum.iloc[idx]
-                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
-                row_bg = mpatches.FancyBboxPatch(
-                    (0.05, y_pos - 0.008), 0.90, 0.020,
-                    boxstyle="square,pad=0", facecolor=bg_color,
-                    transform=fig1.transFigure, clip_on=False
-                )
+                bg_color = '#E3F2FD' if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch((0.04, y_pos - 0.008), 0.92, 0.020, boxstyle="square,pad=0", facecolor=bg_color, transform=fig1.transFigure, clip_on=False)
                 fig1.add_artist(row_bg)
-                fig1.text(0.07, y_pos + 0.002, str(row['Error Category'])[:50],
-                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
-                fig1.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
-                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
-                fig1.text(0.85, y_pos + 0.002, f"{row['%']}%",
-                          fontsize=6.5, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.06, y_pos + 0.002, str(row['Error Category'])[:48], fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}", fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
+                fig1.text(0.85, y_pos + 0.002, f"{row['%']}%", fontsize=6.8, color=DARK, va='center', transform=fig1.transFigure)
                 y_pos -= 0.020
             if len(err_sum) > 8:
-                fig1.text(0.05, y_pos, f"... and {len(err_sum) - 8} more error categories",
-                          fontsize=6.5, color=GRAY, transform=fig1.transFigure)
+                fig1.text(0.04, y_pos, f"... and {len(err_sum) - 8} more categories", fontsize=6.5, color=GRAY, transform=fig1.transFigure)
         else:
-            fig1.text(0.05, 0.230, "No error category data available.",
-                      fontsize=8, color=GRAY, transform=fig1.transFigure)
+            fig1.text(0.04, 0.240, "No error category data available.", fontsize=8, color=GRAY, transform=fig1.transFigure)
 
         pdf.savefig(fig1, bbox_inches='tight')
         plt.close(fig1)
 
-        # ===================== PAGE 2 =====================
         fig2 = plt.figure(figsize=(8.27, 11.69))
-        fig2.patch.set_facecolor('#FFFFFF')
+        fig2.patch.set_facecolor(LIGHT_BG)
         draw_header_footer(fig2, 2, 2)
+        fig2.text(0.04, 0.905, "JURISDICTION BREAKDOWN", fontsize=11, fontweight='bold', color=NAVY, ha='left', va='center', transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.04, 0.96], [0.892, 0.892], color=ACCENT, linewidth=1.5, transform=fig2.transFigure))
+        fig2.text(0.04, 0.870, "ALL JURISDICTIONS", fontsize=9, fontweight='bold', color=NAVY, transform=fig2.transFigure)
+        fig2.add_artist(plt.Line2D([0.04, 0.26], [0.863, 0.863], color=ACCENT, linewidth=2, transform=fig2.transFigure))
 
-        fig2.text(0.05, 0.900, "JURISDICTION BREAKDOWN", fontsize=11, fontweight='bold',
-                  color=NAVY, ha='left', va='center', transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.05, 0.95], [0.885, 0.885], color=ACCENT,
-                                   linewidth=1.2, transform=fig2.transFigure))
-
-        # Single full Jurisdiction table
-        fig2.text(0.05, 0.860, "ALL JURISDICTIONS", fontsize=9, fontweight='bold',
-                  color=NAVY, transform=fig2.transFigure)
-        fig2.add_artist(plt.Line2D([0.05, 0.30], [0.853, 0.853], color=ACCENT,
-                                   linewidth=1.5, transform=fig2.transFigure))
-
-        y_pos = 0.830
+        y_pos = 0.840
         if not df.empty and 'JURISDICTION' in df.columns and total_cases > 0:
             jur_sum = df['JURISDICTION'].value_counts().reset_index()
             jur_sum.columns = ['Jurisdiction', 'Cases']
             jur_sum['%'] = (jur_sum['Cases'] / total_cases * 100).round(1)
-
-            header_bg = mpatches.FancyBboxPatch(
-                (0.05, y_pos), 0.90, 0.022,
-                boxstyle="square,pad=0", facecolor=NAVY,
-                transform=fig2.transFigure, clip_on=False
-            )
+            header_bg = mpatches.FancyBboxPatch((0.04, y_pos), 0.92, 0.022, boxstyle="square,pad=0", facecolor=NAVY, transform=fig2.transFigure, clip_on=False)
             fig2.add_artist(header_bg)
-            fig2.text(0.07, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
-            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold',
-                      color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.06, y_pos + 0.011, "Jurisdiction", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.72, y_pos + 0.011, "Cases", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
+            fig2.text(0.85, y_pos + 0.011, "% of Total", fontsize=7.5, fontweight='bold', color='white', va='center', transform=fig2.transFigure)
             y_pos -= 0.022
-
             for idx, row in jur_sum.iterrows():
                 if y_pos < 0.08:
                     break
-                bg_color = LIGHT if idx % 2 == 0 else '#FFFFFF'
-                row_bg = mpatches.FancyBboxPatch(
-                    (0.05, y_pos - 0.008), 0.90, 0.020,
-                    boxstyle="square,pad=0", facecolor=bg_color,
-                    transform=fig2.transFigure, clip_on=False
-                )
+                bg_color = '#E3F2FD' if idx % 2 == 0 else '#FFFFFF'
+                row_bg = mpatches.FancyBboxPatch((0.04, y_pos - 0.008), 0.92, 0.020, boxstyle="square,pad=0", facecolor=bg_color, transform=fig2.transFigure, clip_on=False)
                 fig2.add_artist(row_bg)
-                fig2.text(0.07, y_pos + 0.002, str(row['Jurisdiction'])[:55],
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}",
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
-                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%",
-                          fontsize=6.5, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.06, y_pos + 0.002, str(row['Jurisdiction'])[:52], fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.72, y_pos + 0.002, f"{int(row['Cases']):,}", fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
+                fig2.text(0.85, y_pos + 0.002, f"{row['%']}%", fontsize=6.8, color=DARK, va='center', transform=fig2.transFigure)
                 y_pos -= 0.020
         else:
-            fig2.text(0.05, 0.820, "No jurisdiction data available.",
-                      fontsize=8, color=GRAY, transform=fig2.transFigure)
+            fig2.text(0.04, 0.820, "No jurisdiction data available.", fontsize=8, color=GRAY, transform=fig2.transFigure)
 
         pdf.savefig(fig2, bbox_inches='tight')
         plt.close(fig2)
@@ -939,7 +826,7 @@ def generate_one_page_report(df, from_date, to_date, user_name):
     buffer.seek(0)
     return buffer
 
-# ====================== FORECASTING ENGINE ======================
+# ====================== FORECASTING + NEW HELPERS ======================
 def get_global_month_index(df):
     if df is None or df.empty or 'DATE' not in df.columns:
         return pd.DatetimeIndex([])
@@ -975,15 +862,10 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#0277bd"):
     workbook = writer.book
     df.to_excel(writer, index=False, sheet_name=sheet_name, header=False, startrow=1)
     worksheet = writer.sheets[sheet_name]
-
-    header_fmt = workbook.add_format({
-        'bold': True, 'font_color': 'white', 'bg_color': header_color,
-        'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True
-    })
+    header_fmt = workbook.add_format({'bold': True, 'font_color': 'white', 'bg_color': header_color, 'border': 1, 'align': 'center', 'valign': 'vcenter', 'text_wrap': True})
     text_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter'})
     number_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': '#,##0'})
     date_fmt = workbook.add_format({'border': 1, 'valign': 'vcenter', 'num_format': 'dd-mmm-yyyy'})
-
     for col_idx, col_name in enumerate(df.columns):
         worksheet.write(0, col_idx, str(col_name), header_fmt)
         series = df[col_name]
@@ -996,7 +878,6 @@ def write_styled_sheet(writer, df, sheet_name, header_color="#0277bd"):
         content_len = int(series.astype(str).map(len).max()) if len(series) else 0
         width = min(max(max(content_len, len(str(col_name))) + 2, 10), 45)
         worksheet.set_column(col_idx, col_idx, width, cell_fmt)
-
     worksheet.set_row(0, 30)
     worksheet.freeze_panes(1, 0)
     if len(df) > 0:
@@ -1076,50 +957,24 @@ def forecast_by_group(df, group_col, how, horizon, top_n=10, full_index=None):
         rows.append(row)
     return pd.DataFrame(rows)
 
-# ====================== NEW FEATURES: RISK SCORE + WHAT-IF + SEASONALITY ======================
-
 def define_error_severity():
-    """
-    Map Error Main Categories to severity ranks (1=Low, 2=Medium, 3=High, 4=Critical).
-    Expand this dictionary with your real categories for better accuracy.
-    """
     return {
-        "SIGNAL FAILURE": 4,
-        "POINT FAILURE": 4,
-        "TRACK CIRCUIT FAILURE": 3,
-        "AXLE COUNTER FAILURE": 3,
-        "LC GATE FAILURE": 4,
-        "POWER SUPPLY FAILURE": 3,
-        "COMMUNICATION FAILURE": 2,
-        "OTHER": 1,
+        "SIGNAL FAILURE": 4, "POINT FAILURE": 4, "TRACK CIRCUIT FAILURE": 3,
+        "AXLE COUNTER FAILURE": 3, "LC GATE FAILURE": 4, "POWER SUPPLY FAILURE": 3,
+        "COMMUNICATION FAILURE": 2, "OTHER": 1,
     }
 
 def calculate_station_risk_scores(df, lookback_days=90, severity_map=None):
-    """
-    Composite Risk Score per station (0–100).
-    Volume (40%) + Rising Trend (30%) + Error Severity (30%).
-    """
     if df.empty or 'STATION' not in df.columns or 'DATE' not in df.columns:
         return pd.DataFrame()
-
     if severity_map is None:
         severity_map = define_error_severity()
-
     cutoff = pd.Timestamp.now(tz=None) - pd.Timedelta(days=lookback_days)
     recent = df[df['DATE'] >= cutoff].copy()
-
     if recent.empty:
         return pd.DataFrame()
-
-    # 1. Volume
     vol = recent.groupby('STATION').size().rename('cases_recent')
-
-    # 2. Trend (monthly slope)
-    monthly = (recent.dropna(subset=['DATE'])
-                     .assign(ym=lambda x: x['DATE'].dt.to_period('M'))
-                     .groupby(['STATION', 'ym']).size()
-                     .reset_index(name='cnt'))
-    
+    monthly = (recent.dropna(subset=['DATE']).assign(ym=lambda x: x['DATE'].dt.to_period('M')).groupby(['STATION', 'ym']).size().reset_index(name='cnt'))
     trend_scores = {}
     for stn, grp in monthly.groupby('STATION'):
         if len(grp) >= 2:
@@ -1129,104 +984,145 @@ def calculate_station_risk_scores(df, lookback_days=90, severity_map=None):
         else:
             trend_scores[stn] = 0.0
     trend = pd.Series(trend_scores, name='trend_slope')
-
-    # 3. Severity
     if 'ERROR MAIN CATEGORY' in recent.columns:
-        recent['sev'] = recent['ERROR MAIN CATEGORY'].map(
-            lambda x: severity_map.get(str(x).strip().upper(), 1)
-        )
+        recent['sev'] = recent['ERROR MAIN CATEGORY'].map(lambda x: severity_map.get(str(x).strip().upper(), 1))
         sev = recent.groupby('STATION')['sev'].mean().rename('avg_severity')
     else:
         sev = pd.Series(1.0, index=vol.index, name='avg_severity')
-
-    # Combine
     risk_df = pd.concat([vol, trend, sev], axis=1).fillna(0)
-    
     def norm(s):
         if s.max() == s.min():
             return pd.Series(50.0, index=s.index)
         return 100 * (s - s.min()) / (s.max() - s.min())
-
-    risk_df['vol_score']   = norm(risk_df['cases_recent'])
+    risk_df['vol_score'] = norm(risk_df['cases_recent'])
     risk_df['trend_score'] = norm(risk_df['trend_slope'].clip(lower=0))
-    risk_df['sev_score']   = norm(risk_df['avg_severity'])
-
-    risk_df['Risk Score'] = (
-        0.40 * risk_df['vol_score'] +
-        0.30 * risk_df['trend_score'] +
-        0.30 * risk_df['sev_score']
-    ).round(1)
-
-    risk_df = risk_df.sort_values('Risk Score', ascending=False)
-    risk_df = risk_df.reset_index().rename(columns={'index': 'STATION'})
-    
-    risk_df['Risk Band'] = pd.cut(
-        risk_df['Risk Score'],
-        bins=[-1, 40, 65, 85, 101],
-        labels=['Low', 'Medium', 'High', 'Critical']
-    )
-    return risk_df[['STATION', 'cases_recent', 'trend_slope', 'avg_severity',
-                    'Risk Score', 'Risk Band']]
+    risk_df['sev_score'] = norm(risk_df['avg_severity'])
+    risk_df['Risk Score'] = (0.40 * risk_df['vol_score'] + 0.30 * risk_df['trend_score'] + 0.30 * risk_df['sev_score']).round(1)
+    risk_df = risk_df.sort_values('Risk Score', ascending=False).reset_index().rename(columns={'index': 'STATION'})
+    risk_df['Risk Band'] = pd.cut(risk_df['Risk Score'], bins=[-1, 40, 65, 85, 101], labels=['Low', 'Medium', 'High', 'Critical'])
+    return risk_df[['STATION', 'cases_recent', 'trend_slope', 'avg_severity', 'Risk Score', 'Risk Band']]
 
 def what_if_scenario(hist_series, top_stations_df, reduction_pct, horizon=3):
-    """Assume selected top stations reduce contribution by reduction_pct %."""
     if hist_series.empty:
         return None, None, None
-
     fc_orig, method, resid = forecast_series(hist_series, horizon)
-
     if top_stations_df.empty or 'share' not in top_stations_df.columns:
         return fc_orig, fc_orig, method
-
     total_share = top_stations_df['share'].sum()
     reduction_factor = 1.0 - (total_share * (reduction_pct / 100.0))
-
-    fc_scenario = fc_orig * reduction_factor
-    fc_scenario = fc_scenario.clip(lower=0).round()
-
+    fc_scenario = (fc_orig * reduction_factor).clip(lower=0).round()
     return fc_orig, fc_scenario, method
 
 def build_seasonality_data(df, group_col=None):
-    """Pivot table for seasonality heatmap."""
     if df.empty or 'DATE' not in df.columns:
         return pd.DataFrame()
-
     d = df.dropna(subset=['DATE']).copy()
     d['MonthNum'] = d['DATE'].dt.month
     d['Month'] = d['DATE'].dt.strftime('%b')
     d['Year'] = d['DATE'].dt.year
-
     if group_col and group_col in d.columns:
         pivot = d.groupby(['MonthNum', 'Month', group_col]).size().reset_index(name='Cases')
-        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns=group_col,
-                                  values='Cases', fill_value=0)
+        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns=group_col, values='Cases', fill_value=0)
     else:
         pivot = d.groupby(['MonthNum', 'Month', 'Year']).size().reset_index(name='Cases')
-        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns='Year',
-                                  values='Cases', fill_value=0)
-
+        pivot = pivot.pivot_table(index=['MonthNum', 'Month'], columns='Year', values='Cases', fill_value=0)
     pivot = pivot.sort_index(level=0)
     pivot.index = pivot.index.droplevel(0)
     return pivot
 
-def generate_executive_summary_pptx(df, from_date, to_date, user_name):
-    """Creates a clean 1-slide Executive Summary (16:9) for DRM / ADRM."""
-    prs = Presentation()
-    prs.slide_width  = Inches(13.333)
-    prs.slide_height = Inches(7.5)
+def apply_global_search(df, search_text):
+    if not search_text or search_text.strip() == "":
+        return df
+    search = search_text.strip().lower()
+    mask = pd.Series(False, index=df.index)
+    for col in ['STATION', 'DL FAULT MESSAGE', 'REMARKS GIVEN BY S&T', 'ERROR MAIN CATEGORY', 'JURISDICTION']:
+        if col in df.columns:
+            mask = mask | df[col].astype(str).str.lower().str.contains(search, na=False)
+    return df[mask]
 
+def generate_summary_image(df, from_date, to_date, user_name):
+    fig = plt.figure(figsize=(12, 7.5), facecolor='#F8FBFD')
+    NAVY, BLUE, ACCENT, GREEN, GRAY = '#0D2137', '#1565C0', '#0288D1', '#2E7D32', '#546E7A'
+    fig.text(0.05, 0.94, "DRISHTI  |  Summary Snapshot", fontsize=18, fontweight='bold', color=NAVY)
+    fig.text(0.05, 0.90, "Central Railway  •  Solapur Division  •  Safety Branch", fontsize=10, color=GRAY)
+    fig.text(0.95, 0.94, f"{from_date.strftime('%d %b %Y')} – {to_date.strftime('%d %b %Y')}", fontsize=10, ha='right', color=GRAY)
+    fig.text(0.95, 0.90, f"Generated by {user_name}", fontsize=9, ha='right', color=GRAY)
+    fig.add_artist(plt.Line2D([0.05, 0.95], [0.875, 0.875], color=ACCENT, linewidth=2))
+    total = len(df)
+    top_stn, top_cases, unique = "N/A", 0, 0
+    if not df.empty and 'STATION' in df.columns:
+        vc = df['STATION'].value_counts()
+        if not vc.empty:
+            top_stn = str(vc.index[0])
+            top_cases = int(vc.iloc[0])
+        unique = df['STATION'].nunique()
+    kpis = [(f"{total:,}", "Total Cases", NAVY), (top_stn[:14], "Top Station", BLUE), (f"{top_cases:,}", "Top Station Cases", ACCENT), (str(unique), "Unique Stations", GREEN)]
+    for i, (val, label, color) in enumerate(kpis):
+        x = 0.06 + i * 0.235
+        rect = plt.Rectangle((x, 0.72), 0.21, 0.12, transform=fig.transFigure, facecolor='white', edgecolor=color, linewidth=1.8, zorder=1)
+        fig.add_artist(rect)
+        fig.text(x + 0.105, 0.80, val, fontsize=16, fontweight='bold', color=color, ha='center', va='center', transform=fig.transFigure)
+        fig.text(x + 0.105, 0.745, label, fontsize=9, color=GRAY, ha='center', va='center', transform=fig.transFigure)
+    ax1 = fig.add_axes([0.07, 0.12, 0.40, 0.52])
+    if not df.empty and 'STATION' in df.columns:
+        top8 = df['STATION'].value_counts().head(8)
+        colors = plt.cm.Blues(np.linspace(0.4, 0.85, len(top8)))[::-1]
+        bars = ax1.barh(range(len(top8)), top8.values[::-1], color=colors, height=0.65)
+        ax1.set_yticks(range(len(top8)))
+        ax1.set_yticklabels(top8.index[::-1], fontsize=9)
+        ax1.set_xlabel("Cases", fontsize=9, color=GRAY)
+        ax1.set_title("Top 8 Stations", fontsize=11, fontweight='bold', color=NAVY, loc='left', pad=8)
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['left'].set_color('#CFD8DC')
+        ax1.spines['bottom'].set_color('#CFD8DC')
+        ax1.tick_params(colors=GRAY)
+        for bar, val in zip(bars, top8.values[::-1]):
+            ax1.text(val + max(top8.values)*0.02, bar.get_y() + bar.get_height()/2, f"{int(val)}", va='center', fontsize=8, color=NAVY)
+    else:
+        ax1.text(0.5, 0.5, "No data", ha='center', va='center')
+        ax1.axis('off')
+    ax2 = fig.add_axes([0.55, 0.12, 0.40, 0.52])
+    if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
+        top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
+        colors2 = plt.cm.Oranges(np.linspace(0.35, 0.8, len(top_err)))[::-1]
+        bars2 = ax2.barh(range(len(top_err)), top_err.values[::-1], color=colors2, height=0.65)
+        ax2.set_yticks(range(len(top_err)))
+        ax2.set_yticklabels([str(x)[:28] for x in top_err.index[::-1]], fontsize=8.5)
+        ax2.set_xlabel("Cases", fontsize=9, color=GRAY)
+        ax2.set_title("Top Error Categories", fontsize=11, fontweight='bold', color=NAVY, loc='left', pad=8)
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        ax2.spines['left'].set_color('#CFD8DC')
+        ax2.spines['bottom'].set_color('#CFD8DC')
+        ax2.tick_params(colors=GRAY)
+        for bar, val in zip(bars2, top_err.values[::-1]):
+            ax2.text(val + max(top_err.values)*0.02, bar.get_y() + bar.get_height()/2, f"{int(val)}", va='center', fontsize=8, color=NAVY)
+    else:
+        ax2.text(0.5, 0.5, "No data", ha='center', va='center')
+        ax2.axis('off')
+    fig.text(0.05, 0.03, "CONFIDENTIAL – For Official Use Only  |  Safety Branch, Solapur Division", fontsize=8, color=GRAY)
+    fig.text(0.95, 0.03, "DRISHTI", fontsize=9, fontweight='bold', color=ACCENT, ha='right')
+    buf = BytesIO()
+    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+def generate_executive_summary_pptx(df, from_date, to_date, user_name):
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_layout)
-
-    # Correct colour class name
-    NAVY   = RGBColor(0x0D, 0x21, 0x37)
-    BLUE   = RGBColor(0x1A, 0x52, 0x76)
+    NAVY = RGBColor(0x0D, 0x21, 0x37)
+    BLUE = RGBColor(0x1A, 0x52, 0x76)
     ACCENT = RGBColor(0x02, 0x88, 0xD1)
-    WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
-    LIGHT  = RGBColor(0xEB, 0xF5, 0xFB)
-    DARK   = RGBColor(0x1C, 0x28, 0x33)
-    GRAY   = RGBColor(0x5D, 0x6D, 0x7E)
-    GREEN  = RGBColor(0x1E, 0x84, 0x49)
+    WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+    LIGHT = RGBColor(0xEB, 0xF5, 0xFB)
+    DARK = RGBColor(0x1C, 0x28, 0x33)
+    GRAY = RGBColor(0x5D, 0x6D, 0x7E)
+    GREEN = RGBColor(0x1E, 0x84, 0x49)
     LIGHT_BLUE = RGBColor(0xAE, 0xD6, 0xF1)
 
     def add_shape(left, top, width, height, fill_color):
@@ -1236,8 +1132,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         shape.line.fill.background()
         return shape
 
-    def add_text_box(left, top, width, height, text, font_size=14, bold=False,
-                     color=DARK, align=PP_ALIGN.LEFT):
+    def add_text_box(left, top, width, height, text, font_size=14, bold=False, color=DARK, align=PP_ALIGN.LEFT):
         txBox = slide.shapes.add_textbox(left, top, width, height)
         tf = txBox.text_frame
         tf.word_wrap = True
@@ -1250,26 +1145,15 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         p.alignment = align
         return txBox
 
-    # Header
     add_shape(Inches(0), Inches(0), Inches(13.333), Inches(0.85), NAVY)
-    add_text_box(Inches(0.4), Inches(0.15), Inches(6), Inches(0.4),
-                 "DRISHTI  |  Executive Summary", 22, True, WHITE)
-    add_text_box(Inches(0.4), Inches(0.50), Inches(8), Inches(0.3),
-                 "Central Railway  •  Solapur Division  •  Safety Branch", 12, False, LIGHT_BLUE)
-
+    add_text_box(Inches(0.4), Inches(0.15), Inches(6), Inches(0.4), "DRISHTI  |  Executive Summary", 22, True, WHITE)
+    add_text_box(Inches(0.4), Inches(0.50), Inches(8), Inches(0.3), "Central Railway  •  Solapur Division  •  Safety Branch", 12, False, LIGHT_BLUE)
     period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
-    add_text_box(Inches(9.2), Inches(0.18), Inches(3.8), Inches(0.3),
-                 period, 11, False, WHITE, PP_ALIGN.RIGHT)
-    add_text_box(Inches(9.2), Inches(0.48), Inches(3.8), Inches(0.3),
-                 f"Generated: {datetime.now(IST).strftime('%d %b %Y %H:%M')} IST", 10, False,
-                 LIGHT_BLUE, PP_ALIGN.RIGHT)
+    add_text_box(Inches(9.2), Inches(0.18), Inches(3.8), Inches(0.3), period, 11, False, WHITE, PP_ALIGN.RIGHT)
+    add_text_box(Inches(9.2), Inches(0.48), Inches(3.8), Inches(0.3), f"Generated: {datetime.now(IST).strftime('%d %b %Y %H:%M')} IST", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
 
-    # KPIs
     total_cases = len(df)
-    top_stn = "N/A"
-    top_stn_cases = 0
-    unique_stn = 0
-
+    top_stn, top_stn_cases, unique_stn = "N/A", 0, 0
     if not df.empty and 'STATION' in df.columns:
         vc = df['STATION'].value_counts()
         if not vc.empty:
@@ -1277,65 +1161,42 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             top_stn_cases = int(vc.iloc[0])
         unique_stn = df['STATION'].nunique()
 
-    kpis = [
-        (f"{total_cases:,}", "Total Cases", NAVY),
-        (top_stn[:12], "Top Station", BLUE),
-        (f"{top_stn_cases:,}", "Top Station Cases", ACCENT),
-        (str(unique_stn), "Unique Stations", GREEN),
-    ]
-
+    kpis = [(f"{total_cases:,}", "Total Cases", NAVY), (top_stn[:12], "Top Station", BLUE), (f"{top_stn_cases:,}", "Top Station Cases", ACCENT), (str(unique_stn), "Unique Stations", GREEN)]
     card_w = Inches(2.9)
     for i, (val, label, color) in enumerate(kpis):
         left = Inches(0.4 + i * 3.2)
         add_shape(left, Inches(1.1), card_w, Inches(1.05), LIGHT)
         add_shape(left, Inches(1.1), Inches(0.08), Inches(1.05), color)
-        add_text_box(left + Inches(0.2), Inches(1.2), card_w - Inches(0.3), Inches(0.5),
-                     val, 26, True, color, PP_ALIGN.CENTER)
-        add_text_box(left + Inches(0.2), Inches(1.7), card_w - Inches(0.3), Inches(0.3),
-                     label, 12, False, GRAY, PP_ALIGN.CENTER)
+        add_text_box(left + Inches(0.2), Inches(1.2), card_w - Inches(0.3), Inches(0.5), val, 26, True, color, PP_ALIGN.CENTER)
+        add_text_box(left + Inches(0.2), Inches(1.7), card_w - Inches(0.3), Inches(0.3), label, 12, False, GRAY, PP_ALIGN.CENTER)
 
-    # Left: Top Stations
     add_shape(Inches(0.4), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
-    add_text_box(Inches(0.6), Inches(2.5), Inches(5.7), Inches(0.35),
-                 "TOP 8 STATIONS", 14, True, NAVY)
-
+    add_text_box(Inches(0.6), Inches(2.5), Inches(5.7), Inches(0.35), "TOP 8 STATIONS", 14, True, NAVY)
     if not df.empty and 'STATION' in df.columns:
         top8 = df['STATION'].value_counts().head(8)
         y = 2.95
         for stn, cnt in top8.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(Inches(0.7), Inches(y), Inches(3.5), Inches(0.28),
-                         str(stn)[:22], 12, False, DARK)
-            add_text_box(Inches(4.3), Inches(y), Inches(1.0), Inches(0.28),
-                         f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
-            add_text_box(Inches(5.4), Inches(y), Inches(0.9), Inches(0.28),
-                         f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            add_text_box(Inches(0.7), Inches(y), Inches(3.5), Inches(0.28), str(stn)[:22], 12, False, DARK)
+            add_text_box(Inches(4.3), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
+            add_text_box(Inches(5.4), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.38
 
-    # Right: Top Errors
     add_shape(Inches(6.8), Inches(2.4), Inches(6.1), Inches(4.3), LIGHT)
-    add_text_box(Inches(7.0), Inches(2.5), Inches(5.7), Inches(0.35),
-                 "TOP ERROR CATEGORIES", 14, True, NAVY)
-
+    add_text_box(Inches(7.0), Inches(2.5), Inches(5.7), Inches(0.35), "TOP ERROR CATEGORIES", 14, True, NAVY)
     if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
         top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
         y = 2.95
         for err, cnt in top_err.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(Inches(7.1), Inches(y), Inches(3.5), Inches(0.28),
-                         str(err)[:26], 12, False, DARK)
-            add_text_box(Inches(10.7), Inches(y), Inches(1.0), Inches(0.28),
-                         f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
-            add_text_box(Inches(11.8), Inches(y), Inches(0.9), Inches(0.28),
-                         f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            add_text_box(Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err)[:26], 12, False, DARK)
+            add_text_box(Inches(10.7), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, BLUE, PP_ALIGN.RIGHT)
+            add_text_box(Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.38
 
-    # Footer
     add_shape(Inches(0), Inches(7.15), Inches(13.333), Inches(0.35), NAVY)
-    add_text_box(Inches(0.4), Inches(7.2), Inches(8), Inches(0.25),
-                 f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
-    add_text_box(Inches(9.5), Inches(7.2), Inches(3.5), Inches(0.25),
-                 "CONFIDENTIAL – For Official Use Only", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
+    add_text_box(Inches(0.4), Inches(7.2), Inches(8), Inches(0.25), f"Prepared by: {user_name}  |  Safety Branch, Solapur Division", 10, False, WHITE)
+    add_text_box(Inches(9.5), Inches(7.2), Inches(3.5), Inches(0.25), "CONFIDENTIAL – For Official Use Only", 10, False, LIGHT_BLUE, PP_ALIGN.RIGHT)
 
     buffer = BytesIO()
     prs.save(buffer)
@@ -1348,7 +1209,6 @@ if "logged_in" not in st.session_state:
 if "map_selected_station" not in st.session_state:
     st.session_state.map_selected_station = None
 
-# ====================== LOGIN ======================
 def login_page():
     col1, col2, col3 = st.columns([3, 3, 3])
     with col2:
@@ -1401,7 +1261,6 @@ def refresh_data():
 if not st.session_state.logged_in:
     login_page()
 else:
-    # Watermark
     st.markdown(f"""
     <div class="watermark">
         <img src="{IR_LOGO_URL}" alt="Central Railway Logo Watermark">
@@ -1412,7 +1271,6 @@ else:
     with col2:
         st.image(IR_LOGO_URL, width=220)
 
-    # ===== CLEAN AESTHETIC DRISHTI HEADER =====
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
     st.markdown("""
@@ -1421,19 +1279,13 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Moving trains
     st.markdown("""
     <div class="train-emoji-container">
-        <div class="train-track">
-            🚄 🚄 🚄 🚄
-        </div>
+        <div class="train-track">🚄 🚄 🚄 🚄</div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>',
-        unsafe_allow_html=True
-    )
+    st.markdown('<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>', unsafe_allow_html=True)
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
 
@@ -1479,6 +1331,14 @@ else:
         max_date = df_original['DATE'].max().date() if (not df_original.empty and 'DATE' in df_original.columns and pd.notna(df_original['DATE'].max())) else pd.Timestamp.now().date()
         to_date = st.date_input("TO DATE", value=max_date, key="to_date_key")
 
+    # ====================== GLOBAL SEARCH ======================
+    st.markdown("### 🔎 Global Search")
+    search_text = st.text_input(
+        "Search across Station, Fault Message, Remarks, Error Category, Jurisdiction",
+        placeholder="Type any keyword (e.g. SUR, Signal Failure, Pending...)",
+        key="global_search"
+    )
+
     st.divider()
 
     def apply_category_filters(df):
@@ -1506,6 +1366,11 @@ else:
     if selected_months and 'MONTH' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['MONTH'].isin(selected_months)]
 
+    # Apply global search
+    if search_text:
+        filtered_df = apply_global_search(filtered_df, search_text)
+        forecast_base_df = apply_global_search(forecast_base_df, search_text)
+
     cat_sum = pd.DataFrame()
     error_sum = pd.DataFrame()
     jur_sum = pd.DataFrame()
@@ -1524,7 +1389,6 @@ else:
     # ====================== OVERVIEW TAB ======================
     with tab_overview:
         st.subheader("📊 Overview Dashboard")
-
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             st.metric("Total Cases", f"{len(filtered_df):,}")
@@ -1546,7 +1410,6 @@ else:
             st.metric("Unique Stations", f"{filtered_df['STATION'].nunique() if 'STATION' in filtered_df.columns else 0}")
 
         st.markdown("---")
-
         col_g1, col_g2 = st.columns([3, 2])
         with col_g1:
             st.markdown('<p class="section-header">Top 15 Stations by Cases</p>', unsafe_allow_html=True)
@@ -1560,15 +1423,10 @@ else:
             st.markdown('<p class="section-header">Station Summary</p>', unsafe_allow_html=True)
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION').size().reset_index(name='Cases').sort_values('Cases', ascending=False)
-                st.dataframe(
-                    summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'),
-                    use_container_width=True,
-                    hide_index=True
-                )
+                st.dataframe(summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'), use_container_width=True, hide_index=True)
 
         st.markdown("---")
         st.markdown('<p class="section-header">📊 Distribution Charts</p>', unsafe_allow_html=True)
-
         col_c1, col_c2, col_c3 = st.columns(3)
         with col_c1:
             st.markdown("**Department-wise**")
@@ -1601,105 +1459,35 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-        # ====================== ANIMATED TIME SERIES ======================
+        # Animated section (kept as original)
         st.markdown("---")
-        st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
-
+        st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station</p>', unsafe_allow_html=True)
         if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
             st.warning("Not enough data for animation.")
         else:
             anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
-
             col_anim1, col_anim2 = st.columns([2, 2])
             with col_anim1:
                 top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
             with col_anim2:
                 anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
-
             speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
             frame_duration = speed_map[anim_speed]
-            transition_duration = int(frame_duration * 0.55)
-
             monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
             monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
             monthly = monthly.sort_values('DATE')
-
-            top_stations = (
-                monthly.groupby('STATION')['Value']
-                .sum()
-                .sort_values(ascending=False)
-                .head(top_n_anim)
-                .index
-                .tolist()
-            )
-            monthly = monthly[monthly['STATION'].isin(top_stations)]
-            monthly = monthly.sort_values(['DATE', 'Value'], ascending=[True, False])
-
-            if monthly.empty:
-                st.info("No data available for animation.")
-            else:
-                fig_anim = px.bar(
-                    monthly,
-                    x='STATION',
-                    y='Value',
-                    color='Value',
-                    animation_frame='Month',
-                    animation_group='STATION',
-                    range_y=[0, monthly['Value'].max() * 1.18],
-                    color_continuous_scale='RdYlGn_r',
-                    labels={'Value': 'Cases', 'STATION': 'Station'},
-                    title="Monthly Cases by Station — Highest → Lowest (changes every month)",
-                    text='Value'
-                )
-
+            top_stations = monthly.groupby('STATION')['Value'].sum().sort_values(ascending=False).head(top_n_anim).index.tolist()
+            monthly = monthly[monthly['STATION'].isin(top_stations)].sort_values(['DATE', 'Value'], ascending=[True, False])
+            if not monthly.empty:
+                fig_anim = px.bar(monthly, x='STATION', y='Value', color='Value', animation_frame='Month', animation_group='STATION',
+                                 range_y=[0, monthly['Value'].max() * 1.18], color_continuous_scale='RdYlGn_r',
+                                 labels={'Value': 'Cases', 'STATION': 'Station'}, text='Value')
                 fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
-                
-                fig_anim.update_layout(
-                    height=600,
-                    xaxis_tickangle=-45,
-                    coloraxis_showscale=False,
-                    margin=dict(t=70, b=120),
-                    title_x=0.5,
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#0d1b2a',
-                    xaxis={'categoryorder': 'total descending'}
-                )
-
-                try:
-                    if (hasattr(fig_anim.layout, "updatemenus") and 
-                        fig_anim.layout.updatemenus and 
-                        len(fig_anim.layout.updatemenus) > 0 and
-                        fig_anim.layout.updatemenus[0].buttons and
-                        len(fig_anim.layout.updatemenus[0].buttons) > 0):
-                        
-                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
-                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
-                except Exception:
-                    pass
-
+                fig_anim.update_layout(height=600, xaxis_tickangle=-45, coloraxis_showscale=False, margin=dict(t=70, b=120),
+                                       paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a',
+                                       xaxis={'categoryorder': 'total descending'})
                 st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
-                st.caption(f"Current speed: **{anim_speed}** • Bars re-ordered Highest → Lowest every month")
 
-                st.markdown("")
-                col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
-                with col_dl2:
-                    html_bytes = fig_anim.to_html(
-                        full_html=True, 
-                        include_plotlyjs='cdn', 
-                        config={'displaylogo': False, 'responsive': True}
-                    ).encode('utf-8')
-                    
-                    st.download_button(
-                        label="⬇️ Download Animation (Interactive HTML)",
-                        data=html_bytes,
-                        file_name=f"DRISHTI_Animation_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
-                        mime="text/html",
-                        type="primary",
-                        use_container_width=True
-                    )
-
-        # ====================== SUMMARY TABLES ======================
         st.markdown("---")
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
@@ -1715,7 +1503,6 @@ else:
                 st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
                 st.dataframe(jur_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
 
-        # Detailed Records
         st.markdown("---")
         st.markdown('<p class="section-header">Detailed Records</p>', unsafe_allow_html=True)
         if filtered_df.empty:
@@ -1724,35 +1511,23 @@ else:
             display_df = filtered_df.copy()
             if 'DATE' in display_df.columns:
                 display_df['DATE'] = display_df['DATE'].dt.date
-            preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY',
-                               'DL FAULT MESSAGE', 'REMARKS GIVEN BY S&T']
+            preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY', 'DL FAULT MESSAGE', 'REMARKS GIVEN BY S&T']
             cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
             st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
             with col_btn1:
                 try:
-                    pdf_buffer = generate_one_page_report(
-                        filtered_df,
-                        from_date,
-                        to_date,
-                        st.session_state.user_name
-                    )
+                    pdf_buffer = generate_one_page_report(filtered_df, from_date, to_date, st.session_state.user_name)
                     dept_tag = "ALL"
                     if selected_categories and len(selected_categories) == 1:
                         dept_tag = str(selected_categories[0]).replace(" ", "_").replace("/", "-")[:20]
                     elif selected_categories and len(selected_categories) > 1:
                         dept_tag = f"{len(selected_categories)}DEPTS"
-                    pdf_name = f"DRISHTI_HealthReport_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf"
-                    st.download_button(
-                        label="📄 Health Report (PDF)",
-                        data=pdf_buffer,
-                        file_name=pdf_name,
-                        mime="application/pdf",
-                        type="primary",
-                        use_container_width=True
-                    )
+                    st.download_button(label="📄 Health Report (PDF)", data=pdf_buffer,
+                                       file_name=f"DRISHTI_HealthReport_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf",
+                                       mime="application/pdf", type="primary", use_container_width=True)
                 except Exception as e:
                     st.error(f"PDF generation error: {e}")
             with col_btn2:
@@ -1769,31 +1544,27 @@ else:
                     if not jur_sum.empty:
                         write_styled_sheet(writer, jur_sum, 'Jurisdiction_Summary')
                 output.seek(0)
-                st.download_button(
-                    label="⬇️ Download Professional Excel Report",
-                    data=output.getvalue(),
-                    file_name=f"DRISHTI_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary",
-                    use_container_width=True
-                )
+                st.download_button(label="⬇️ Download Excel Report", data=output.getvalue(),
+                                   file_name=f"DRISHTI_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                   type="primary", use_container_width=True)
+            with col_btn3:
+                try:
+                    img_buf = generate_summary_image(filtered_df, from_date, to_date, st.session_state.user_name)
+                    st.download_button(label="🖼️ Export Snapshot (PNG)", data=img_buf,
+                                       file_name=f"DRISHTI_Snapshot_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.png",
+                                       mime="image/png", type="secondary", use_container_width=True)
+                except Exception as e:
+                    st.error(f"Image export error: {e}")
 
-        # ====================== ADVANCED REPORTS (NEW) ======================
+        # Advanced Reports
         st.markdown("---")
         st.markdown('<p class="section-header">📑 Advanced Reports</p>', unsafe_allow_html=True)
-
         col_r1, col_r2, col_r3 = st.columns(3)
-
         with col_r1:
             st.markdown("**Department-wise Health Reports**")
             depts_available = sorted(filtered_df['DEPARTMENT'].dropna().unique().tolist()) if 'DEPARTMENT' in filtered_df.columns else []
-            selected_depts_pdf = st.multiselect(
-                "Select Departments", 
-                depts_available, 
-                default=depts_available[:4] if len(depts_available) >= 4 else depts_available, 
-                key="dept_pdf_sel"
-            )
-            
+            selected_depts_pdf = st.multiselect("Select Departments", depts_available, default=depts_available[:4] if len(depts_available) >= 4 else depts_available, key="dept_pdf_sel")
             if st.button("📄 Generate Selected Department PDFs", type="primary", use_container_width=True):
                 if not selected_depts_pdf:
                     st.warning("Select at least one department.")
@@ -1805,45 +1576,30 @@ else:
                         try:
                             pdf_buf = generate_one_page_report(dept_df, from_date, to_date, st.session_state.user_name)
                             safe_name = str(dept).replace(" ", "_").replace("/", "-")[:25]
-                            st.download_button(
-                                label=f"⬇️ {dept} Report",
-                                data=pdf_buf,
-                                file_name=f"DRISHTI_{safe_name}_{pd.Timestamp.now().strftime('%d%b%Y')}.pdf",
-                                mime="application/pdf",
-                                key=f"pdf_{safe_name}"
-                            )
+                            st.download_button(label=f"⬇️ {dept} Report", data=pdf_buf,
+                                               file_name=f"DRISHTI_{safe_name}_{pd.Timestamp.now().strftime('%d%b%Y')}.pdf",
+                                               mime="application/pdf", key=f"pdf_{safe_name}")
                         except Exception as e:
                             st.error(f"Failed for {dept}: {e}")
-
         with col_r2:
             st.markdown("**Executive Summary (PPTX)**")
             st.caption("1-slide summary ready for DRM / ADRM meetings")
             try:
-                pptx_buf = generate_executive_summary_pptx(
-                    filtered_df, from_date, to_date, st.session_state.user_name
-                )
-                st.download_button(
-                    label="📊 Download Executive Summary (PPTX)",
-                    data=pptx_buf,
-                    file_name=f"DRISHTI_Executive_Summary_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pptx",
-                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    type="primary",
-                    use_container_width=True
-                )
+                pptx_buf = generate_executive_summary_pptx(filtered_df, from_date, to_date, st.session_state.user_name)
+                st.download_button(label="📊 Download Executive Summary (PPTX)", data=pptx_buf,
+                                   file_name=f"DRISHTI_Executive_Summary_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pptx",
+                                   mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                   type="primary", use_container_width=True)
             except Exception as e:
                 st.error(f"PPTX generation error: {e}")
-
         with col_r3:
             st.markdown("**Quick Tips**")
-            st.info("• Risk Score helps prioritise inspections\n"
-                    "• What-If shows impact of focused action\n"
-                    "• Seasonality guides preventive planning")
+            st.info("• Risk Score helps prioritise inspections\n• What-If shows impact of focused action\n• Seasonality guides preventive planning")
 
     # ====================== FORECAST TAB ======================
     with tab_forecast:
-        st.subheader("🔮 Forecast — next 1 to 3 months (Number of Cases)")
+        st.subheader("🔮 Forecast — next 1 to 3 months")
         st.caption("Uses complete history. All other filters apply.")
-
         fc1, fc2, fc3 = st.columns([2, 2, 2])
         with fc1:
             horizon = st.slider("Months ahead", min_value=1, max_value=3, value=3, key="fc_horizon")
@@ -1851,9 +1607,6 @@ else:
             level = st.selectbox("Break-up by", ["Division total (no break-up)", "Station", "Department", "Jurisdiction", "Error Main Category"], key="fc_level")
         with fc3:
             top_n = st.number_input("Top N groups", min_value=3, max_value=25, value=10, step=1, key="fc_topn")
-
-        how = "count"
-        metric_label = "Cases"
 
         global_month_index = get_global_month_index(forecast_base_df)
         hist_raw = build_monthly_series(forecast_base_df, how="count", full_index=global_month_index)
@@ -1867,18 +1620,16 @@ else:
                 st.caption(f"ℹ️ **{hist_raw.index[-1].strftime('%B %Y')}** is still in progress, so it's excluded from training.")
             fc, method, resid = forecast_series(hist, horizon)
             mape = backtest_mape(hist, horizon=min(3, max(1, len(hist) // 4)))
-
             k1, k2, k3, k4 = st.columns(4)
             with k1:
                 st.metric("Months of history", f"{len(hist)}")
             with k2:
-                st.metric(f"Last month Cases", f"{int(hist.iloc[-1]):,}")
+                st.metric("Last month Cases", f"{int(hist.iloc[-1]):,}")
             with k3:
                 st.metric(f"Next {horizon} months (predicted)", f"{int(fc.sum()):,}")
             with k4:
                 change = ((fc.mean() - hist.iloc[-1]) / hist.iloc[-1] * 100) if hist.iloc[-1] else 0
                 st.metric("vs last month", f"{change:+.1f}%")
-
             st.info(f"**Model used:** {method}" + (f"  •  **Back-test MAPE:** {mape:.1f}%" if mape is not None else ""))
 
             anchor_x = [hist.index[-1]] + list(fc.index)
@@ -1886,7 +1637,6 @@ else:
             margins = [0.0] + [1.96 * resid * np.sqrt(i + 1) for i in range(len(fc))]
             upper = [y + m for y, m in zip(anchor_y, margins)]
             lower = [max(0.0, y - m) for y, m in zip(anchor_y, margins)]
-
             fig_fc = go.Figure()
             fig_fc.add_trace(go.Scatter(x=list(anchor_x) + list(anchor_x)[::-1], y=upper + lower[::-1], fill='toself', fillcolor='rgba(2, 136, 209, 0.18)', line=dict(color='rgba(0,0,0,0)'), hoverinfo='skip', name='95% confidence'))
             fig_fc.add_trace(go.Scatter(x=hist.index, y=hist.values, mode='lines+markers', name='Actual', line=dict(color='#0277bd', width=3), marker=dict(size=8)))
@@ -1894,12 +1644,9 @@ else:
             fig_fc.update_layout(height=470, hovermode='x unified', xaxis_title="Month", yaxis_title="Monthly Cases", legend=dict(orientation='h', y=1.12), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
             st.plotly_chart(fig_fc, use_container_width=True)
 
-            fc_table = pd.DataFrame({
-                "Month": [d.strftime('%B %Y') for d in fc.index],
-                "Predicted Cases": [int(v) for v in fc.values],
-                "Lower estimate": [int(max(0, v - 1.96 * resid * np.sqrt(i + 1))) for i, v in enumerate(fc.values)],
-                "Upper estimate": [int(v + 1.96 * resid * np.sqrt(i + 1)) for i, v in enumerate(fc.values)],
-            })
+            fc_table = pd.DataFrame({"Month": [d.strftime('%B %Y') for d in fc.index], "Predicted Cases": [int(v) for v in fc.values],
+                                     "Lower estimate": [int(max(0, v - 1.96 * resid * np.sqrt(i + 1))) for i, v in enumerate(fc.values)],
+                                     "Upper estimate": [int(v + 1.96 * resid * np.sqrt(i + 1)) for i, v in enumerate(fc.values)]})
             st.markdown('<p class="section-header">Predicted values</p>', unsafe_allow_html=True)
             st.dataframe(fc_table.style.format({"Predicted Cases": "{:,}", "Lower estimate": "{:,}", "Upper estimate": "{:,}"}), use_container_width=True, hide_index=True)
 
@@ -1916,11 +1663,6 @@ else:
                 else:
                     num_cols = [c for c in group_table.columns if c not in (gcol, "Model")]
                     st.dataframe(group_table.style.format({c: "{:,}" for c in num_cols}).background_gradient(subset=["Forecast total"], cmap='YlOrRd'), use_container_width=True, hide_index=True)
-                    plot_df = group_table.sort_values("Forecast total", ascending=True)
-                    fig_grp = px.bar(plot_df, x="Forecast total", y=gcol, orientation='h', text="Forecast total", color="Forecast total", color_continuous_scale='RdYlGn_r')
-                    fig_grp.update_traces(textposition='outside', cliponaxis=False)
-                    fig_grp.update_layout(height=480, coloraxis_showscale=False, xaxis_title=f"Predicted Cases (next {horizon} months)", yaxis_title="", margin=dict(t=30, b=30, l=20, r=60), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#0d1b2a')
-                    st.plotly_chart(fig_grp, use_container_width=True)
 
             st.markdown("---")
             col_fb1, col_fb2, col_fb3 = st.columns([1, 3, 1])
@@ -1933,55 +1675,32 @@ else:
                     if not group_table.empty:
                         write_styled_sheet(writer, group_table, 'Group_Forecast')
                 fout.seek(0)
-                st.download_button(
-                    label="⬇️ Download Forecast Report",
-                    data=fout.getvalue(),
-                    file_name=f"DRISHTI_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary",
-                    use_container_width=True
-                )
+                st.download_button(label="⬇️ Download Forecast Report", data=fout.getvalue(),
+                                   file_name=f"DRISHTI_Forecast_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                   type="primary", use_container_width=True)
 
-        # ---------- RISK SCORE SECTION (NEW) ----------
+        # Risk Score
         st.markdown("---")
         st.markdown('<p class="section-header">🎯 Station Risk Score (Composite)</p>', unsafe_allow_html=True)
         st.caption("Volume (40%) + Rising Trend (30%) + Error Severity (30%). Score 0–100.")
-
         lookback = st.slider("Look-back window (days)", 30, 180, 90, 15, key="risk_lookback")
         risk_df = calculate_station_risk_scores(forecast_base_df, lookback_days=lookback)
-
         if risk_df.empty:
             st.info("Not enough data to calculate risk scores.")
         else:
             def color_band(val):
-                colors = {
-                    "Low": "background-color:#d4edda",
-                    "Medium": "background-color:#fff3cd",
-                    "High": "background-color:#f8d7da",
-                    "Critical": "background-color:#f5c6cb; font-weight:bold"
-                }
-                return colors.get(val, "")
-
-            styled = (risk_df.style
-                      .format({"cases_recent": "{:,}", "trend_slope": "{:+.2f}",
-                               "avg_severity": "{:.2f}", "Risk Score": "{:.1f}"})
-                      .map(color_band, subset=["Risk Band"])
-                      .background_gradient(subset=["Risk Score"], cmap="RdYlGn_r"))
-
+                return {"Low": "background-color:#d4edda", "Medium": "background-color:#fff3cd", "High": "background-color:#f8d7da", "Critical": "background-color:#f5c6cb; font-weight:bold"}.get(val, "")
+            styled = risk_df.style.format({"cases_recent": "{:,}", "trend_slope": "{:+.2f}", "avg_severity": "{:.2f}", "Risk Score": "{:.1f}"}).map(color_band, subset=["Risk Band"]).background_gradient(subset=["Risk Score"], cmap="RdYlGn_r")
             st.dataframe(styled, use_container_width=True, hide_index=True)
-
             top_risk = risk_df.head(15)
-            fig_risk = px.bar(top_risk, x="Risk Score", y="STATION", orientation="h",
-                              color="Risk Score", color_continuous_scale="RdYlGn_r",
-                              text="Risk Score", title="Top 15 Stations by Risk Score")
-            fig_risk.update_layout(height=480, yaxis={'categoryorder': 'total ascending'},
-                                   paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+            fig_risk = px.bar(top_risk, x="Risk Score", y="STATION", orientation="h", color="Risk Score", color_continuous_scale="RdYlGn_r", text="Risk Score", title="Top 15 Stations by Risk Score")
+            fig_risk.update_layout(height=480, yaxis={'categoryorder': 'total ascending'}, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_risk, use_container_width=True)
 
-        # ---------- WHAT-IF SCENARIO (NEW) ----------
+        # What-If
         st.markdown("---")
         st.markdown('<p class="section-header">🧪 What-If Scenario</p>', unsafe_allow_html=True)
-
         col_w1, col_w2, col_w3 = st.columns([2, 2, 2])
         with col_w1:
             n_top = st.number_input("Reduce cases at Top N stations", 1, 10, 3, key="whatif_n")
@@ -1990,76 +1709,48 @@ else:
         with col_w3:
             st.write("")
             run_whatif = st.button("Run Scenario", type="primary", key="run_whatif")
-
         if run_whatif and not hist.empty:
             last_month_start = hist.index[-1]
-            last_month_data = forecast_base_df[
-                (forecast_base_df['DATE'] >= last_month_start) &
-                (forecast_base_df['DATE'] < last_month_start + pd.DateOffset(months=1))
-            ]
+            last_month_data = forecast_base_df[(forecast_base_df['DATE'] >= last_month_start) & (forecast_base_df['DATE'] < last_month_start + pd.DateOffset(months=1))]
             if not last_month_data.empty and 'STATION' in last_month_data.columns:
-                stn_share = (last_month_data.groupby('STATION').size()
-                             / len(last_month_data)).sort_values(ascending=False).head(n_top)
+                stn_share = (last_month_data.groupby('STATION').size() / len(last_month_data)).sort_values(ascending=False).head(n_top)
                 top_df = stn_share.reset_index()
                 top_df.columns = ['STATION', 'share']
-
                 fc_orig, fc_scen, method = what_if_scenario(hist, top_df, red_pct, horizon)
-
                 if fc_orig is not None:
                     delta = int(fc_orig.sum() - fc_scen.sum())
                     pct_drop = (delta / fc_orig.sum() * 100) if fc_orig.sum() else 0
-
                     c1, c2, c3 = st.columns(3)
-                    c1.metric("Original Forecast (next months)", f"{int(fc_orig.sum()):,}")
+                    c1.metric("Original Forecast", f"{int(fc_orig.sum()):,}")
                     c2.metric("After Reduction", f"{int(fc_scen.sum()):,}", delta=f"-{delta:,}")
                     c3.metric("Overall Volume Drop", f"{pct_drop:.1f}%")
-
                     fig_wi = go.Figure()
-                    fig_wi.add_trace(go.Scatter(x=hist.index, y=hist.values, name="Actual",
-                                                line=dict(color="#0277bd", width=3)))
-                    fig_wi.add_trace(go.Scatter(x=fc_orig.index, y=fc_orig.values, name="Original Forecast",
-                                                line=dict(color="#0288d1", dash="dash", width=2)))
-                    fig_wi.add_trace(go.Scatter(x=fc_scen.index, y=fc_scen.values, name="Scenario Forecast",
-                                                line=dict(color="#1E8449", width=3)))
-                    fig_wi.update_layout(height=420, hovermode="x unified",
-                                         title=f"If Top {n_top} stations reduce cases by {red_pct}%",
-                                         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+                    fig_wi.add_trace(go.Scatter(x=hist.index, y=hist.values, name="Actual", line=dict(color="#0277bd", width=3)))
+                    fig_wi.add_trace(go.Scatter(x=fc_orig.index, y=fc_orig.values, name="Original Forecast", line=dict(color="#0288d1", dash="dash", width=2)))
+                    fig_wi.add_trace(go.Scatter(x=fc_scen.index, y=fc_scen.values, name="Scenario Forecast", line=dict(color="#1E8449", width=3)))
+                    fig_wi.update_layout(height=420, hovermode="x unified", title=f"If Top {n_top} stations reduce cases by {red_pct}%", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
                     st.plotly_chart(fig_wi, use_container_width=True)
+                    st.info(f"Top stations used: {', '.join(top_df['STATION'].tolist())} (combined share: {top_df['share'].sum()*100:.1f}%)")
 
-                    st.info(f"Top stations used: {', '.join(top_df['STATION'].tolist())} "
-                            f"(combined share of last month: {top_df['share'].sum()*100:.1f}%)")
-
-        # ---------- SEASONALITY CALENDAR (NEW) ----------
+        # Seasonality
         st.markdown("---")
         st.markdown('<p class="section-header">📅 Seasonality Calendar</p>', unsafe_allow_html=True)
-
         col_s1, col_s2 = st.columns([2, 2])
         with col_s1:
             season_group = st.selectbox("Group by", ["Year", "Department", "Error Main Category"], key="season_group")
-        with col_s2:
-            st.write("")
-
         group_col = None if season_group == "Year" else season_group
         season_pivot = build_seasonality_data(forecast_base_df, group_col=group_col)
-
         if season_pivot.empty:
             st.info("Not enough data for seasonality view.")
         else:
-            fig_season = px.imshow(
-                season_pivot,
-                labels=dict(x=season_group, y="Month", color="Cases"),
-                color_continuous_scale="YlOrRd",
-                aspect="auto",
-                title=f"Cases by Month × {season_group}"
-            )
+            fig_season = px.imshow(season_pivot, labels=dict(x=season_group, y="Month", color="Cases"), color_continuous_scale="YlOrRd", aspect="auto", title=f"Cases by Month × {season_group}")
             fig_season.update_layout(height=420, paper_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig_season, use_container_width=True)
-            st.caption("Darker cells = higher historical case volume. Useful for planning preventive maintenance.")
+            st.caption("Darker cells = higher historical case volume.")
 
     # ====================== MAP TAB ======================
     with tab_map:
         st.subheader("🗺️ Interactive Map View - Click on Station to Filter")
-
         if st.session_state.map_selected_station:
             col_clear1, col_clear2 = st.columns([1, 5])
             with col_clear1:
@@ -2067,10 +1758,8 @@ else:
                     st.session_state.map_selected_station = None
                     st.rerun()
             st.success(f"📍 Currently viewing: **{st.session_state.map_selected_station}**")
-
         st.markdown("<br>", unsafe_allow_html=True)
         col_m1, col_m2 = st.columns([3, 2])
-
         with col_m1:
             if filtered_df.empty or 'STATION' not in filtered_df.columns:
                 st.warning("No data available.")
@@ -2087,7 +1776,6 @@ else:
                     if best_match:
                         map_data.append({'STATION': row['STATION'], 'Cases': row['Cases'], 'lat': best_match['lat'], 'lon': best_match['lon']})
                 map_df = pd.DataFrame(map_data)
-
                 if not map_df.empty:
                     with st.spinner("Rendering map..."):
                         m = folium.Map(location=[17.85, 75.80], zoom_start=7.2, tiles=None, control_scale=True)
@@ -2097,16 +1785,13 @@ else:
                         folium.TileLayer(tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr="Esri", name="🌐 Satellite", control=True).add_to(m)
                         folium.LayerControl(position="topright", collapsed=False).add_to(m)
                         Fullscreen().add_to(m)
-
                         for _, row in map_df.iterrows():
                             cases = int(row['Cases'])
                             color = "green" if cases < 50 else "orange" if cases <= 150 else "darkred"
                             radius = 8 + min(cases / 10, 25)
                             folium.CircleMarker(location=[row['lat'], row['lon']], radius=radius, popup=f"<h4>{row['STATION']}</h4><b>Total Cases:</b> {cases:,}", tooltip=f"{row['STATION']} ({cases:,})", color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2).add_to(m)
-
                         map_key = f"folium_map_{len(filtered_df)}"
                         map_return = st_folium(m, width=950, height=680, key=map_key, returned_objects=["last_object_clicked"])
-
                         if map_return and map_return.get("last_object_clicked"):
                             lat = map_return["last_object_clicked"]["lat"]
                             lon = map_return["last_object_clicked"]["lng"]
@@ -2115,16 +1800,11 @@ else:
                             if st.session_state.map_selected_station != selected_station:
                                 st.session_state.map_selected_station = selected_station
                                 st.rerun()
-
         with col_m2:
             st.subheader("Station Summary")
             if not filtered_df.empty and 'STATION' in filtered_df.columns:
                 summary = filtered_df.groupby('STATION').size().reset_index(name='Cases').sort_values('Cases', ascending=False)
-                st.dataframe(
-                    summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'),
-                    use_container_width=True,
-                    hide_index=True
-                )
+                st.dataframe(summary.style.format({"Cases": "{:,}"}).background_gradient(subset=['Cases'], cmap='YlOrRd'), use_container_width=True, hide_index=True)
             st.markdown("---")
             st.subheader("Jurisdiction Summary")
             if not jur_sum.empty:
@@ -2141,7 +1821,6 @@ else:
             preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY', 'DL FAULT MESSAGE', 'REMARKS GIVEN BY S&T']
             cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
             st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
-
             st.markdown("---")
             col_btn1, col_btn2, col_btn3 = st.columns([1, 3, 1])
             with col_btn2:
@@ -2151,13 +1830,9 @@ else:
                     if not jur_sum.empty:
                         write_styled_sheet(writer, jur_sum, 'Jurisdiction_Summary')
                 output.seek(0)
-                st.download_button(
-                    label="⬇️ Download Map Filtered Report",
-                    data=output.getvalue(),
-                    file_name=f"DRISHTI_Map_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary",
-                    use_container_width=True
-                )
+                st.download_button(label="⬇️ Download Map Filtered Report", data=output.getvalue(),
+                                   file_name=f"DRISHTI_Map_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                   type="primary", use_container_width=True)
 
     st.caption("🚄 DRISHTI | Safety Branch | Central Railway, Solapur Division")
