@@ -1383,7 +1383,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         # Wrap long category names onto multiple lines; never cut them to a fixed character count.
         import textwrap
         wrapped_categories = [
-            "\\n".join(textwrap.wrap(str(label), width=14, break_long_words=False, break_on_hyphens=False))
+            "\n".join(textwrap.wrap(str(label).replace(r"\n", " ").replace("\n", " ").strip(), width=14, break_long_words=False, break_on_hyphens=False))
             for label in categories
         ]
         ax.set_xticklabels(wrapped_categories, fontsize=8.5, rotation=0, ha='center',
