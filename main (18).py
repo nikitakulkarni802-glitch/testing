@@ -72,7 +72,7 @@ st.markdown("""
 .train-track {
     display: inline-block;
     white-space: nowrap;
-    animation: moveTrainLine 12s linear infinite;
+    animation: moveTrainLine 24s linear infinite;
     font-size: 1.9rem;
     letter-spacing: 16px;
 }
@@ -1224,7 +1224,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     from pptx import Presentation
     from pptx.util import Inches, Pt
     from pptx.dml.color import RGBColor
-    from pptx.enum.text import PP_ALIGN
+    from pptx.enum.text import PP_ALIGN, MSO_AUTO_SIZE
     from pptx.enum.shapes import MSO_SHAPE
     import matplotlib.pyplot as plt
     import matplotlib
@@ -1258,6 +1258,8 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         txBox = slide.shapes.add_textbox(left, top, width, height)
         tf = txBox.text_frame
         tf.word_wrap = True
+        # Keep long labels visible instead of clipping their final characters.
+        tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
         p = tf.paragraphs[0]
         p.text = text
         p.font.size = Pt(font_size)
@@ -1316,7 +1318,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
 
     kpis = [
         (f"{total_cases:,}", "Total Cases", NAVY),
-        (top_stn[:12], "Top Station", PRIMARY),
+        (top_stn, "Top Station", PRIMARY),
         (f"{top_stn_cases:,}", "Top Station Cases", ACCENT),
         (str(unique_stn), "Unique Stations", TEAL),
     ]
@@ -1354,14 +1356,14 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         y = 3.80
         for err, cnt in top_err.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(s2, Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err)[:26], 12, False, DARK)
+            add_text_box(s2, Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err), 12, False, DARK)
             add_text_box(s2, Inches(10.7), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, PRIMARY, PP_ALIGN.RIGHT)
             add_text_box(s2, Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.33
 
     # ===================== Multi-colour bar chart helper =====================
     def create_multicolor_vbar(categories, values, palette="mixed"):
-        fig, ax = plt.subplots(figsize=(11, 5.0), facecolor='#F5F9FC')
+        fig, ax = plt.subplots(figsize=(11, 4.55), facecolor='#F5F9FC')
         ax.set_facecolor('#F5F9FC')
         x = np.arange(len(categories))
 
@@ -1378,7 +1380,14 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         bars = ax.bar(x, values, color=colors, width=0.65, edgecolor='white', linewidth=0.7)
 
         ax.set_xticks(x)
-        ax.set_xticklabels(categories, fontsize=10, rotation=25, ha='right', color='#0D1B2A')
+        # Wrap long category names onto multiple lines; never cut them to a fixed character count.
+        import textwrap
+        wrapped_categories = [
+            "\\n".join(textwrap.wrap(str(label), width=14, break_long_words=False, break_on_hyphens=False))
+            for label in categories
+        ]
+        ax.set_xticklabels(wrapped_categories, fontsize=8.5, rotation=0, ha='center',
+                           multialignment='center', color='#0D1B2A')
         ax.set_ylabel("Number of Cases", fontsize=11, color='#546E7A')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -1392,7 +1401,8 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(values)*0.02,
                     f'{int(val)}', ha='center', va='bottom', fontsize=9, color='#0D2137', fontweight='medium')
 
-        plt.tight_layout()
+        # Reserve space for wrapped labels while keeping the chart within the slide footer.
+        plt.tight_layout(rect=[0.02, 0.16, 0.99, 0.98])
         buf = BytesIO()
         fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
         plt.close(fig)
@@ -1421,7 +1431,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
         top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
         # Shorten long names for chart
-        labels = [str(x)[:18] for x in top_err.index]
+        labels = [str(x) for x in top_err.index]
         img = create_multicolor_vbar(labels, list(top_err.values), "errors")
         s4.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
 
@@ -1434,7 +1444,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
 
     if not df.empty and 'DEPARTMENT' in df.columns:
         dept = df['DEPARTMENT'].value_counts().head(8)
-        labels = [str(x)[:18] for x in dept.index]
+        labels = [str(x) for x in dept.index]
         img = create_multicolor_vbar(labels, list(dept.values), "depts")
         s5.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
 
