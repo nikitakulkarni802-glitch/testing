@@ -1711,417 +1711,210 @@ else:
                 st.info("No Jurisdiction data")
 
         
-        # ====================== ANIMATED TIME SERIES ======================
+       # ====================== ANIMATED TIME SERIES ======================
         st.markdown("---")
-        st.markdown(
-            '<p class="section-header">🎬 Animated Monthly Cases by Station '
-            '(Highest → Lowest every month)</p>',
-            unsafe_allow_html=True
-        )
+        st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
 
-        if (
-            filtered_df.empty
-            or 'STATION' not in filtered_df.columns
-            or 'DATE' not in filtered_df.columns
-        ):
+        if filtered_df.empty or 'STATION' not in filtered_df.columns or 'DATE' not in filtered_df.columns:
             st.warning("Not enough data for animation.")
-
         else:
-            anim_df = filtered_df.dropna(
-                subset=['DATE', 'STATION']
-            ).copy()
+            anim_df = filtered_df.dropna(subset=['DATE', 'STATION']).copy()
 
-            anim_df['DATE'] = pd.to_datetime(
-                anim_df['DATE'], errors='coerce'
+            col_anim1, col_anim2 = st.columns([2, 2])
+            with col_anim1:
+                top_n_anim = st.slider("Show Top N stations", 5, 25, 12, key="anim_topn")
+            with col_anim2:
+                anim_speed = st.select_slider("Animation Speed", options=["Very Slow", "Slow", "Normal", "Fast"], value="Slow", key="anim_speed")
+
+            speed_map = {"Very Slow": 1800, "Slow": 1400, "Normal": 1000, "Fast": 700}
+            frame_duration = speed_map[anim_speed]
+            transition_duration = int(frame_duration * 0.55)
+
+            monthly = anim_df.groupby(['STATION', pd.Grouper(key='DATE', freq='MS')]).size().reset_index(name='Value')
+            monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
+            monthly = monthly.sort_values('DATE')
+
+            top_stations = (
+                monthly.groupby('STATION')['Value']
+                .sum()
+                .sort_values(ascending=False)
+                .head(top_n_anim)
+                .index
+                .tolist()
             )
-            anim_df = anim_df.dropna(subset=['DATE'])
-            anim_df['STATION'] = anim_df['STATION'].astype(str).str.strip()
-            anim_df = anim_df[anim_df['STATION'] != '']
+            monthly = monthly[monthly['STATION'].isin(top_stations)]
+            monthly = monthly.sort_values(['DATE', 'Value'], ascending=[True, False])
 
-            if anim_df.empty:
-                st.info("No valid station/date records available.")
-
+            if monthly.empty:
+                st.info("No data available for animation.")
             else:
-                # ---------------- CONTROLS ----------------
-                col_anim1, col_anim2 = st.columns([2, 2])
-
-                station_count = anim_df['STATION'].nunique()
-                max_top_anim = max(1, min(25, station_count))
-
-                with col_anim1:
-                    top_n_anim = st.slider(
-                        "Show Top N stations",
-                        min_value=1,
-                        max_value=max_top_anim,
-                        value=min(12, max_top_anim),
-                        key="anim_topn"
-                    )
-
-                with col_anim2:
-                    anim_speed = st.select_slider(
-                        "Animation Speed",
-                        options=[
-                            "Very Slow", "Slow", "Normal", "Fast"
-                        ],
-                        value="Slow",
-                        key="anim_speed"
-                    )
-
-                speed_map = {
-                    "Very Slow": 1800,
-                    "Slow": 1400,
-                    "Normal": 1000,
-                    "Fast": 700
-                }
-
-                frame_duration = speed_map[anim_speed]
-                transition_duration = int(frame_duration * 0.55)
-
-                # ---------------- MONTHLY DATA ----------------
-                monthly_counts = (
-                    anim_df.groupby([
-                        'STATION',
-                        pd.Grouper(key='DATE', freq='MS')
-                    ])
-                    .size()
-                    .reset_index(name='Value')
+                fig_anim = px.bar(
+                    monthly,
+                    x='STATION',
+                    y='Value',
+                    color='Value',
+                    animation_frame='Month',
+                    animation_group='STATION',
+                    range_y=[0, monthly['Value'].max() * 1.18],
+                    color_continuous_scale='RdYlGn_r',
+                    labels={'Value': 'Cases', 'STATION': 'Station'},
+                    title="Monthly Cases by Station — Highest → Lowest (changes every month)",
+                    text='Value'
                 )
 
-                if monthly_counts.empty:
-                    st.info("No data available for animation.")
+                fig_anim.update_traces(texttemplate='%{text:,}', textposition='outside', cliponaxis=False)
 
+                fig_anim.update_layout(
+                    height=600,
+                    xaxis_tickangle=-45,
+                    coloraxis_showscale=False,
+                    margin=dict(t=70, b=120),
+                    title_x=0.5,
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#0d1b2a',
+                    xaxis={'categoryorder': 'total descending'}
+                )
+
+                try:
+                    if (hasattr(fig_anim.layout, "updatemenus") and
+                        fig_anim.layout.updatemenus and
+                        len(fig_anim.layout.updatemenus) > 0 and
+                        fig_anim.layout.updatemenus[0].buttons and
+                        len(fig_anim.layout.updatemenus[0].buttons) > 0):
+
+                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
+                        fig_anim.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = transition_duration
+                except Exception:
+                    pass
+
+                st.plotly_chart(fig_anim, use_container_width=True, config={'displaylogo': False})
+                st.caption(f"Current speed: **{anim_speed}** • Bars re-ordered Highest → Lowest every month")
+
+                st.markdown("")
+                col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
+                with col_dl2:
+                    html_bytes = fig_anim.to_html(
+                        full_html=True,
+                        include_plotlyjs='cdn',
+                        config={'displaylogo': False, 'responsive': True}
+                    ).encode('utf-8')
+
+                    st.download_button(
+                        label="⬇️ Download Animation (Interactive HTML)",
+                        data=html_bytes,
+                        file_name=f"DRISHTI_Animation_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html",
+                        mime="text/html",
+                        type="primary",
+                        use_container_width=True
+                    )
+
+        st.markdown("---")
+        col_s1, col_s2, col_s3 = st.columns(3)
+        with col_s1:
+            if not cat_sum.empty:
+                st.markdown('<p class="section-header">DEPARTMENT</p>', unsafe_allow_html=True)
+                st.dataframe(cat_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
+        with col_s2:
+            if not error_sum.empty:
+                st.markdown('<p class="section-header">ERROR MAIN CATEGORY</p>', unsafe_allow_html=True)
+                st.dataframe(error_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
+        with col_s3:
+            if not jur_sum.empty:
+                st.markdown('<p class="section-header">JURISDICTION</p>', unsafe_allow_html=True)
+                st.dataframe(jur_sum.style.format({"Cases": "{:,}"}), use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown('<p class="section-header">Detailed Records</p>', unsafe_allow_html=True)
+        if filtered_df.empty:
+            st.warning("No records found.")
+        else:
+            display_df = filtered_df.copy()
+            if 'DATE' in display_df.columns:
+                display_df['DATE'] = display_df['DATE'].dt.date
+            preferred_order = ['DATE', 'STATION', 'DEPARTMENT', 'JURISDICTION', 'ERROR MAIN CATEGORY', 'DL FAULT MESSAGE', 'REMARKS GIVEN BY S&T']
+            cols = [c for c in preferred_order if c in display_df.columns] + [c for c in display_df.columns if c not in preferred_order]
+            st.dataframe(display_df[cols], use_container_width=True, hide_index=True)
+
+            st.markdown("---")
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            with col_btn1:
+                try:
+                    pdf_buffer = generate_one_page_report(filtered_df, from_date, to_date, st.session_state.user_name)
+                    dept_tag = "ALL"
+                    if selected_categories and len(selected_categories) == 1:
+                        dept_tag = str(selected_categories[0]).replace(" ", "_").replace("/", "-")[:20]
+                    elif selected_categories and len(selected_categories) > 1:
+                        dept_tag = f"{len(selected_categories)}DEPTS"
+                    st.download_button(label="📄 Health Report (PDF)", data=pdf_buffer,
+                                       file_name=f"DRISHTI_HealthReport_{dept_tag}_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pdf",
+                                       mime="application/pdf", type="primary", use_container_width=True)
+                except Exception as e:
+                    st.error(f"PDF generation error: {e}")
+            with col_btn2:
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    write_styled_sheet(writer, display_df[cols], 'Filtered_Records')
+                    if 'STATION' in filtered_df.columns:
+                        station_summary = filtered_df.groupby('STATION').size().reset_index(name='Cases').sort_values('Cases', ascending=False)
+                        write_styled_sheet(writer, station_summary, 'Station_Summary')
+                    if not error_sum.empty:
+                        write_styled_sheet(writer, error_sum, 'Error_Summary')
+                    if not cat_sum.empty:
+                        write_styled_sheet(writer, cat_sum, 'Category_Summary')
+                    if not jur_sum.empty:
+                        write_styled_sheet(writer, jur_sum, 'Jurisdiction_Summary')
+                output.seek(0)
+                st.download_button(label="⬇️ Download Excel Report", data=output.getvalue(),
+                                   file_name=f"DRISHTI_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                   type="primary", use_container_width=True)
+            with col_btn3:
+                try:
+                    img_buf = generate_summary_image(filtered_df, from_date, to_date, st.session_state.user_name)
+                    st.download_button(label="🖼️ Export Snapshot (PNG)", data=img_buf,
+                                       file_name=f"DRISHTI_Snapshot_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.png",
+                                       mime="image/png", type="secondary", use_container_width=True)
+                except Exception as e:
+                    st.error(f"Image export error: {e}")
+
+        # Advanced Reports
+        st.markdown("---")
+        st.markdown('<p class="section-header">📑 Advanced Reports</p>', unsafe_allow_html=True)
+        col_r1, col_r2, col_r3 = st.columns(3)
+        with col_r1:
+            st.markdown("**Department-wise Health Reports**")
+            depts_available = sorted(filtered_df['DEPARTMENT'].dropna().unique().tolist()) if 'DEPARTMENT' in filtered_df.columns else []
+            selected_depts_pdf = st.multiselect("Select Departments", depts_available, default=depts_available[:4] if len(depts_available) >= 4 else depts_available, key="dept_pdf_sel")
+            if st.button("📄 Generate Selected Department PDFs", type="primary", use_container_width=True):
+                if not selected_depts_pdf:
+                    st.warning("Select at least one department.")
                 else:
-                    all_months = pd.date_range(
-                        start=monthly_counts['DATE'].min(),
-                        end=monthly_counts['DATE'].max(),
-                        freq='MS'
-                    )
-
-                    # Select the busiest stations over the filtered period
-                    top_stations = (
-                        monthly_counts.groupby('STATION')['Value']
-                        .sum()
-                        .sort_values(ascending=False)
-                        .head(top_n_anim)
-                        .index.tolist()
-                    )
-
-                    monthly_counts = monthly_counts[
-                        monthly_counts['STATION'].isin(top_stations)
-                    ].copy()
-
-                    # Add zero-count months for consistent station categories
-                    full_index = pd.MultiIndex.from_product(
-                        [all_months, top_stations],
-                        names=['DATE', 'STATION']
-                    )
-
-                    monthly = (
-                        monthly_counts
-                        .set_index(['DATE', 'STATION'])[['Value']]
-                        .reindex(full_index, fill_value=0)
-                        .reset_index()
-                    )
-
-                    monthly['Value'] = monthly['Value'].astype(int)
-                    monthly['Month'] = monthly['DATE'].dt.strftime('%b %Y')
-
-                    month_labels = [
-                        month.strftime('%b %Y')
-                        for month in all_months
-                    ]
-
-                    # ---------------- CONSISTENT STATION COLOURS ----------------
-                    palette = px.colors.qualitative.Dark24
-
-                    station_colors = {
-                        station: palette[i % len(palette)]
-                        for i, station in enumerate(top_stations)
-                    }
-
-                    max_value = int(monthly['Value'].max())
-                    y_max = max(1, max_value) * 1.25
-
-                    # ---------------- MONTHLY BAR DATA ----------------
-                    def make_month_data(month_label):
-                        month_df = monthly[
-                            monthly['Month'] == month_label
-                        ].copy()
-
-                        # Highest count first; station name breaks ties
-                        month_df = month_df.sort_values(
-                            ['Value', 'STATION'],
-                            ascending=[False, True],
-                            kind='stable'
-                        )
-
-                        stations = month_df['STATION'].tolist()
-                        values = month_df['Value'].astype(int).tolist()
-
-                        return go.Bar(
-                            x=stations,
-                            y=values,
-                            text=[f"{value:,}" for value in values],
-                            texttemplate='%{text}',
-                            textposition='outside',
-                            cliponaxis=False,
-                            marker=dict(
-                                color=[
-                                    station_colors[station]
-                                    for station in stations
-                                ],
-                                line=dict(width=0)
-                            ),
-                            hovertemplate=(
-                                "<b>%{x}</b><br>"
-                                "Exception cases: %{y:,}"
-                                "<extra></extra>"
-                            ),
-                            showlegend=False
-                        )
-
-                    # Plotly Graph Objects import
-                    # Import at this point if not already imported above
-                    import plotly.graph_objects as go
-
-                    first_month = month_labels[0]
-
-                    fig_anim = go.Figure(
-                        data=[make_month_data(first_month)]
-                    )
-
-                    # ---------------- ANIMATION FRAMES ----------------
-                    frames = []
-
-                    for month_label in month_labels:
-                        frames.append(
-                            go.Frame(
-                                name=month_label,
-                                data=[make_month_data(month_label)],
-                                traces=[0],
-                                layout=go.Layout(
-                                    title=dict(
-                                        text=(
-                                            "Monthly Cases by Station — "
-                                            f"<b>{month_label}</b>"
-                                        )
-                                    )
-                                )
-                            )
-                        )
-
-                    fig_anim.frames = frames
-
-                    # ---------------- PLAYBACK SETTINGS ----------------
-                    animation_options = {
-                        "frame": {
-                            "duration": frame_duration,
-                            "redraw": True
-                        },
-                        "transition": {
-                            "duration": transition_duration,
-                            "easing": "cubic-in-out"
-                        },
-                        "fromcurrent": True,
-                        "mode": "immediate"
-                    }
-
-                    # ---------------- CHART LAYOUT ----------------
-                    fig_anim.update_layout(
-                        height=max(
-                            520,
-                            min(850, 180 + 35 * top_n_anim)
-                        ),
-
-                        title=dict(
-                            text=(
-                                "Monthly Cases by Station — "
-                                f"<b>{first_month}</b>"
-                            ),
-                            x=0.5,
-                            xanchor='center',
-                            font=dict(size=21)
-                        ),
-
-                        # Keep vertical bars and station labels at the bottom
-                        xaxis=dict(
-                            title="Station",
-                            tickangle=-45,
-                            automargin=True,
-                            categoryorder='array',
-                            categoryarray=top_stations,
-                            tickfont=dict(size=11)
-                        ),
-
-                        yaxis=dict(
-                            title="Number of Exception Cases",
-                            range=[0, y_max],
-                            rangemode='tozero',
-                            showgrid=True,
-                            zeroline=False,
-                            separatethousands=True
-                        ),
-
-                        margin=dict(
-                            l=35,
-                            r=45,
-                            t=105,
-                            b=165
-                        ),
-
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        plot_bgcolor='rgba(0,0,0,0)',
-
-                        font=dict(
-                            color='#0d1b2a',
-                            size=12
-                        ),
-
-                        bargap=0.24,
-
-                        hoverlabel=dict(
-                            bgcolor='white',
-                            font_size=13
-                        ),
-
-                        # ---------------- PLAY / PAUSE / RESTART ----------------
-                        updatemenus=[
-                            dict(
-                                type='buttons',
-                                direction='left',
-                                x=0,
-                                y=-0.25,
-                                xanchor='left',
-                                yanchor='top',
-                                showactive=False,
-                                buttons=[
-                                    dict(
-                                        label='▶ Play',
-                                        method='animate',
-                                        args=[
-                                            None,
-                                            animation_options
-                                        ]
-                                    ),
-                                    dict(
-                                        label='⏸ Pause',
-                                        method='animate',
-                                        args=[
-                                            [None],
-                                            {
-                                                "mode": "immediate",
-                                                "frame": {
-                                                    "duration": 0,
-                                                    "redraw": False
-                                                },
-                                                "transition": {
-                                                    "duration": 0
-                                                }
-                                            }
-                                        ]
-                                    ),
-                                    dict(
-                                        label='↺ Restart',
-                                        method='animate',
-                                        args=[
-                                            [first_month],
-                                            {
-                                                "mode": "immediate",
-                                                "frame": {
-                                                    "duration": 0,
-                                                    "redraw": True
-                                                },
-                                                "transition": {
-                                                    "duration": 0
-                                                }
-                                            }
-                                        ]
-                                    )
-                                ]
-                            )
-                        ],
-
-                        # ---------------- MONTH SELECTOR ----------------
-                        sliders=[
-                            dict(
-                                active=0,
-                                x=0,
-                                y=-0.09,
-                                len=1.0,
-                                xanchor='left',
-                                yanchor='top',
-                                currentvalue=dict(
-                                    prefix='Selected Month: ',
-                                    visible=True,
-                                    font=dict(size=14)
-                                ),
-                                pad=dict(t=15, b=10),
-                                steps=[
-                                    dict(
-                                        label=month_label,
-                                        method='animate',
-                                        args=[
-                                            [month_label],
-                                            {
-                                                "mode": "immediate",
-                                                "frame": {
-                                                    "duration": 0,
-                                                    "redraw": True
-                                                },
-                                                "transition": {
-                                                    "duration": 0
-                                                }
-                                            }
-                                        ]
-                                    )
-                                    for month_label in month_labels
-                                ]
-                            )
-                        ]
-                    )
-
-                    # ---------------- DISPLAY ----------------
-                    st.plotly_chart(
-                        fig_anim,
-                        use_container_width=True,
-                        config={
-                            'displaylogo': False,
-                            'responsive': True
-                        }
-                    )
-
-                    st.caption(
-                        f"Playback speed: {anim_speed} · "
-                        "Vertical bars · Highest → Lowest each month · "
-                        "Consistent station colours · "
-                        "Interactive month selection"
-                    )
-
-                    # ---------------- DOWNLOAD INTERACTIVE HTML ----------------
-                    st.markdown("")
-                    col_dl1, col_dl2, col_dl3 = st.columns([1, 2, 1])
-
-                    with col_dl2:
-                        html_bytes = fig_anim.to_html(
-                            full_html=True,
-                            include_plotlyjs=True,
-                            config={
-                                'displaylogo': False,
-                                'responsive': True
-                            }
-                        ).encode('utf-8')
-
-                        st.download_button(
-                            label="⬇️ Download Animation (Interactive HTML)",
-                            data=html_bytes,
-                            file_name=(
-                                "DRISHTI_Animation_"
-                                f"{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.html"
-                            ),
-                            mime="text/html",
-                            type="primary",
-                            use_container_width=True
-                        )
+                    for dept in selected_depts_pdf:
+                        dept_df = filtered_df[filtered_df['DEPARTMENT'] == dept]
+                        if dept_df.empty:
+                            continue
+                        try:
+                            pdf_buf = generate_one_page_report(dept_df, from_date, to_date, st.session_state.user_name)
+                            safe_name = str(dept).replace(" ", "_").replace("/", "-")[:25]
+                            st.download_button(label=f"⬇️ {dept} Report", data=pdf_buf,
+                                               file_name=f"DRISHTI_{safe_name}_{pd.Timestamp.now().strftime('%d%b%Y')}.pdf",
+                                               mime="application/pdf", key=f"pdf_{safe_name}")
+                        except Exception as e:
+                            st.error(f"Failed for {dept}: {e}")
+        with col_r2:
+            st.markdown("**Executive Summary (PPTX)**")
+            try:
+                pptx_buf = generate_executive_summary_pptx(filtered_df, from_date, to_date, st.session_state.user_name)
+                st.download_button(label="📊 Download Executive Summary (PPTX)", data=pptx_buf,
+                                   file_name=f"DRISHTI_Executive_Summary_{pd.Timestamp.now().strftime('%d%b%Y_%H%M')}.pptx",
+                                   mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                   type="primary", use_container_width=True)
+            except Exception as e:
+                st.error(f"PPTX generation error: {e}")
+        with col_r3:
+            st.markdown("**Quick Tips**")
+            st.info("• Risk Score helps prioritise inspections\n• What-If shows impact of focused action\n• Seasonality guides preventive planning")
 
 
     # ====================== FORECAST TAB ======================
