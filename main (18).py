@@ -1710,148 +1710,147 @@ else:
             else:
                 st.info("No Jurisdiction data")
 
-       # ====================== MONTHLY MATRIX (SIDE-BY-SIDE) ======================
-st.markdown("---")
-st.markdown('<p class="section-header">📊 Monthly Matrix (Side-by-Side View)</p>', unsafe_allow_html=True)
+        # ====================== MONTHLY MATRIX (SIDE-BY-SIDE) ======================
+        st.markdown("---")
+        st.markdown('<p class="section-header">📊 Monthly Matrix (Side-by-Side View)</p>', unsafe_allow_html=True)
 
-if filtered_df.empty or 'DATE' not in filtered_df.columns or 'ERROR MAIN CATEGORY' not in filtered_df.columns:
-    st.warning("No data available for Monthly Matrix.")
-else:
-    matrix_df = filtered_df.dropna(subset=['DATE']).copy()
-    matrix_df['MonthLabel'] = matrix_df['DATE'].dt.strftime('%B-%Y')
+        if filtered_df.empty or 'DATE' not in filtered_df.columns or 'ERROR MAIN CATEGORY' not in filtered_df.columns:
+            st.warning("No data available for Monthly Matrix.")
+        else:
+            matrix_df = filtered_df.dropna(subset=['DATE']).copy()
+            matrix_df['MonthLabel'] = matrix_df['DATE'].dt.strftime('%B-%Y')
 
-    preferred_errors = [
-        "Emergency Sub Route Cancellation",
-        "Emergency Route Cancellation",
-        "Point Loose Packing",
-        "Signal Flying Back to Danger",
-        "Track Circuit Failure",
-        "Earth Leakage Appeared"
-    ]
-
-    available_errors = sorted(matrix_df['ERROR MAIN CATEGORY'].dropna().unique().tolist())
-    available_months = sorted(
-        matrix_df['MonthLabel'].unique().tolist(),
-        key=lambda x: pd.to_datetime(x, format='%B-%Y'),
-        reverse=True
-    )
-
-    # ---------- Cleaner Month Selection ----------
-    st.markdown("**Select Months**")
-    month_mode = st.radio(
-        "Month selection mode",
-        options=["Last 6 Months", "Last 12 Months", "All Months", "Custom Select"],
-        index=0,
-        horizontal=True,
-        key="month_mode"
-    )
-
-    if month_mode == "Last 6 Months":
-        selected_months = available_months[:6]
-    elif month_mode == "Last 12 Months":
-        selected_months = available_months[:12]
-    elif month_mode == "All Months":
-        selected_months = available_months
-    else:  # Custom Select
-        selected_months = st.multiselect(
-            "Choose specific months",
-            options=available_months,
-            default=available_months[:6],
-            key="matrix_months_custom"
-        )
-
-    # ---------- Error Type with "All" option ----------
-    st.markdown("**Select Error Types**")
-    error_mode = st.radio(
-        "Error selection mode",
-        options=["All Important Errors", "All Errors", "Custom Select"],
-        index=0,
-        horizontal=True,
-        key="error_mode"
-    )
-
-    if error_mode == "All Important Errors":
-        selected_errors = [e for e in preferred_errors if e in available_errors]
-        if not selected_errors:
-            selected_errors = available_errors[:6]
-    elif error_mode == "All Errors":
-        selected_errors = available_errors
-    else:  # Custom Select
-        selected_errors = st.multiselect(
-            "Choose specific error types",
-            options=available_errors,
-            default=[e for e in preferred_errors if e in available_errors] or available_errors[:5],
-            key="matrix_errors_custom"
-        )
-
-    # ---------- Show selected summary (clean) ----------
-    if selected_months and selected_errors:
-        st.caption(f"Showing **{len(selected_months)} months** × **{len(selected_errors)} error types**")
-
-    if not selected_months or not selected_errors:
-        st.info("Please select at least one Month and one Error Type.")
-    else:
-        def clean_dept(x):
-            x = str(x).upper().strip()
-            if any(k in x for k in ['S&T', 'SNT', 'SIGNAL']):
-                return 'S&T'
-            if any(k in x for k in ['OPTG', 'OPERATING']):
-                return 'OPTG'
-            if any(k in x for k in ['ENGG', 'ENGINEERING']):
-                return 'ENGG'
-            if any(k in x for k in ['TRD', 'TRACTION', 'OHE']):
-                return 'TRD'
-            return 'OTHERS'
-
-        matrix_df['DeptClean'] = matrix_df['DEPARTMENT'].apply(clean_dept) if 'DEPARTMENT' in matrix_df.columns else 'OTHERS'
-
-        final_parts = []
-
-        for err in selected_errors:
-            err_data = matrix_df[
-                (matrix_df['ERROR MAIN CATEGORY'] == err) &
-                (matrix_df['MonthLabel'].isin(selected_months))
+            preferred_errors = [
+                "Emergency Sub Route Cancellation",
+                "Emergency Route Cancellation",
+                "Point Loose Packing",
+                "Signal Flying Back to Danger",
+                "Track Circuit Failure",
+                "Earth Leakage Appeared"
             ]
 
-            if err_data.empty:
-                pivot = pd.DataFrame(index=selected_months, columns=['S&T', 'OPTG', 'ENGG', 'TRD', 'OTHERS']).fillna(0)
-            else:
-                pivot = (
-                    err_data.groupby(['MonthLabel', 'DeptClean'])
-                    .size()
-                    .unstack(fill_value=0)
-                    .reindex(columns=['S&T', 'OPTG', 'ENGG', 'TRD', 'OTHERS'], fill_value=0)
+            available_errors = sorted(matrix_df['ERROR MAIN CATEGORY'].dropna().unique().tolist())
+            available_months = sorted(
+                matrix_df['MonthLabel'].unique().tolist(),
+                key=lambda x: pd.to_datetime(x, format='%B-%Y'),
+                reverse=True
+            )
+
+            # ---------- Cleaner Month Selection ----------
+            st.markdown("**Select Months**")
+            month_mode = st.radio(
+                "Month selection mode",
+                options=["Last 6 Months", "Last 12 Months", "All Months", "Custom Select"],
+                index=0,
+                horizontal=True,
+                key="month_mode"
+            )
+
+            if month_mode == "Last 6 Months":
+                selected_months = available_months[:6]
+            elif month_mode == "Last 12 Months":
+                selected_months = available_months[:12]
+            elif month_mode == "All Months":
+                selected_months = available_months
+            else:  # Custom Select
+                selected_months = st.multiselect(
+                    "Choose specific months",
+                    options=available_months,
+                    default=available_months[:6],
+                    key="matrix_months_custom"
                 )
-                pivot = pivot.reindex(selected_months, fill_value=0)
 
-            pivot = pivot.rename(columns={
-                'S&T': f'{err} - S&T',
-                'OPTG': f'{err} - OPTG',
-                'ENGG': f'{err} - ENGG',
-                'TRD': f'{err} - TRD',
-                'OTHERS': f'{err} - OTHERS'
-            })
-
-            pivot.insert(0, f'Month ({err})', pivot.index)
-            pivot = pivot.reset_index(drop=True)
-            final_parts.append(pivot)
-
-        if final_parts:
-            wide_table = pd.concat(final_parts, axis=1)
-
-            st.dataframe(
-                wide_table,
-                use_container_width=True,
-                height=420
+            # ---------- Error Type with "All" option ----------
+            st.markdown("**Select Error Types**")
+            error_mode = st.radio(
+                "Error selection mode",
+                options=["All Important Errors", "All Errors", "Custom Select"],
+                index=0,
+                horizontal=True,
+                key="error_mode"
             )
 
-            csv = wide_table.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="⬇️ Download this Matrix (CSV)",
-                data=csv,
-                file_name=f"DRISHTI_Monthly_Matrix_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.csv",
-                mime="text/csv"
-            )
+            if error_mode == "All Important Errors":
+                selected_errors = [e for e in preferred_errors if e in available_errors]
+                if not selected_errors:
+                    selected_errors = available_errors[:6]
+            elif error_mode == "All Errors":
+                selected_errors = available_errors
+            else:  # Custom Select
+                selected_errors = st.multiselect(
+                    "Choose specific error types",
+                    options=available_errors,
+                    default=[e for e in preferred_errors if e in available_errors] or available_errors[:5],
+                    key="matrix_errors_custom"
+                )
+
+            if selected_months and selected_errors:
+                st.caption(f"Showing **{len(selected_months)} months** × **{len(selected_errors)} error types**")
+
+            if not selected_months or not selected_errors:
+                st.info("Please select at least one Month and one Error Type.")
+            else:
+                def clean_dept(x):
+                    x = str(x).upper().strip()
+                    if any(k in x for k in ['S&T', 'SNT', 'SIGNAL']):
+                        return 'S&T'
+                    if any(k in x for k in ['OPTG', 'OPERATING']):
+                        return 'OPTG'
+                    if any(k in x for k in ['ENGG', 'ENGINEERING']):
+                        return 'ENGG'
+                    if any(k in x for k in ['TRD', 'TRACTION', 'OHE']):
+                        return 'TRD'
+                    return 'OTHERS'
+
+                matrix_df['DeptClean'] = matrix_df['DEPARTMENT'].apply(clean_dept) if 'DEPARTMENT' in matrix_df.columns else 'OTHERS'
+
+                final_parts = []
+
+                for err in selected_errors:
+                    err_data = matrix_df[
+                        (matrix_df['ERROR MAIN CATEGORY'] == err) &
+                        (matrix_df['MonthLabel'].isin(selected_months))
+                    ]
+
+                    if err_data.empty:
+                        pivot = pd.DataFrame(index=selected_months, columns=['S&T', 'OPTG', 'ENGG', 'TRD', 'OTHERS']).fillna(0)
+                    else:
+                        pivot = (
+                            err_data.groupby(['MonthLabel', 'DeptClean'])
+                            .size()
+                            .unstack(fill_value=0)
+                            .reindex(columns=['S&T', 'OPTG', 'ENGG', 'TRD', 'OTHERS'], fill_value=0)
+                        )
+                        pivot = pivot.reindex(selected_months, fill_value=0)
+
+                    pivot = pivot.rename(columns={
+                        'S&T': f'{err} - S&T',
+                        'OPTG': f'{err} - OPTG',
+                        'ENGG': f'{err} - ENGG',
+                        'TRD': f'{err} - TRD',
+                        'OTHERS': f'{err} - OTHERS'
+                    })
+
+                    pivot.insert(0, f'Month ({err})', pivot.index)
+                    pivot = pivot.reset_index(drop=True)
+                    final_parts.append(pivot)
+
+                if final_parts:
+                    wide_table = pd.concat(final_parts, axis=1)
+
+                    st.dataframe(
+                        wide_table,
+                        use_container_width=True,
+                        height=420
+                    )
+
+                    csv = wide_table.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="⬇️ Download this Matrix (CSV)",
+                        data=csv,
+                        file_name=f"DRISHTI_Monthly_Matrix_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime="text/csv"
+                    )
        # ====================== ANIMATED TIME SERIES ======================
         st.markdown("---")
         st.markdown('<p class="section-header">🎬 Animated Monthly Cases by Station (Highest → Lowest every month)</p>', unsafe_allow_html=True)
