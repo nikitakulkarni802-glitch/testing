@@ -1633,7 +1633,7 @@ else:
 
     col1, col2, col3 = st.columns([3, 3, 1])
 with col2:
-    st.image("https://raw.githubusercontent.com/nikitakulkarni802-glitch/testing/main/DRISHTI_Logo.png", width=220)
+    st.image(IR_LOGO_URL, width=220)
 
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
