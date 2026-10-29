@@ -1631,41 +1631,40 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # ========== HEADER - PERFECT CENTER LOGO ==========
-st.markdown(
-    f"""
-    <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin: 10px 0 5px 0;">
-        <img src="{IR_LOGO_URL}" width="200" style="display: block; margin: 0 auto;">
+    # ========== HEADER ==========
+    st.markdown(
+        f"""
+        <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin: 10px 0 5px 0;">
+            <img src="{IR_LOGO_URL}" width="200" style="display: block; margin: 0 auto;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="drishti-fullform">
+        <b>D</b>ata <b>L</b>ogger <b>R</b>eport of <b>I</b>dentified <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings &amp; <b>I</b>nsights
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
-st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
-st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
-st.markdown("""
-<div class="drishti-fullform">
-    <b>D</b>ata <b>L</b>ogger <b>R</b>eport of <b>I</b>dentified <b>S</b>ignificant <b>T</b>echnical <b>H</b>appenings &amp; <b>I</b>nsights
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="train-emoji-container">
+        <div class="train-track">🚄 🚄 🚄 🚄</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="train-emoji-container">
-    <div class="train-track">🚄 🚄 🚄 🚄</div>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown('<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>', unsafe_allow_html=True)
+    st.caption(f"**Logged in as:** {st.session_state.user_name}")
+    st.divider()
 
-st.markdown('<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>', unsafe_allow_html=True)
-st.caption(f"**Logged in as:** {st.session_state.user_name}")
-st.divider()
-    # ========== DATA LOADING ==========
-    df_original = load_data_from_gsheet()
+    df_original = load_data_from_gsheet()          # ← This line must have the same indentation as the st.markdown above
 
     with st.sidebar:
         st.header("🔧 Controls")
         if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
             refresh_data()
-
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
     col_f1 = st.columns([2, 2, 2, 2])
