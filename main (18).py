@@ -1631,9 +1631,10 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([3, 3, 1])
-with col2:
-    st.image(IR_LOGO_URL, width=220)
+        # ========== HEADER ==========
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(IR_LOGO_URL, width=220)
 
     st.markdown('<div class="drishti-title">DRISHTI</div>', unsafe_allow_html=True)
     st.markdown('<div class="drishti-line"></div>', unsafe_allow_html=True)
@@ -1652,14 +1653,6 @@ with col2:
     st.markdown('<p class="brand-line">Central Railway &nbsp;•&nbsp; Solapur Division &nbsp;•&nbsp; Safety Branch</p>', unsafe_allow_html=True)
     st.caption(f"**Logged in as:** {st.session_state.user_name}")
     st.divider()
-
-    df_original = load_data_from_gsheet()
-
-    with st.sidebar:
-        st.header("🔧 Controls")
-        if st.button("🔄 Refresh Data", type="primary", use_container_width=True):
-            refresh_data()
-
     # ====================== LIVE FILTERS ======================
     st.markdown("### 🔍 Live Filters")
     col_f1 = st.columns([2, 2, 2, 2])
