@@ -18,6 +18,7 @@ from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.enum.shapes import MSO_SHAPE
+from drishti_assistant import render_assistant_tab
 
 try:
     from zoneinfo import ZoneInfo
@@ -1753,7 +1754,8 @@ else:
 
     st.divider()
 
-    tab_overview, tab_forecast, tab_map = st.tabs(["📊 Overview Dashboard", "🔮 Forecast (3 Months)", "🗺️ Map View"])
+    tab_overview, tab_forecast, tab_map, tab_assistant = st.tabs(
+        ["📊 Overview Dashboard", "🔮 Forecast (3 Months)", "🗺️ Map View", "🤖 Assistant"])
 
   # ====================== OVERVIEW TAB ======================
     with tab_overview:
@@ -2413,5 +2415,17 @@ else:
                                    file_name=f"DRISHTI_Map_Report_{pd.Timestamp.now().strftime('%Y%m%d_%H%M')}.xlsx",
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                    type="primary", use_container_width=True)
+
+    # ====================== ASSISTANT TAB ======================
+    with tab_assistant:
+        render_assistant_tab(
+            df_original, filtered_df, st.session_state.user_name,
+            tools={
+                "pdf":  lambda d, f, t: generate_one_page_report(d, f, t, st.session_state.user_name),
+                "pptx": lambda d, f, t: generate_executive_summary_pptx(d, f, t, st.session_state.user_name),
+                "png":  lambda d, f, t: generate_summary_image(d, f, t, st.session_state.user_name),
+                "forecast_series": forecast_series,
+            },
+        )
 
     st.caption("🚄 DRISHTI | Safety Branch | Central Railway, Solapur Division")
