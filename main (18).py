@@ -2532,14 +2532,16 @@ else:
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                    type="primary", use_container_width=True)
 
-    # ====================== ASSISTANT TAB ======================
-   with tab_assistant:
-    render_assistant_tab(
-        df_original, filtered_df, st.session_state.user_name,
-        tools={
-            "pdf":  lambda d, f, t: generate_one_page_report(d, f, t, st.session_state.user_name),
-            "pptx": lambda d, f, t: generate_executive_summary_pptx(d, f, t, st.session_state.user_name),
-            "png":  lambda d, f, t: generate_summary_image(d, f, t, st.session_state.user_name),
-            "forecast_series": forecast_series,
-        },
-    )
+       # ====================== ASSISTANT TAB ======================
+    with tab_assistant:
+        render_assistant_tab(
+            df_original, filtered_df, st.session_state.user_name,
+            tools={
+                "pdf":  lambda d, f, t: generate_one_page_report(d, f, t, st.session_state.user_name),
+                "pptx": lambda d, f, t: generate_executive_summary_pptx(d, f, t, st.session_state.user_name),
+                "png":  lambda d, f, t: generate_summary_image(d, f, t, st.session_state.user_name),
+                "forecast_series": forecast_series,
+            },
+        )
+
+    st.caption("🚄 DRISHTI | Safety Branch | Central Railway, Solapur Division")
