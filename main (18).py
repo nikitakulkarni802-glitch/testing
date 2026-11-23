@@ -2533,29 +2533,13 @@ else:
                                    type="primary", use_container_width=True)
 
     # ====================== ASSISTANT TAB ======================
-    with tab_assistant:
-        has_groq = bool(st.secrets.get("GROQ_API_KEY"))
-        has_gemini = bool(st.secrets.get("GEMINI_API_KEY"))
-        if not (has_groq or has_gemini):
-            st.warning(
-                "⚪ AI is not set up yet — add `GROQ_API_KEY` and/or `GEMINI_API_KEY` "
-                "in Streamlit Secrets (`.streamlit/secrets.toml`). Until then the assistant "
-                "answers with built-in rules only."
-            )
-        else:
-            st.caption(
-                f"AI status:  "
-                f"{'✅ GROQ' if has_groq else '❌ GROQ'}  |  "
-                f"{'✅ GEMINI' if has_gemini else '❌ GEMINI'}"
-            )
-        render_assistant_tab(
-            df_original, filtered_df, st.session_state.user_name,
-            tools={
-                "pdf":  lambda d, f, t: generate_one_page_report(d, f, t, st.session_state.user_name),
-                "pptx": lambda d, f, t: generate_executive_summary_pptx(d, f, t, st.session_state.user_name),
-                "png":  lambda d, f, t: generate_summary_image(d, f, t, st.session_state.user_name),
-                "forecast_series": forecast_series,
-            },
-        )
-
-    st.caption("🚄 DRISHTI | Safety Branch | Central Railway, Solapur Division")
+   with tab_assistant:
+    render_assistant_tab(
+        df_original, filtered_df, st.session_state.user_name,
+        tools={
+            "pdf":  lambda d, f, t: generate_one_page_report(d, f, t, st.session_state.user_name),
+            "pptx": lambda d, f, t: generate_executive_summary_pptx(d, f, t, st.session_state.user_name),
+            "png":  lambda d, f, t: generate_summary_image(d, f, t, st.session_state.user_name),
+            "forecast_series": forecast_series,
+        },
+    )
