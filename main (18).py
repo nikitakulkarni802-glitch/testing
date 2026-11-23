@@ -1330,7 +1330,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     """
     8-page Professional Executive Summary PPTX
     1 Cover | 2 Executive Summary | 3 Top Stations | 4 Top Errors
-    5 Department-wise | 6 Dept Contribution % | 7 Error×Dept Matrix
+    5 Department-wise | 6 Dept Contribution % | 7 Error x Dept Matrix
     8 Per-Department Top Errors
     """
     from pptx import Presentation
@@ -1467,7 +1467,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             add_text_box(s2, Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.33
 
-    # ---------- chart helper ----------
+    # ---------- chart helpers ----------
     def create_multicolor_vbar(categories, values, palette="mixed"):
         fig, ax = plt.subplots(figsize=(11, 4.55), facecolor='#F5F9FC')
         ax.set_facecolor('#F5F9FC')
@@ -1495,7 +1495,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         ax.yaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
         ax.set_axisbelow(True)
         for bar, val in zip(bars, values):
-            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(values)*0.02,
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(values)*0.02 if values else 0.5,
                     f'{int(val)}', ha='center', va='bottom', fontsize=9, color='#0D2137', fontweight='medium')
         plt.tight_layout(rect=[0.02, 0.16, 0.99, 0.98])
         buf = BytesIO()
@@ -1504,7 +1504,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         buf.seek(0)
         return buf
 
-    def create_hbar_pct(labels, values, title=""):
+    def create_hbar_pct(labels, values):
         fig, ax = plt.subplots(figsize=(11, 4.6), facecolor='#F5F9FC')
         ax.set_facecolor('#F5F9FC')
         y = np.arange(len(labels))
@@ -1513,7 +1513,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         ax.set_yticks(y)
         ax.set_yticklabels([str(l)[:28] for l in labels], fontsize=9)
         ax.set_xlabel("% of Total Cases", fontsize=10, color='#546E7A')
-        ax.set_xlim(0, max(values) * 1.18 if values else 10)
+        ax.set_xlim(0, max(values) * 1.18 if len(values) else 10)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_color('#CFD8DC')
@@ -1522,7 +1522,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         ax.xaxis.grid(True, linestyle='--', alpha=0.35)
         ax.set_axisbelow(True)
         for bar, val in zip(bars, values):
-            ax.text(val + max(values)*0.015, bar.get_y() + bar.get_height()/2,
+            ax.text(val + max(values)*0.015 if values else 0.1, bar.get_y() + bar.get_height()/2,
                     f"{val:.1f}%", va='center', fontsize=9, color='#0D1B2A')
         plt.tight_layout()
         buf = BytesIO()
@@ -1539,13 +1539,14 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         ax.set_yticks(np.arange(pivot_df.shape[0]))
         ax.set_xticklabels([str(c)[:14] for c in pivot_df.columns], fontsize=8, rotation=30, ha='right')
         ax.set_yticklabels([str(r)[:22] for r in pivot_df.index], fontsize=8)
+        vmax = data.max() if data.size else 1
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
                 val = int(data[i, j])
                 if val > 0:
                     ax.text(j, i, str(val), ha='center', va='center',
-                            color='white' if data[i, j] > data.max()*0.55 else '#0D1B2A', fontsize=8)
-        ax.set_title("Cases by Error Category × Department", fontsize=11, color='#01579B', pad=8)
+                            color='white' if data[i, j] > vmax * 0.55 else '#0D1B2A', fontsize=8)
+        ax.set_title("Cases by Error Category x Department", fontsize=11, color='#01579B', pad=8)
         plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
         plt.tight_layout()
         buf = BytesIO()
@@ -1597,11 +1598,9 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     if not df.empty and 'DEPARTMENT' in df.columns and total_cases > 0:
         dept_counts = df['DEPARTMENT'].value_counts()
         pcts = (dept_counts / total_cases * 100).round(1)
-        # Left chart
         img = create_hbar_pct(list(pcts.index[:8]), list(pcts.values[:8]))
         s6.shapes.add_picture(img, Inches(0.35), Inches(1.55), width=Inches(7.6))
 
-        # Right table of contribution
         add_shape(s6, Inches(8.2), Inches(1.55), Inches(4.7), Inches(5.2), WHITE)
         add_shape(s6, Inches(8.2), Inches(1.55), Inches(4.7), Inches(0.025), GOLD)
         add_text_box(s6, Inches(8.4), Inches(1.70), Inches(4.3), Inches(0.30), "CONTRIBUTION TABLE", 12, True, PRIMARY)
@@ -1619,7 +1618,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     else:
         add_text_box(s6, Inches(0.5), Inches(3.0), Inches(12), Inches(0.4), "No department data available.", 14, False, GRAY)
 
-    # ===================== SLIDE 7: Error × Department Heatmap =====================
+    # ===================== SLIDE 7: Error x Department Heatmap =====================
     s7 = prs.slides.add_slide(blank_layout)
     add_shape(s7, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
     add_content_header_footer(s7, 7)
@@ -1656,7 +1655,6 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             left = 0.35 + idx * (col_w + 0.15)
             add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(5.25), WHITE)
             add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(0.025), GOLD)
-            # header strip
             add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(0.42), PRIMARY)
             add_text_box(s8, Inches(left + 0.08), Inches(1.62), Inches(col_w - 0.16), Inches(0.32),
                          str(dept_name)[:22], 11, True, WHITE, PP_ALIGN.CENTER)
@@ -1684,6 +1682,8 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     prs.save(buffer)
     buffer.seek(0)
     return buffer
+
+
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -2534,6 +2534,20 @@ else:
 
     # ====================== ASSISTANT TAB ======================
     with tab_assistant:
+        has_groq = bool(st.secrets.get("GROQ_API_KEY"))
+        has_gemini = bool(st.secrets.get("GEMINI_API_KEY"))
+        if not (has_groq or has_gemini):
+            st.warning(
+                "⚪ AI is not set up yet — add `GROQ_API_KEY` and/or `GEMINI_API_KEY` "
+                "in Streamlit Secrets (`.streamlit/secrets.toml`). Until then the assistant "
+                "answers with built-in rules only."
+            )
+        else:
+            st.caption(
+                f"AI status:  "
+                f"{'✅ GROQ' if has_groq else '❌ GROQ'}  |  "
+                f"{'✅ GEMINI' if has_gemini else '❌ GEMINI'}"
+            )
         render_assistant_tab(
             df_original, filtered_df, st.session_state.user_name,
             tools={
