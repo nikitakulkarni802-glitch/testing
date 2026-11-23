@@ -1328,12 +1328,10 @@ def generate_summary_image(df, from_date, to_date, user_name):
 
 def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     """
-    5-page Professional Executive Summary PPTX
-    Page 1: Cover (DRISHTI + full form)
-    Page 2: Executive Summary (KPIs + lists)
-    Page 3: Top Stations (multi-colour vertical bars)
-    Page 4: Top Errors (multi-colour vertical bars)
-    Page 5: Department-wise (multi-colour vertical bars)
+    8-page Professional Executive Summary PPTX
+    1 Cover | 2 Executive Summary | 3 Top Stations | 4 Top Errors
+    5 Department-wise | 6 Dept Contribution % | 7 Error×Dept Matrix
+    8 Per-Department Top Errors
     """
     from pptx import Presentation
     from pptx.util import Inches, Pt
@@ -1342,13 +1340,13 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     from pptx.enum.shapes import MSO_SHAPE
     import matplotlib.pyplot as plt
     import matplotlib
+    import textwrap
     matplotlib.use('Agg')
 
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
 
-    # Navy Blue palette
     NAVY       = RGBColor(0x0D, 0x21, 0x37)
     PRIMARY    = RGBColor(0x01, 0x57, 0x9B)
     ACCENT     = RGBColor(0x02, 0x88, 0xD1)
@@ -1360,6 +1358,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     TEAL       = RGBColor(0x00, 0x79, 0x6B)
 
     blank_layout = prs.slide_layouts[6]
+    TOTAL_PAGES = 8
 
     def add_shape(slide, left, top, width, height, fill_color):
         shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
@@ -1372,7 +1371,6 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         txBox = slide.shapes.add_textbox(left, top, width, height)
         tf = txBox.text_frame
         tf.word_wrap = True
-        # Keep long labels visible instead of clipping their final characters.
         tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
         p = tf.paragraphs[0]
         p.text = text
@@ -1383,7 +1381,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         p.alignment = align
         return txBox
 
-    def add_content_header_footer(slide, page_num, total_pages=5):
+    def add_content_header_footer(slide, page_num, total_pages=TOTAL_PAGES):
         add_shape(slide, Inches(0), Inches(0), Inches(13.333), Inches(0.80), NAVY)
         add_text_box(slide, Inches(0.4), Inches(0.18), Inches(6), Inches(0.40), "DRISHTI", 20, True, WHITE)
         add_text_box(slide, Inches(0.4), Inches(0.50), Inches(7), Inches(0.25), "Safety Branch  •  Solapur Division", 11, False, RGBColor(0x90, 0xCA, 0xF9))
@@ -1397,7 +1395,7 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         add_text_box(slide, Inches(9.5), Inches(7.18), Inches(3.5), Inches(0.25),
                      f"CONFIDENTIAL  •  Page {page_num} of {total_pages}", 10, False, RGBColor(0x90, 0xCA, 0xF9), PP_ALIGN.RIGHT)
 
-    # Data preparation
+    # ---------- Data ----------
     total_cases = len(df)
     top_stn, top_stn_cases, unique_stn = "N/A", 0, 0
     if not df.empty and 'STATION' in df.columns:
@@ -1412,7 +1410,6 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     add_shape(s1, Inches(0), Inches(0), Inches(13.333), Inches(7.5), NAVY)
     add_shape(s1, Inches(4.5), Inches(2.15), Inches(4.3), Inches(0.04), GOLD)
     add_shape(s1, Inches(4.5), Inches(4.55), Inches(4.3), Inches(0.04), GOLD)
-
     add_text_box(s1, Inches(0.5), Inches(2.40), Inches(12.3), Inches(0.90), "DRISHTI", 54, True, WHITE, PP_ALIGN.CENTER)
     add_text_box(s1, Inches(1.0), Inches(3.40), Inches(11.3), Inches(0.70),
                  "Data Logger Report of Identified Significant\nTechnical Happenings & Insights", 16, False, RGBColor(0xB3, 0xE5, 0xFC), PP_ALIGN.CENTER)
@@ -1424,7 +1421,6 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
     s2 = prs.slides.add_slide(blank_layout)
     add_shape(s2, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
     add_content_header_footer(s2, 2)
-
     period = f"{from_date.strftime('%d %b %Y')}  –  {to_date.strftime('%d %b %Y')}"
     add_text_box(s2, Inches(0.4), Inches(1.05), Inches(8), Inches(0.28), "Department: All Departments", 12, True, NAVY)
     add_text_box(s2, Inches(0.4), Inches(1.30), Inches(8), Inches(0.25), f"Period: {period}", 10, False, GRAY)
@@ -1445,11 +1441,9 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         add_text_box(s2, left + Inches(0.2), Inches(2.00), card_w - Inches(0.3), Inches(0.50), val, 24, True, NAVY, PP_ALIGN.CENTER)
         add_text_box(s2, left + Inches(0.2), Inches(2.50), card_w - Inches(0.3), Inches(0.30), label, 12, False, GRAY, PP_ALIGN.CENTER)
 
-    # Top Stations list
     add_shape(s2, Inches(0.4), Inches(3.20), Inches(6.1), Inches(3.55), WHITE)
     add_shape(s2, Inches(0.4), Inches(3.20), Inches(6.1), Inches(0.025), GOLD)
     add_text_box(s2, Inches(0.6), Inches(3.35), Inches(5.7), Inches(0.32), "TOP 8 STATIONS", 13, True, PRIMARY)
-
     if not df.empty and 'STATION' in df.columns:
         top8 = df['STATION'].value_counts().head(8)
         y = 3.80
@@ -1460,27 +1454,24 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
             add_text_box(s2, Inches(5.2), Inches(y), Inches(1.0), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.33
 
-    # Top Errors list
     add_shape(s2, Inches(6.8), Inches(3.20), Inches(6.1), Inches(3.55), WHITE)
     add_shape(s2, Inches(6.8), Inches(3.20), Inches(6.1), Inches(0.025), GOLD)
     add_text_box(s2, Inches(7.0), Inches(3.35), Inches(5.7), Inches(0.32), "TOP ERROR CATEGORIES", 13, True, PRIMARY)
-
     if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
         top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
         y = 3.80
         for err, cnt in top_err.items():
             pct = (cnt / total_cases * 100) if total_cases else 0
-            add_text_box(s2, Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err), 12, False, DARK)
+            add_text_box(s2, Inches(7.1), Inches(y), Inches(3.5), Inches(0.28), str(err)[:28], 12, False, DARK)
             add_text_box(s2, Inches(10.7), Inches(y), Inches(1.0), Inches(0.28), f"{cnt:,}", 12, True, PRIMARY, PP_ALIGN.RIGHT)
             add_text_box(s2, Inches(11.8), Inches(y), Inches(0.9), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
             y += 0.33
 
-    # ===================== Multi-colour bar chart helper =====================
+    # ---------- chart helper ----------
     def create_multicolor_vbar(categories, values, palette="mixed"):
         fig, ax = plt.subplots(figsize=(11, 4.55), facecolor='#F5F9FC')
         ax.set_facecolor('#F5F9FC')
         x = np.arange(len(categories))
-
         if palette == "stations":
             colors = ['#01579B', '#0277BD', '#0288D1', '#039BE5', '#00ACC1',
                       '#00897B', '#43A047', '#7CB342', '#C0CA33', '#F9A825']
@@ -1489,19 +1480,12 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
                       '#7CB342', '#00897B', '#0277BD']
         else:
             colors = ['#01579B', '#00695C', '#4527A0', '#C62828', '#EF6C00', '#546E7A']
-
         colors = colors[:len(categories)]
         bars = ax.bar(x, values, color=colors, width=0.65, edgecolor='white', linewidth=0.7)
-
         ax.set_xticks(x)
-        # Wrap long category names onto multiple lines; never cut them to a fixed character count.
-        import textwrap
-        wrapped_categories = [
-            "\n".join(textwrap.wrap(str(label).replace(r"\n", " ").replace("\n", " ").strip(), width=14, break_long_words=False, break_on_hyphens=False))
-            for label in categories
-        ]
-        ax.set_xticklabels(wrapped_categories, fontsize=8.5, rotation=0, ha='center',
-                           multialignment='center', color='#0D1B2A')
+        wrapped = ["\n".join(textwrap.wrap(str(l).replace("\n", " ").strip(), width=14,
+                                           break_long_words=False, break_on_hyphens=False)) for l in categories]
+        ax.set_xticklabels(wrapped, fontsize=8.5, rotation=0, ha='center', multialignment='center', color='#0D1B2A')
         ax.set_ylabel("Number of Cases", fontsize=11, color='#546E7A')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -1510,12 +1494,9 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         ax.tick_params(colors='#546E7A')
         ax.yaxis.grid(True, linestyle='--', alpha=0.35, color='#B0BEC5')
         ax.set_axisbelow(True)
-
         for bar, val in zip(bars, values):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(values)*0.02,
                     f'{int(val)}', ha='center', va='bottom', fontsize=9, color='#0D2137', fontweight='medium')
-
-        # Reserve space for wrapped labels while keeping the chart within the slide footer.
         plt.tight_layout(rect=[0.02, 0.16, 0.99, 0.98])
         buf = BytesIO()
         fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
@@ -1523,51 +1504,186 @@ def generate_executive_summary_pptx(df, from_date, to_date, user_name):
         buf.seek(0)
         return buf
 
-    # ===================== SLIDE 3: Top Stations Bars =====================
+    def create_hbar_pct(labels, values, title=""):
+        fig, ax = plt.subplots(figsize=(11, 4.6), facecolor='#F5F9FC')
+        ax.set_facecolor('#F5F9FC')
+        y = np.arange(len(labels))
+        colors = plt.cm.Blues(np.linspace(0.45, 0.90, len(labels)))[::-1]
+        bars = ax.barh(y, values, color=colors, height=0.62, edgecolor='white')
+        ax.set_yticks(y)
+        ax.set_yticklabels([str(l)[:28] for l in labels], fontsize=9)
+        ax.set_xlabel("% of Total Cases", fontsize=10, color='#546E7A')
+        ax.set_xlim(0, max(values) * 1.18 if values else 10)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#CFD8DC')
+        ax.spines['bottom'].set_color('#CFD8DC')
+        ax.tick_params(colors='#546E7A')
+        ax.xaxis.grid(True, linestyle='--', alpha=0.35)
+        ax.set_axisbelow(True)
+        for bar, val in zip(bars, values):
+            ax.text(val + max(values)*0.015, bar.get_y() + bar.get_height()/2,
+                    f"{val:.1f}%", va='center', fontsize=9, color='#0D1B2A')
+        plt.tight_layout()
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+
+    def create_heatmap(pivot_df):
+        fig, ax = plt.subplots(figsize=(11.5, 4.7), facecolor='#F5F9FC')
+        data = pivot_df.values.astype(float)
+        im = ax.imshow(data, cmap='YlOrRd', aspect='auto')
+        ax.set_xticks(np.arange(pivot_df.shape[1]))
+        ax.set_yticks(np.arange(pivot_df.shape[0]))
+        ax.set_xticklabels([str(c)[:14] for c in pivot_df.columns], fontsize=8, rotation=30, ha='right')
+        ax.set_yticklabels([str(r)[:22] for r in pivot_df.index], fontsize=8)
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                val = int(data[i, j])
+                if val > 0:
+                    ax.text(j, i, str(val), ha='center', va='center',
+                            color='white' if data[i, j] > data.max()*0.55 else '#0D1B2A', fontsize=8)
+        ax.set_title("Cases by Error Category × Department", fontsize=11, color='#01579B', pad=8)
+        plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+        plt.tight_layout()
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
+        plt.close(fig)
+        buf.seek(0)
+        return buf
+
+    # ===================== SLIDE 3: Top Stations =====================
     s3 = prs.slides.add_slide(blank_layout)
     add_shape(s3, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
     add_content_header_footer(s3, 3)
     add_text_box(s3, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Top 10 Stations by Cases", 16, True, NAVY)
     add_shape(s3, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
-
     if not df.empty and 'STATION' in df.columns:
         top10 = df['STATION'].value_counts().head(10)
         img = create_multicolor_vbar(list(top10.index), list(top10.values), "stations")
         s3.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
 
-    # ===================== SLIDE 4: Top Errors Bars =====================
+    # ===================== SLIDE 4: Top Errors =====================
     s4 = prs.slides.add_slide(blank_layout)
     add_shape(s4, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
     add_content_header_footer(s4, 4)
     add_text_box(s4, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Top Error Categories", 16, True, NAVY)
     add_shape(s4, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
-
     if not df.empty and 'ERROR MAIN CATEGORY' in df.columns:
         top_err = df['ERROR MAIN CATEGORY'].value_counts().head(8)
-        # Shorten long names for chart
-        labels = [str(x) for x in top_err.index]
-        img = create_multicolor_vbar(labels, list(top_err.values), "errors")
+        img = create_multicolor_vbar([str(x) for x in top_err.index], list(top_err.values), "errors")
         s4.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
 
-    # ===================== SLIDE 5: Departments Bars =====================
+    # ===================== SLIDE 5: Departments =====================
     s5 = prs.slides.add_slide(blank_layout)
     add_shape(s5, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
     add_content_header_footer(s5, 5)
     add_text_box(s5, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Department-wise Cases", 16, True, NAVY)
     add_shape(s5, Inches(0.4), Inches(1.40), Inches(3.5), Inches(0.025), ACCENT)
-
     if not df.empty and 'DEPARTMENT' in df.columns:
         dept = df['DEPARTMENT'].value_counts().head(8)
-        labels = [str(x) for x in dept.index]
-        img = create_multicolor_vbar(labels, list(dept.values), "depts")
+        img = create_multicolor_vbar([str(x) for x in dept.index], list(dept.values), "depts")
         s5.shapes.add_picture(img, Inches(0.5), Inches(1.60), width=Inches(12.3))
 
-    # Save
+    # ===================== SLIDE 6: Department Contribution % =====================
+    s6 = prs.slides.add_slide(blank_layout)
+    add_shape(s6, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s6, 6)
+    add_text_box(s6, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Department Contribution Analysis (% of Total Cases)", 16, True, NAVY)
+    add_shape(s6, Inches(0.4), Inches(1.40), Inches(4.2), Inches(0.025), ACCENT)
+
+    if not df.empty and 'DEPARTMENT' in df.columns and total_cases > 0:
+        dept_counts = df['DEPARTMENT'].value_counts()
+        pcts = (dept_counts / total_cases * 100).round(1)
+        # Left chart
+        img = create_hbar_pct(list(pcts.index[:8]), list(pcts.values[:8]))
+        s6.shapes.add_picture(img, Inches(0.35), Inches(1.55), width=Inches(7.6))
+
+        # Right table of contribution
+        add_shape(s6, Inches(8.2), Inches(1.55), Inches(4.7), Inches(5.2), WHITE)
+        add_shape(s6, Inches(8.2), Inches(1.55), Inches(4.7), Inches(0.025), GOLD)
+        add_text_box(s6, Inches(8.4), Inches(1.70), Inches(4.3), Inches(0.30), "CONTRIBUTION TABLE", 12, True, PRIMARY)
+        y = 2.15
+        add_text_box(s6, Inches(8.4), Inches(y), Inches(2.4), Inches(0.25), "Department", 10, True, GRAY)
+        add_text_box(s6, Inches(10.7), Inches(y), Inches(0.9), Inches(0.25), "Cases", 10, True, GRAY, PP_ALIGN.RIGHT)
+        add_text_box(s6, Inches(11.6), Inches(y), Inches(1.0), Inches(0.25), "Share", 10, True, GRAY, PP_ALIGN.RIGHT)
+        y += 0.32
+        for dept_name, cnt in dept_counts.head(10).items():
+            pct = (cnt / total_cases * 100)
+            add_text_box(s6, Inches(8.4), Inches(y), Inches(2.4), Inches(0.28), str(dept_name)[:20], 11, False, DARK)
+            add_text_box(s6, Inches(10.7), Inches(y), Inches(0.9), Inches(0.28), f"{cnt:,}", 11, True, PRIMARY, PP_ALIGN.RIGHT)
+            add_text_box(s6, Inches(11.6), Inches(y), Inches(1.0), Inches(0.28), f"{pct:.1f}%", 11, False, GRAY, PP_ALIGN.RIGHT)
+            y += 0.30
+    else:
+        add_text_box(s6, Inches(0.5), Inches(3.0), Inches(12), Inches(0.4), "No department data available.", 14, False, GRAY)
+
+    # ===================== SLIDE 7: Error × Department Heatmap =====================
+    s7 = prs.slides.add_slide(blank_layout)
+    add_shape(s7, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s7, 7)
+    add_text_box(s7, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Error Category Contribution by Department", 16, True, NAVY)
+    add_shape(s7, Inches(0.4), Inches(1.40), Inches(4.5), Inches(0.025), ACCENT)
+
+    if (not df.empty and 'ERROR MAIN CATEGORY' in df.columns and 'DEPARTMENT' in df.columns):
+        top_errors = df['ERROR MAIN CATEGORY'].value_counts().head(8).index.tolist()
+        top_depts = df['DEPARTMENT'].value_counts().head(6).index.tolist()
+        sub = df[df['ERROR MAIN CATEGORY'].isin(top_errors) & df['DEPARTMENT'].isin(top_depts)]
+        if not sub.empty:
+            pivot = (sub.groupby(['ERROR MAIN CATEGORY', 'DEPARTMENT'])
+                       .size()
+                       .unstack(fill_value=0)
+                       .reindex(index=top_errors, columns=top_depts, fill_value=0))
+            img = create_heatmap(pivot)
+            s7.shapes.add_picture(img, Inches(0.4), Inches(1.55), width=Inches(12.5))
+        else:
+            add_text_box(s7, Inches(0.5), Inches(3.0), Inches(12), Inches(0.4), "Insufficient cross-tab data.", 14, False, GRAY)
+    else:
+        add_text_box(s7, Inches(0.5), Inches(3.0), Inches(12), Inches(0.4), "Error / Department columns missing.", 14, False, GRAY)
+
+    # ===================== SLIDE 8: Per-Department Top Errors =====================
+    s8 = prs.slides.add_slide(blank_layout)
+    add_shape(s8, Inches(0), Inches(0), Inches(13.333), Inches(7.5), OFF_WHITE)
+    add_content_header_footer(s8, 8)
+    add_text_box(s8, Inches(0.4), Inches(1.05), Inches(12), Inches(0.35), "Top Errors within each Department", 16, True, NAVY)
+    add_shape(s8, Inches(0.4), Inches(1.40), Inches(4.2), Inches(0.025), ACCENT)
+
+    if not df.empty and 'DEPARTMENT' in df.columns and 'ERROR MAIN CATEGORY' in df.columns:
+        top_depts = df['DEPARTMENT'].value_counts().head(4).index.tolist()
+        col_w = 3.05
+        for idx, dept_name in enumerate(top_depts):
+            left = 0.35 + idx * (col_w + 0.15)
+            add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(5.25), WHITE)
+            add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(0.025), GOLD)
+            # header strip
+            add_shape(s8, Inches(left), Inches(1.55), Inches(col_w), Inches(0.42), PRIMARY)
+            add_text_box(s8, Inches(left + 0.08), Inches(1.62), Inches(col_w - 0.16), Inches(0.32),
+                         str(dept_name)[:22], 11, True, WHITE, PP_ALIGN.CENTER)
+
+            dept_df = df[df['DEPARTMENT'] == dept_name]
+            dept_total = len(dept_df)
+            err_vc = dept_df['ERROR MAIN CATEGORY'].value_counts().head(6)
+            y = 2.15
+            add_text_box(s8, Inches(left + 0.1), Inches(y), Inches(col_w - 0.2), Inches(0.25),
+                         f"Total: {dept_total:,} cases", 10, False, GRAY)
+            y += 0.35
+            for err, cnt in err_vc.items():
+                pct = (cnt / dept_total * 100) if dept_total else 0
+                add_text_box(s8, Inches(left + 0.12), Inches(y), Inches(col_w - 1.4), Inches(0.28),
+                             str(err)[:20], 10, False, DARK)
+                add_text_box(s8, Inches(left + col_w - 1.25), Inches(y), Inches(0.55), Inches(0.28),
+                             f"{cnt}", 10, True, PRIMARY, PP_ALIGN.RIGHT)
+                add_text_box(s8, Inches(left + col_w - 0.70), Inches(y), Inches(0.55), Inches(0.28),
+                             f"{pct:.0f}%", 10, False, GRAY, PP_ALIGN.RIGHT)
+                y += 0.32
+    else:
+        add_text_box(s8, Inches(0.5), Inches(3.0), Inches(12), Inches(0.4), "No data for per-department error breakdown.", 14, False, GRAY)
+
     buffer = BytesIO()
     prs.save(buffer)
     buffer.seek(0)
     return buffer
-
 # ====================== SESSION STATE ======================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
