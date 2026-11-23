@@ -44,6 +44,7 @@ try:
 except Exception:  # pragma: no cover
     _IST = timezone(timedelta(hours=5, minutes=30))
 
+ASSISTANT_VERSION = "3.1"
 ALIAS_FILE = "assistant_aliases.json"
 LOG_FILE = "assistant_log.csv"
 
@@ -56,12 +57,13 @@ DIM_COL = {
     "dept": "DEPARTMENT",
     "jur": "JURISDICTION",
     "fault": "DL FAULT MESSAGE",
+    "remark": "REMARKS GIVEN BY S&T",
     "month": None,  # computed from DATE
 }
 DIM_LABEL = {"station": "Station", "error": "Error category", "dept": "Department",
-             "jur": "Jurisdiction", "fault": "Fault message", "month": "Month"}
+             "jur": "Jurisdiction", "fault": "Fault message", "remark": "Remark", "month": "Month"}
 DIM_PLURAL = {"station": "stations", "error": "error categories", "dept": "departments",
-              "jur": "jurisdictions", "fault": "fault messages", "month": "months"}
+              "jur": "jurisdictions", "fault": "fault messages", "remark": "remarks", "month": "months"}
 
 NOUN_PATS = [
     ("station", r"stations?|stns?|locations?"),
@@ -70,6 +72,7 @@ NOUN_PATS = [
     ("jur", r"jurisdictions?|sections?|adens?|sses?|adstes?"),
     ("month", r"months?"),
     ("fault", r"messages?"),
+    ("remark", r"remarks?|replies|reply"),
 ]
 _NOUN_RX = re.compile(r"\b(?:" + "|".join(f"(?P<{k}>{p})" for k, p in NOUN_PATS) + r")\b")
 
@@ -104,6 +107,15 @@ STOPWORDS = set("""a an the of for in on at to from by with and or is are was we
 these those me my we you your our show give tell please can could would will what which who how many much
 all any some do does did there here about as into than then them they their cases case records record
 data list find get display view""".split())
+STOPWORDS |= {"more", "less", "fewer", "has", "have", "had", "having", "category", "categories"}
+
+# Words the assistant itself understands; used to repair typos and to keep fuzzy matching away from them.
+VOCAB = ["station", "stations", "department", "departments", "jurisdiction", "jurisdictions", "category", "categories",
+         "error", "errors", "month", "months", "monthly", "forecast", "predict", "compare", "comparison", "summary",
+         "overview", "report", "download", "highest", "lowest", "bottom", "trend", "chart", "graph", "pending",
+         "remarks", "records", "insights", "unusual", "excel", "powerpoint", "snapshot", "january", "february", "april",
+         "august", "september", "october", "november", "december", "yesterday", "average", "percentage", "breakdown"]
+COMMAND_WORDS = set(VOCAB) | {"remark", "reply", "replies", "weekly", "daily", "which", "where", "unusual", "spikes"}
 
 
 # --------------------------------------------------------------------------
@@ -161,6 +173,34 @@ def _loose_pat(value):
         return None
     body = r"[^A-Za-z0-9&]+".join(re.escape(t) for t in toks)
     return re.compile(r"(?<![A-Za-z0-9&])" + body + r"(?![A-Za-z0-9&])", re.I)
+
+
+def _osa(a: str, b: str) -> int:
+    """Edit distance counting a swap of two neighbouring letters as ONE mistake (e.g. 'ocotber')."""
+    la, lb = len(a), len(b)
+    d = [[0] * (lb + 1) for _ in range(la + 1)]
+    for i in range(la + 1):
+        d[i][0] = i
+    for j in range(lb + 1):
+        d[0][j] = j
+    for i in range(1, la + 1):
+        for j in range(1, lb + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
+            if i > 1 and j > 1 and a[i - 1] == b[j - 2] and a[i - 2] == b[j - 1]:
+                d[i][j] = min(d[i][j], d[i - 2][j - 2] + 1)
+    return d[la][lb]
+
+
+def _typo_close(a: str, b: str) -> bool:
+    """True when two words differ only by a plausible typing mistake (1 edit up to 5 letters, 2 up to 8, 3 beyond)."""
+    if a == b:
+        return True
+    n = max(len(a), len(b))
+    if n < 4:
+        return False
+    lim = 1 if n <= 5 else (2 if n <= 8 else 3)
+    return abs(len(a) - len(b)) <= lim and _osa(a, b) <= lim
 
 
 def _month_end(ts: pd.Timestamp) -> pd.Timestamp:
@@ -312,6 +352,8 @@ def detect_intent(core: str) -> str:
         return "insights"
     if re.search(r"\breport\b", core):
         return "report_menu"
+    if re.search(r"\bwhich\b.{0,60}\b(?:more|many|less|fewer)\b", core):
+        return "top"
     if re.search(r"\b(?:top|bottom|highest|most|worst|maximum|max|leading|biggest|ranking|rank|lowest|least|minimum|fewest|best)\b", core):
         return "top"
     if re.search(r"how many|\bcount\b|\btotal\b|number of|how much|\bsum\b", core):
@@ -326,10 +368,10 @@ def detect_intent(core: str) -> str:
 
 
 def _find_dim(core: str, default: str = "station") -> str:
-    m = re.search(r"\b(?P<d>station|stn|error|department|dept|jurisdiction|month)s?[\s\-]?wise\b", core)
+    m = re.search(r"\b(?P<d>station|stn|error|department|dept|jurisdiction|month|remark)s?[\s\-]?wise\b", core)
     if m:
         return {"stn": "station", "dept": "dept", "department": "dept", "jurisdiction": "jur",
-                "error": "error", "month": "month", "station": "station"}[m.group("d")]
+                "error": "error", "month": "month", "station": "station", "remark": "remark"}[m.group("d")]
     hits = [(m.start(), m.lastgroup) for m in _NOUN_RX.finditer(core)]
     if not hits:
         return default
@@ -624,16 +666,54 @@ class LLMClient:
         self.enabled = True
         self.gemini_on = True
         self.session_calls = 0
+        self.found_in = {}
+        self.visible = []
+
+    @staticmethod
+    def _lookup(st, names):
+        """Find a secret by any of `names` (case-insensitive) at the top level OR inside a [section]; falls back to
+        environment variables. Returns (value, where)."""
+        wanted = {n.lower() for n in names}
+
+        def clean(v):
+            return str(v).strip().strip('"').strip("'").strip()
+
+        try:
+            sec = st.secrets if st is not None else {}
+            for k in list(sec.keys()):
+                v = sec[k]
+                if str(k).lower() in wanted and not hasattr(v, "keys"):
+                    return clean(v), "top"
+            for k in list(sec.keys()):
+                v = sec[k]
+                if hasattr(v, "keys"):
+                    for kk in list(v.keys()):
+                        vv = v[kk]
+                        if str(kk).lower() in wanted and not hasattr(vv, "keys"):
+                            return clean(vv), f"[{k}]"
+        except Exception:
+            pass
+        for n in names:
+            v = os.environ.get(n, "")
+            if v.strip():
+                return clean(v), "env"
+        return "", ""
+
+    @staticmethod
+    def _visible_names(st):
+        """Names (never values) of the secrets this app can see, to help fix set-up mistakes."""
+        out = []
+        try:
+            for k in list(st.secrets.keys()):
+                out.append(f"{k} (section)" if hasattr(st.secrets[k], "keys") else str(k))
+        except Exception:
+            pass
+        return out
 
     @classmethod
     def from_secrets(cls, st=None):
-        def get(name, default=""):
-            try:
-                if st is not None and name in st.secrets:
-                    return str(st.secrets[name]).strip()
-            except Exception:
-                pass
-            return os.environ.get(name, default).strip()
+        def get(*names):
+            return cls._lookup(st, list(names))[0]
 
         def models(plural, single):
             raw = get(plural) or get(single)
@@ -645,9 +725,13 @@ class LLMClient:
             except Exception:
                 return default
 
-        return cls(get("GROQ_API_KEY"), get("GEMINI_API_KEY"),
-                   models("GROQ_MODELS", "GROQ_MODEL"), models("GEMINI_MODELS", "GEMINI_MODEL"),
-                   max_calls=as_int("AI_MAX_CALLS", 40), daily_cap=as_int("AI_DAILY_CAP", 800))
+        gk, gw = cls._lookup(st, ["GROQ_API_KEY", "GROQ_KEY", "GROQ_APIKEY"])
+        mk, mw = cls._lookup(st, ["GEMINI_API_KEY", "GEMINI_KEY", "GOOGLE_API_KEY", "GOOGLE_GEMINI_API_KEY"])
+        obj = cls(gk, mk, models("GROQ_MODELS", "GROQ_MODEL"), models("GEMINI_MODELS", "GEMINI_MODEL"),
+                  max_calls=as_int("AI_MAX_CALLS", 40), daily_cap=as_int("AI_DAILY_CAP", 800))
+        obj.found_in = {"groq": gw, "gemini": mw}
+        obj.visible = cls._visible_names(st)
+        return obj
 
     # ------------------------------------------------------------ state
     def providers(self):
@@ -670,8 +754,11 @@ class LLMClient:
             return "warn", ("🔴 <b>AI unavailable</b> — the <code>requests</code> package is missing. "
                             "Add <code>requests</code> to requirements.txt.")
         if not (self.groq_key or self.gemini_key):
-            return "off", ("⚪ <b>AI is not set up yet</b> — add <code>GROQ_API_KEY</code> and/or <code>GEMINI_API_KEY</code> "
-                           "in Streamlit Secrets. Until then I answer with built-in rules.")
+            seen = ", ".join(self.visible[:12]).replace("<", "").replace(">", "") or "none"
+            return "off", ("⚪ <b>AI is not set up yet</b> — I can't find <code>GROQ_API_KEY</code> or <code>GEMINI_API_KEY</code> "
+                           f"in Secrets. Secret names I can see: <code>{seen}</code>. Write the two key lines <b>above</b> any "
+                           "<code>[section]</code> line in the secrets text, save, then reboot the app. "
+                           "Until then I answer with built-in rules.")
         if not self.enabled:
             return "off", "⚪ <b>AI is switched off</b> — I'm answering with built-in rules only."
         if self.session_calls >= self.max_calls:
@@ -685,8 +772,11 @@ class LLMClient:
                                       else ("✓" if self.gemini_on else "(off)")))
         if not self.providers():
             return "warn", "🟠 <b>AI keys were rejected</b> (" + " · ".join(names) + "). Check the keys in Secrets."
-        return "ok", ("🟢 <b>AI ready</b> — " + " · ".join(names) +
-                      ". Only summary numbers are sent, never raw records or remarks.")
+        inside = [w for w in self.found_in.values() if w and w not in ("top", "env")]
+        note = (f" (key found inside <code>{inside[0]}</code>: it works, but it is tidier above the first [section] line)"
+                if inside else "")
+        return "ok", ("🟢 <b>AI ready</b> — " + " · ".join(names) + note +
+                      ". Only summary numbers are sent (no raw records, fault messages or free-text remarks).")
 
     # ------------------------------------------------------------ shared counters
     @staticmethod
@@ -844,8 +934,13 @@ def _keyed_container(st, key):
 
 def _get_llm(st):
     ss = st.session_state
-    if "ast_llm" not in ss:
-        ss.ast_llm = LLMClient.from_secrets(st)
+    old = ss.get("ast_llm")
+    if old is None or not old.configured():
+        # keep re-reading Secrets until keys are found, so adding them later works without a fresh browser session
+        new = LLMClient.from_secrets(st)
+        if old is not None:
+            new.session_calls = old.session_calls
+        ss.ast_llm = new
     llm = ss.ast_llm
     llm.enabled = bool(ss.get("ast_ai_on", True))
     llm.gemini_on = bool(ss.get("ast_gemini_on", True))
@@ -857,7 +952,7 @@ def _get_llm(st):
 # --------------------------------------------------------------------------
 class AssistantEngine:
     ENT_KEYS = (("stations", "STATION"), ("errors", "ERROR MAIN CATEGORY"),
-                ("depts", "DEPARTMENT"), ("jurs", "JURISDICTION"))
+                ("depts", "DEPARTMENT"), ("jurs", "JURISDICTION"), ("remarks", "REMARKS GIVEN BY S&T"))
 
     def __init__(self, df: pd.DataFrame, user_name: str = "", tools: dict | None = None, llm=None):
         d = df if df is not None else pd.DataFrame()
@@ -886,12 +981,19 @@ class AssistantEngine:
         self.errors = uniq("ERROR MAIN CATEGORY")
         self.depts = uniq("DEPARTMENT")
         self.jurs = uniq("JURISDICTION")
+        rem_vals = uniq("REMARKS GIVEN BY S&T")
+        # Remarks count as "categories" only when they are a short fixed list (like the dashboard's remark filter).
+        self.remarks = rem_vals if 1 <= len(rem_vals) <= 80 and max(len(v) for v in rem_vals) <= 60 else []
         self.kind_of = {}
         for kind, vals in (("stations", self.stations), ("errors", self.errors),
-                           ("depts", self.depts), ("jurs", self.jurs)):
+                           ("depts", self.depts), ("jurs", self.jurs), ("remarks", self.remarks)):
             for v in vals:
                 self.kind_of.setdefault(v.upper(), (kind, v))
         self.aliases = self._load_aliases()
+        known = set()
+        for v in self.stations + self.errors + self.depts + self.jurs + self.remarks + list(self.aliases):
+            known.update(re.findall(r"[a-z0-9]+", str(v).lower()))
+        self._known = known
 
     # ------------------------------------------------------------ aliases
     def _load_aliases(self):
@@ -933,7 +1035,8 @@ class AssistantEngine:
             note = ""
         except Exception:
             note = " (I'll remember it for this session only.)"
-        label = {"stations": "station", "errors": "error category", "depts": "department", "jurs": "jurisdiction"}[kind]
+        label = {"stations": "station", "errors": "error category", "depts": "department", "jurs": "jurisdiction",
+                 "remarks": "remark category"}[kind]
         return Reply(f"Learned! From now on **\"{phrase}\"** means the {label} **{canon}**.{note}",
                      chips=[f"Top 5 error categories at {canon}" if kind == "stations" else f"Top 5 stations for {canon}"],
                      intent="teach")
@@ -941,7 +1044,7 @@ class AssistantEngine:
     # ------------------------------------------------------------ entities
     def _extract(self, q: str):
         qw = q
-        ents = {"stations": [], "errors": [], "depts": [], "jurs": []}
+        ents = {"stations": [], "errors": [], "depts": [], "jurs": [], "remarks": []}
 
         def add(key, val):
             if val not in ents[key]:
@@ -970,6 +1073,25 @@ class AssistantEngine:
             if pat and pat.search(qw):
                 add("errors", e)
                 qw = pat.sub(" ", qw)
+        rem_text = qw
+        for rv in sorted(self.remarks, key=len, reverse=True):
+            if len(re.sub(r"[^A-Za-z0-9]", "", rv)) < 4 and "remark" not in qw.lower():
+                continue  # very short labels like "OK" would match ordinary words
+            pat = _loose_pat(rv)
+            if pat and pat.search(qw):
+                add("remarks", rv)
+                qw = pat.sub(" ", qw)
+        if self.remarks and len(ents["remarks"]) <= 1:
+            # a misspelt longer label ("attended onley") must beat an exact shorter one ("Attended")
+            hit = self._fuzzy_values(rem_text, self.remarks)
+            if hit:
+                def ntok(v):
+                    return len([t for t in re.findall(r"[a-z0-9]+", v.lower()) if len(t) >= 3]) or 1
+                if not ents["remarks"] or ntok(hit[0]) > ntok(ents["remarks"][0]):
+                    ents["remarks"] = [hit[0]]
+                    qw = rem_text
+                    for w in hit[1]:
+                        qw = re.sub(r"\b" + re.escape(w) + r"\b", " ", qw, flags=re.I)
         if not ents["errors"]:
             for e in self._fuzzy_errors(qw):
                 add("errors", e)
@@ -981,6 +1103,15 @@ class AssistantEngine:
                     if any(k in v.upper() for k in DEPT_KEYS[target]):
                         add("depts", v)
                 qw = pat.sub(" ", qw)
+        if not ents["depts"]:
+            for w in set(re.findall(r"[a-z]{6,}", qw.lower())):
+                for alias, target in DEPT_ALIAS.items():
+                    if len(alias) >= 6 and w != alias and _typo_close(w, alias):
+                        for v in self.depts:
+                            if any(k in v.upper() for k in DEPT_KEYS[target]):
+                                add("depts", v)
+                        qw = re.sub(r"\b" + re.escape(w) + r"\b", " ", qw, flags=re.I)
+                        break
         for dv in self.depts:
             pat = _loose_pat(dv)
             if pat and pat.search(qw):
@@ -1014,7 +1145,8 @@ class AssistantEngine:
             vw = [w for w in re.findall(r"[a-z0-9&]+", e.lower()) if len(w) > 2]
             if not vw:
                 continue
-            matched = sum(1 for w in vw if w in words or difflib.get_close_matches(w, words, n=1, cutoff=0.84))
+            matched = sum(1 for w in vw if w in words or difflib.get_close_matches(w, words, n=1, cutoff=0.84)
+                          or any(_typo_close(w, x) for x in words))
             frac = matched / len(vw)
             if (len(vw) >= 2 and matched >= 2 and frac >= 0.75) or (len(vw) == 1 and matched == 1):
                 hits.append((frac, e))
@@ -1022,6 +1154,47 @@ class AssistantEngine:
         return [e for _, e in hits[:2]]
 
     # ------------------------------------------------------------ scope
+    def _fix_typos(self, q: str) -> str:
+        """Repair misspelt command words (staton, departmnt, ocotber ...). Names of real stations / errors / remarks are left alone."""
+        vocab = set(VOCAB)
+        out = []
+        for tok in re.split(r"([^A-Za-z]+)", q):
+            low = tok.lower()
+            if (len(low) >= 5 and tok.isalpha() and tok != tok.upper() and low not in vocab
+                    and low not in self._known and low not in STOPWORDS and low not in COMMAND_WORDS):
+                best = sorted((v for v in VOCAB if _typo_close(low, v)), key=lambda v: _osa(low, v))
+                if best:
+                    tok = best[0]
+            out.append(tok)
+        return "".join(out)
+
+    def _fuzzy_values(self, text: str, values):
+        """Best remark-like value whose every word appears in `text`, allowing typing mistakes. Returns (value, words_used)."""
+        words = [w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in STOPWORDS and w not in COMMAND_WORDS]
+        if not words or not values:
+            return None
+        best = None
+        for v in values:
+            sig = [t for t in re.findall(r"[a-z0-9]+", v.lower()) if len(t) >= 3] or re.findall(r"[a-z0-9]+", v.lower())
+            if not sig or (len(sig) == 1 and len(sig[0]) < 5):
+                continue
+            used, miss, typos = [], 0, 0
+            for t in sig:
+                if t in words:
+                    used.append(t)
+                    continue
+                c = [w for w in words if len(w) >= 3 and len(t) >= 4 and _typo_close(t, w)]
+                if c:
+                    used.append(c[0])
+                    typos += 1
+                else:
+                    miss += 1
+            if miss == 0:
+                score = (len(sig), -typos)
+                if best is None or score > best[0]:
+                    best = (score, v, used)
+        return (best[1], best[2]) if best else None
+
     def _scope(self, ents, period=None, df=None):
         d = self.df if df is None else df
         for key, col in self.ENT_KEYS:
@@ -1204,7 +1377,10 @@ class AssistantEngine:
             f"{i.strftime('%b %y')}{'*' if (self.partial_last and i == part_m) else ''}: {int(v)}" for i, v in s.items()))
         tot = max(len(d), 1)
         for key, dim, label, k in (("stations", "station", "TOP STATIONS", 8), ("errors", "error", "TOP ERROR CATEGORIES", 6),
-                                   ("depts", "dept", "CASES BY DEPARTMENT", 6), ("jurs", "jur", "TOP JURISDICTIONS", 6)):
+                                   ("depts", "dept", "CASES BY DEPARTMENT", 6), ("jurs", "jur", "TOP JURISDICTIONS", 6),
+                                   ("remarks", "remark", "REMARK CATEGORIES (fixed labels)", 6)):
+            if key == "remarks" and not self.remarks:
+                continue
             if ents.get(key):
                 rest = {kk: (vv if kk != key else []) for kk, vv in ents.items()}
                 vc = self._group_counts(self._scope(rest, period), dim)
@@ -1361,6 +1537,12 @@ class AssistantEngine:
                 "Hello", "What can you do?", "How are you?", "Tell me a joke", "Fun fact", "Thank you",
                 "What is today's date?"],
         }
+        if self.remarks:
+            r1 = (list(self._group_counts(self.df, "remark").index[:1]) or self.remarks[:1])[0]
+            if len(r1) >= 4:
+                qs["📝 Remarks"] = ["Remark wise cases", f"Which station has more {r1}?", f"Top 5 stations for {r1}",
+                                    f"Top 5 error categories for {r1}", f"How many {r1} cases last month?",
+                                    "Pending remarks by jurisdiction"]
         if self.llm_ready():
             qs = {"🤖 Ask the AI": [
                 f"Why are cases high at {s1}?", f"Suggest actions to reduce {e1}", f"Explain {e1} and its common causes",
@@ -1413,6 +1595,8 @@ class AssistantEngine:
                 if re.search(pat, ql):
                     return self._smalltalk(name, replies)
 
+        q = self._fix_typos(q)
+        ql = q.lower()
         ents, qw = self._extract(q)
         core = qw.lower()
         intent = detect_intent(core)
@@ -1476,7 +1660,7 @@ class AssistantEngine:
             "datainfo": lambda: self._h_datainfo(),
             "insights": lambda: self._h_insights(ents, period),
             "top": lambda: self._h_top(ents, period, dim if dim != "month" else "station", n,
-                                       bool(re.search(r"\b(bottom|lowest|least|fewest|minimum)\b", core))),
+                                       bool(re.search(r"\b(bottom|lowest|least|fewest|minimum|less|fewer)\b", core))),
             "breakdown": lambda: self._h_top(ents, period, dim, 25, False, breakdown=True),
             "count": lambda: self._h_count(ents, period, want_chart),
             "list": lambda: self._h_list(ents, period, want_chart),
@@ -1511,7 +1695,7 @@ class AssistantEngine:
                 "Here's what I can do — just type it in your own words:\n\n"
                 "**📊 Numbers & rankings**\n"
                 "- *Top 10 stations in October* · *Bottom 5 stations* · *How many cases at SUR?*\n"
-                "- *Which department has the most Track Circuit Failure?*\n\n"
+                "- *Which department has the most Track Circuit Failure?* · *Which station has more Attended only?*\n\n"
                 "**📈 Trends & predictions**\n"
                 "- *Monthly trend for KLBG* · *Forecast next 3 months* · *Compare September vs October*\n"
                 "- *What if top 3 stations reduce cases by 30%?*\n\n"
@@ -1618,7 +1802,7 @@ class AssistantEngine:
                 f"**{_fmt(first['Cases'])} cases** ({first['Share %']}%).")
         if not ascending and len(tbl) >= 3 and dim != "month":
             body += f" The top 3 together account for **{tbl['Share %'].head(3).sum():.1f}%**."
-        scale = {"station": "Blues", "error": "Oranges", "dept": "GnBu", "jur": "Purples", "month": "Blues", "fault": "Reds"}[dim]
+        scale = {"station": "Blues", "error": "Oranges", "dept": "GnBu", "jur": "Purples", "month": "Blues", "fault": "Reds", "remark": "Greens"}[dim]
         if dim == "month":
             fig = px.bar(tbl, x=DIM_LABEL[dim], y="Cases", text="Cases", color="Cases", color_continuous_scale="Blues")
             fig.update_layout(coloraxis_showscale=False)
@@ -2138,6 +2322,7 @@ def log_interaction(user, query, reply: Reply, fb=None):
 _AST_CSS = """
 <style>
 .ast-title{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;color:#01579b;margin:.2rem 0 .9rem 0;}
+.ast-ver{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;color:#01579b;background:#e1f5fe;border:1px solid #81d4fa;border-radius:999px;padding:1px 9px;margin-left:8px;vertical-align:middle;}
 
 /* ---------- chat bubbles: solid background + dark text ---------- */
 div[data-testid="stChatMessage"]{background:#ffffff !important;border:1px solid #90caf9;border-radius:16px;
@@ -2217,7 +2402,8 @@ def render_assistant_tab(df_all, df_filtered, user_name, tools=None, show_traini
     ss.setdefault("ast_pending", None)
     ss.setdefault("ast_log", [])
     st.markdown(_AST_CSS, unsafe_allow_html=True)
-    st.markdown('<div class="ast-title">🤖 DRISHTI Assistant</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="ast-title">🤖 DRISHTI Assistant <span class="ast-ver">v{ASSISTANT_VERSION}</span></div>',
+                unsafe_allow_html=True)
 
     use_f = bool(ss.get("ast_use_filters", False))
     df = df_filtered if use_f else df_all
@@ -2259,8 +2445,8 @@ def render_assistant_tab(df_all, df_filtered, user_name, tools=None, show_traini
                         disabled=not llm.gemini_key,
                         help="Google's free Gemini tier may use prompts to improve its products. Switch off if unsure.")
             st.markdown(f"AI answers used in this session: **{llm.session_calls} / {llm.max_calls}**")
-            st.markdown("What is sent to the AI: totals, top station / error / department lists, monthly counts and risk scores. "
-                        "**Never** raw records, fault messages or remarks.")
+            st.markdown("What is sent to the AI: totals, top station / error / department lists, monthly counts, risk scores and "
+                        "counts of fixed remark labels. **Never** raw records, fault messages or free-text remarks.")
 
         if not ss.ast_msgs:
             w = engine.welcome()
