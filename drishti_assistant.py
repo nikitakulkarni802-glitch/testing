@@ -44,7 +44,7 @@ try:
 except Exception:  # pragma: no cover
     _IST = timezone(timedelta(hours=5, minutes=30))
 
-ASSISTANT_VERSION = "3.1"
+ASSISTANT_VERSION = "3.2"
 ALIAS_FILE = "assistant_aliases.json"
 LOG_FILE = "assistant_log.csv"
 
@@ -982,8 +982,20 @@ class AssistantEngine:
         self.depts = uniq("DEPARTMENT")
         self.jurs = uniq("JURISDICTION")
         rem_vals = uniq("REMARKS GIVEN BY S&T")
-        # Remarks count as "categories" only when they are a short fixed list (like the dashboard's remark filter).
-        self.remarks = rem_vals if 1 <= len(rem_vals) <= 80 and max(len(v) for v in rem_vals) <= 60 else []
+        rem_vals = [v for v in rem_vals if len(v) <= 150]
+        # Every distinct remark text can be matched locally (it never leaves the app) ...
+        self.remarks = rem_vals
+        # ... but remark texts are only ever shown to the AI when they are a short fixed list of labels.
+        self.remark_safe = bool(rem_vals) and len(rem_vals) <= 40 and max(len(v) for v in rem_vals) <= 40
+        self._rem_norm, self._rem_tok, self._near_cache = {}, {}, {}
+        for v in rem_vals:
+            nv = " ".join(re.findall(r"[a-z0-9]+", v.lower()))
+            if nv:
+                self._rem_norm.setdefault(nv, []).append(v)
+                for t in set(nv.split()):
+                    self._rem_tok.setdefault(t, set()).add(v)
+        self._rem_vocab = list(self._rem_tok)
+        self._rem_short = {v for vs in self._rem_norm.values() for v in vs if len(vs[0].split()) <= 6 or len(v.split()) <= 6}
         self.kind_of = {}
         for kind, vals in (("stations", self.stations), ("errors", self.errors),
                            ("depts", self.depts), ("jurs", self.jurs), ("remarks", self.remarks)):
@@ -991,9 +1003,10 @@ class AssistantEngine:
                 self.kind_of.setdefault(v.upper(), (kind, v))
         self.aliases = self._load_aliases()
         known = set()
-        for v in self.stations + self.errors + self.depts + self.jurs + self.remarks + list(self.aliases):
+        for v in self.stations + self.errors + self.depts + self.jurs + list(self.aliases):
             known.update(re.findall(r"[a-z0-9]+", str(v).lower()))
-        self._known = known
+        self._known_other = known
+        self._known = known | set(self._rem_vocab)
 
     # ------------------------------------------------------------ aliases
     def _load_aliases(self):
@@ -1074,27 +1087,59 @@ class AssistantEngine:
                 add("errors", e)
                 qw = pat.sub(" ", qw)
         rem_text = qw
-        for rv in sorted(self.remarks, key=len, reverse=True):
-            if len(re.sub(r"[^A-Za-z0-9]", "", rv)) < 4 and "remark" not in qw.lower():
-                continue  # very short labels like "OK" would match ordinary words
-            pat = _loose_pat(rv)
-            if pat and pat.search(qw):
-                add("remarks", rv)
-                qw = pat.sub(" ", qw)
-        if self.remarks and len(ents["remarks"]) <= 1:
-            # a misspelt longer label ("attended onley") must beat an exact shorter one ("Attended")
-            hit = self._fuzzy_values(rem_text, self.remarks)
-            if hit:
-                def ntok(v):
-                    return len([t for t in re.findall(r"[a-z0-9]+", v.lower()) if len(t) >= 3]) or 1
-                if not ents["remarks"] or ntok(hit[0]) > ntok(ents["remarks"][0]):
-                    ents["remarks"] = [hit[0]]
-                    qw = rem_text
-                    for w in hit[1]:
-                        qw = re.sub(r"\b" + re.escape(w) + r"\b", " ", qw, flags=re.I)
+        if self._rem_norm:
+            toks = [(m.group().lower(), m.start(), m.end()) for m in re.finditer(r"[A-Za-z0-9]+", qw)]
+            has_rword = bool(re.search(r"\bremarks?\b", qw, re.I))
+            spans, i = [], 0
+            while i < len(toks):
+                hit = None
+                for n in range(min(8, len(toks) - i), 0, -1):
+                    key = " ".join(t[0] for t in toks[i:i + n])
+                    if key in self._rem_norm:
+                        if n == 1 and len(key) < 4 and not has_rword:
+                            continue  # very short labels like "OK" would match ordinary words
+                        hit = (n, key)
+                        break
+                if hit:
+                    for v in self._rem_norm[hit[1]]:
+                        add("remarks", v)
+                    spans.append((toks[i][1], toks[i + hit[0] - 1][2]))
+                    i += hit[0]
+                else:
+                    i += 1
+            for x, y in reversed(spans):
+                qw = qw[:x] + " " * (y - x) + qw[y:]
+            if len(spans) <= 1:
+                # a misspelt longer label ("attended onley") must beat an exact shorter one ("Attended")
+                hit = self._fuzzy_remark(rem_text)
+                if hit:
+                    def ntok(v):
+                        return len([t for t in re.findall(r"[a-z0-9]+", v.lower()) if len(t) >= 3]) or 1
+                    cur = ents["remarks"]
+                    if not cur or ntok(hit[0]) > ntok(cur[0]):
+                        ents["remarks"] = []
+                        for v in self._rem_norm.get(" ".join(re.findall(r"[a-z0-9]+", hit[0].lower())), [hit[0]]):
+                            add("remarks", v)
+                        qw = rem_text
+                        for w in hit[1]:
+                            qw = re.sub(r"\b" + re.escape(w) + r"\b", " ", qw, flags=re.I)
         if not ents["errors"]:
             for e in self._fuzzy_errors(qw):
                 add("errors", e)
+        if self._rem_norm and not ents["remarks"] and not ents["errors"] and (
+                re.search(r"\bremarks?\b", qw, re.I) or re.search(r"\bcategor", qw, re.I)):
+            # "remarks buzzer" / "relay category": any remark that contains the word (only when it is specific enough)
+            for w in re.findall(r"[a-z0-9]+", qw.lower()):
+                if len(w) < 5 or w in STOPWORDS or w in COMMAND_WORDS or w in self._known_other:
+                    continue
+                vals = set()
+                for t in self._near_tokens(w):
+                    vals |= self._rem_tok.get(t, set())
+                if 1 <= len(vals) <= 40:
+                    for v in sorted(vals):
+                        add("remarks", v)
+                    qw = re.sub(r"\b" + re.escape(w) + r"\b", " ", qw, flags=re.I)
+                    break
 
         for alias, target in DEPT_ALIAS.items():
             pat = re.compile(r"(?<![A-Za-z0-9&/])" + re.escape(alias) + r"(?![A-Za-z0-9&/])", re.I)
@@ -1168,6 +1213,27 @@ class AssistantEngine:
             out.append(tok)
         return "".join(out)
 
+    def _near_tokens(self, w: str):
+        """Remark-vocabulary words equal to `w` or a plausible misspelling of it (cached)."""
+        hit = self._near_cache.get(w)
+        if hit is None:
+            hit = [t for t in self._rem_vocab if t == w or (len(w) >= 3 and len(t) >= 4 and _typo_close(w, t))]
+            self._near_cache[w] = hit
+        return hit
+
+    def _fuzzy_remark(self, text: str):
+        """Typo-tolerant match of a short remark label inside the question. Returns (value, words_used) or None."""
+        words = [w for w in re.findall(r"[a-z0-9]+", text.lower())
+                 if len(w) >= 3 and w not in STOPWORDS and w not in COMMAND_WORDS]
+        if not words:
+            return None
+        cand = set()
+        for w in words[:12]:
+            for t in self._near_tokens(w):
+                cand |= self._rem_tok.get(t, set())
+        cand = [v for v in cand if v in self._rem_short]
+        return self._fuzzy_values(text, cand) if cand else None
+
     def _fuzzy_values(self, text: str, values):
         """Best remark-like value whose every word appears in `text`, allowing typing mistakes. Returns (value, words_used)."""
         words = [w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in STOPWORDS and w not in COMMAND_WORDS]
@@ -1211,7 +1277,10 @@ class AssistantEngine:
         parts = []
         for key, _ in self.ENT_KEYS:
             if ents.get(key):
-                parts.append(", ".join(ents[key]))
+                if key == "remarks" and len(ents[key]) > 3:
+                    parts.append(f"{len(ents[key])} matching remark variants")
+                else:
+                    parts.append(", ".join(ents[key]))
         if period:
             parts.append(period.label)
         if not parts:
@@ -1219,7 +1288,7 @@ class AssistantEngine:
         return "for " + " · ".join(parts)
 
     def _tail(self, ents, period):
-        vals = [v for key, _ in self.ENT_KEYS for v in ents.get(key, [])]
+        vals = [v for key, _ in self.ENT_KEYS for v in ents.get(key, []) if not (key == "remarks" and len(ents[key]) > 3)]
         t = (" for " + ", ".join(vals)) if vals else ""
         if period:
             t += " in " + period.label.replace(" (so far)", "")
@@ -1366,7 +1435,9 @@ class AssistantEngine:
         if self.partial_last:
             L.append(f"NOTE: {self.anchor.strftime('%B %Y')} is a PARTIAL month (data only up to {self.anchor.strftime('%d %b')}); "
                      "its totals are not comparable with full months.")
-        L.append(f"QUESTION SCOPE: {self._desc(ents, period)} -> {_fmt(len(d))} cases.")
+        etext = ents if self.remark_safe else {**ents, "remarks": []}
+        L.append(f"QUESTION SCOPE: {self._desc(etext, period)}"
+                 f"{' (filtered by a remark)' if ents.get('remarks') and not self.remark_safe else ''} -> {_fmt(len(d))} cases.")
         if d.empty:
             L.append("No records match this scope.")
             return "\n".join(L)
@@ -1379,7 +1450,7 @@ class AssistantEngine:
         for key, dim, label, k in (("stations", "station", "TOP STATIONS", 8), ("errors", "error", "TOP ERROR CATEGORIES", 6),
                                    ("depts", "dept", "CASES BY DEPARTMENT", 6), ("jurs", "jur", "TOP JURISDICTIONS", 6),
                                    ("remarks", "remark", "REMARK CATEGORIES (fixed labels)", 6)):
-            if key == "remarks" and not self.remarks:
+            if key == "remarks" and not self.remark_safe:
                 continue
             if ents.get(key):
                 rest = {kk: (vv if kk != key else []) for kk, vv in ents.items()}
@@ -1537,12 +1608,15 @@ class AssistantEngine:
                 "Hello", "What can you do?", "How are you?", "Tell me a joke", "Fun fact", "Thank you",
                 "What is today's date?"],
         }
-        if self.remarks:
-            r1 = (list(self._group_counts(self.df, "remark").index[:1]) or self.remarks[:1])[0]
-            if len(r1) >= 4:
-                qs["📝 Remarks"] = ["Remark wise cases", f"Which station has more {r1}?", f"Top 5 stations for {r1}",
-                                    f"Top 5 error categories for {r1}", f"How many {r1} cases last month?",
-                                    "Pending remarks by jurisdiction"]
+        if self._rem_norm:
+            labels = [v for v in self._group_counts(self.df, "remark").index if 4 <= len(v) <= 40][:2]
+            if labels:
+                r1 = labels[0]
+                qq = ["Remark wise cases", f"Which station has more {r1}?", f"Top 5 stations for {r1}"]
+                if len(labels) > 1:
+                    qq.append(f"Which station has more {labels[1]}?")
+                qq += [f"Top 5 error categories for {r1}", f"How many {r1} cases last month?", "Pending remarks by jurisdiction"]
+                qs["📝 Remarks"] = qq
         if self.llm_ready():
             qs = {"🤖 Ask the AI": [
                 f"Why are cases high at {s1}?", f"Suggest actions to reduce {e1}", f"Explain {e1} and its common causes",
@@ -1683,6 +1757,9 @@ class AssistantEngine:
             ctx["last_text"] = re.sub(r"[*_`#]", "", reply.text)[:900]
             ctx["last_table"] = (reply.table.head(15).iloc[:, :6].to_csv(index=False)
                                  if reply.table is not None and intent in AI_TABLE_INTENTS else "")
+            if not self.remark_safe and (ents.get("remarks") or (reply.table is not None and "Remark" in reply.table.columns)):
+                ctx["last_text"] = "(This answer was filtered or grouped by remarks; remark texts are withheld from the AI.)"
+                ctx["last_table"] = ""
             if self.llm_ready():
                 reply.chips = list(reply.chips)[:5] + ["Why? Explain this with AI"]
         return reply
